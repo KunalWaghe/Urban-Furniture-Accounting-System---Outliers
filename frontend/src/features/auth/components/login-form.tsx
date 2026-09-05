@@ -72,9 +72,13 @@ export function LoginForm() {
           </div>
 
           <div className="pt-2">
-            <Button type="submit" className="h-10 w-full gap-2 font-semibold">
-              Sign in
-              <ArrowRight />
+            <Button
+              type="submit"
+              className="h-10 w-full gap-2 font-semibold"
+              disabled={form.isSubmitting}
+            >
+              {form.isSubmitting ? "Signing in…" : "Sign in"}
+              {!form.isSubmitting && <ArrowRight />}
             </Button>
           </div>
         </form>

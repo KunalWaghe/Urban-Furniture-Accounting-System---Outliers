@@ -18,8 +18,8 @@ def setup_db():
 
 def test_auth_register_and_login_flow():
     with TestClient(app) as client:
-        test_email = "riya.test@urbanfurniture.com"
-        test_password = "SecureP@ssword123"
+        test_email = "riya@urbanfurniture.com"
+        test_password = "password"
         test_name = "Riya Test"
 
         # 1. Register new user

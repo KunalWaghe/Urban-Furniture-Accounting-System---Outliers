@@ -125,9 +125,10 @@ export function SignupForm() {
             <Button
               type="submit"
               className="order-1 h-10 flex-1 gap-2 font-semibold sm:order-2"
+              disabled={form.isSubmitting}
             >
-              Create account
-              <Check />
+              {form.isSubmitting ? "Creating account…" : "Create account"}
+              {!form.isSubmitting && <Check />}
             </Button>
             <Link
               href="/login"
