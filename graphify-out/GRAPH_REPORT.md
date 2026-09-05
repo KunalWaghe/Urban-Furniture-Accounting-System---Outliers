@@ -1,16 +1,16 @@
 # Graph Report - Urban-Furniture-Accounting-System---Outliers  (2026-09-05)
 
 ## Corpus Check
-- 107 files · ~487,083 words
+- 111 files · ~488,442 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1280 nodes · 1706 edges · 150 communities (98 shown, 52 thin omitted)
+- 1299 nodes · 1750 edges · 155 communities (103 shown, 52 thin omitted)
 - Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 188 edges (avg confidence: 0.56)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `678f4be0`
+- Built from commit: `9488cff1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -154,6 +154,11 @@
 - [[_COMMUNITY_Community 147|Community 147]]
 - [[_COMMUNITY_Community 148|Community 148]]
 - [[_COMMUNITY_Community 149|Community 149]]
+- [[_COMMUNITY_Community 150|Community 150]]
+- [[_COMMUNITY_Community 151|Community 151]]
+- [[_COMMUNITY_Community 152|Community 152]]
+- [[_COMMUNITY_Community 153|Community 153]]
+- [[_COMMUNITY_Community 154|Community 154]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `User` - 34 edges
@@ -184,7 +189,7 @@
 - **Double-Entry Accounting & Journal Subsystem** — backend_app_routers_journals_py, backend_app_services_accounting_service_py, backend_app_models_journal_py [INFERRED 0.95]
 - **Master Data Management (Contacts, Products, Accounts)** — backend_app_routers_contacts_py, backend_app_routers_products_py, backend_app_routers_accounts_py [INFERRED 0.90]
 
-## Communities (150 total, 52 thin omitted)
+## Communities (155 total, 52 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.15
@@ -192,15 +197,15 @@ Nodes (28): AuthResponse, LoginRequest, RegisterRequest, Session, User, AdminUse
 
 ### Community 1 - "Community 1"
 Cohesion: 0.06
-Nodes (40): getAuthErrorMessage(), LOGIN_FIELD_MAP, mapApiFieldsToLoginErrors(), mapApiFieldsToSignupErrors(), SIGNUP_FIELD_MAP, ADMIN_CREATABLE_ROLES, AdminCreatableRole, AuthNotice (+32 more)
+Nodes (42): getAuthErrorMessage(), LOGIN_FIELD_MAP, mapApiFieldsToLoginErrors(), mapApiFieldsToSignupErrors(), SIGNUP_FIELD_MAP, ADMIN_CREATABLE_ROLES, AdminCreatableRole, AuthNotice (+34 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.05
 Nodes (33): metadata, AppDashboardPage(), AuthProvider(), useAuth(), AppProviders(), DataTableColumn, DataTableProps, EmptyState() (+25 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.09
-Nodes (42): fetchCurrentUser(), loginRequest(), registerRequest(), AuthContext, AuthContextValue, clearSession(), clearStoredUser(), getInitialSession() (+34 more)
+Cohesion: 0.06
+Nodes (51): fetchCurrentUser(), loginRequest(), registerRequest(), AuthContext, AuthContextValue, clearSession(), clearStoredUser(), getInitialSession() (+43 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.12
@@ -443,8 +448,8 @@ Cohesion: 0.15
 Nodes (13): Header Navigation Click Handler, ERP Navigation Categories, Role Filtered Header Categories, Site Header, Header Subnavigation Item, All Sidebar Navigation Items, Role Filtered Navigation, Site Sidebar (+5 more)
 
 ### Community 86 - "Community 86"
-Cohesion: 0.06
-Nodes (55): Model Package Exports, Service Package Exports, Admin User Create Request, Authentication Response, Login Request, Register Request, Admin Create User, Login User (+47 more)
+Cohesion: 0.20
+Nodes (14): Contact, Contact Create Schema, Contact List Response Schema, Contact Response Schema, Contact Update Schema, Create Contact, Delete Contact, Get Contact By ID (+6 more)
 
 ### Community 87 - "Community 87"
 Cohesion: 0.20
@@ -455,8 +460,8 @@ Cohesion: 0.16
 Nodes (26): bool, ContactCreate, ContactUpdate, int, Session, str, Contact, NotFoundException (+18 more)
 
 ### Community 89 - "Community 89"
-Cohesion: 0.15
-Nodes (17): Account, Account Base Schema, Account Create Schema, Account List Response Schema, Account Response Schema, Default Chart of Accounts, Default Journals Configuration, Get Accounts (+9 more)
+Cohesion: 0.20
+Nodes (14): Model Package Exports, Account, Default Chart of Accounts, Default Journals Configuration, Get Accounts, Get Journals, Seed Accounting Defaults, Journal (+6 more)
 
 ### Community 90 - "Community 90"
 Cohesion: 0.24
@@ -534,8 +539,28 @@ Nodes (3): Application Providers, Make Query Client, Query Provider
 Cohesion: 0.67
 Nodes (3): Balance Sheet Equation Check, Reviewer Golden Demo Path, Reviewer Brief Live Status
 
+### Community 150 - "Community 150"
+Cohesion: 0.19
+Nodes (13): Service Package Exports, Product, Product Create Schema, Product List Response Schema, Product Response Schema, Product Update Schema, Create Product, Delete Product (+5 more)
+
+### Community 151 - "Community 151"
+Cohesion: 0.31
+Nodes (10): Authentication Response, Register Request, Register User, Application Exception, Conflict Exception, Forbidden Exception, Registration Role Expectation Conflict, Admin Role Registration Rejection Test (+2 more)
+
+### Community 152 - "Community 152"
+Cohesion: 0.20
+Nodes (10): Login Request, Login User, Application Exception Handler, Build Error Response, Generic Exception Handler, Unauthorized Exception, Validation Exception Handler, Authentication Login Validation Test (+2 more)
+
+### Community 153 - "Community 153"
+Cohesion: 0.33
+Nodes (7): Admin User Create Request, Admin Create User, Authentication Role Map, User Profile Response, Admin User Creation Access Test, Role Gates and Admin Creation Test, User
+
+### Community 154 - "Community 154"
+Cohesion: 0.50
+Nodes (4): Account Base Schema, Account Create Schema, Account List Response Schema, Account Response Schema
+
 ## Knowledge Gaps
-- **543 isolated node(s):** `config`, `name`, `version`, `private`, `dev` (+538 more)
+- **546 isolated node(s):** `config`, `name`, `version`, `private`, `dev` (+541 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **52 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -543,11 +568,11 @@ Nodes (3): Balance Sheet Equation Check, Reviewer Golden Demo Path, Reviewer Bri
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `FastAPI` connect `Community 90` to `Community 33`, `Community 34`, `Community 35`, `Community 27`, `Community 14`, `Community 15`, `Community 91`, `Community 94`?**
-  _High betweenness centrality (0.094) - this node is a cross-community bridge._
-- **Why does `NotFoundException` connect `Community 88` to `Community 90`, `Community 4`, `Community 98`?**
-  _High betweenness centrality (0.029) - this node is a cross-community bridge._
-- **Why does `RequestValidationError` connect `Community 90` to `Community 0`, `Community 88`, `Community 98`, `Community 91`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+  _High betweenness centrality (0.095) - this node is a cross-community bridge._
+- **Why does `Base` connect `Community 7` to `Community 0`, `Community 4`?**
+  _High betweenness centrality (0.041) - this node is a cross-community bridge._
+- **Why does `User` connect `Community 0` to `Community 7`, `Community 91`, `Community 14`, `Community 15`, `Community 27`?**
+  _High betweenness centrality (0.030) - this node is a cross-community bridge._
 - **Are the 32 inferred relationships involving `User` (e.g. with `AuthResponse` and `Session`) actually correct?**
   _`User` has 32 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 18 inferred relationships involving `ValidationException` (e.g. with `AuthResponse` and `AdminUserCreateRequest`) actually correct?**
@@ -555,4 +580,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 17 inferred relationships involving `NotFoundException` (e.g. with `bool` and `ContactCreate`) actually correct?**
   _`NotFoundException` has 17 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `config`, `name`, `version` to the rest of the system?**
-  _682 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _685 weakly-connected nodes found - possible documentation gaps or missing edges._

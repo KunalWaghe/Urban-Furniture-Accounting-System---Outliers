@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import Link from "next/link";
 import {
   BarChart3,
   Check,
@@ -359,17 +360,13 @@ export default function AppDashboardPage() {
           </div>
 
           <div className="flex items-center gap-3 self-end sm:self-auto">
-            <button
-              type="button"
-              onClick={() => {
-                setSalesFilterStatus("all");
-                showToast(`Viewing all ${salesOrders.length} sales orders`);
-              }}
+            <Link
+              href="/sales-orders"
               className="inline-flex items-center gap-1 text-xs font-semibold text-primary-600 hover:text-primary-700 hover:underline transition-colors"
             >
               <span>View all sales orders</span>
               <span>→</span>
-            </button>
+            </Link>
             <button
               type="button"
               onClick={handleRefresh}
@@ -692,17 +689,13 @@ export default function AppDashboardPage() {
           </div>
 
           <div className="flex items-center gap-3 self-end sm:self-auto">
-            <button
-              type="button"
-              onClick={() => {
-                setPurchaseActiveTab("po");
-                showToast(`Viewing all ${purchaseOrders.length} procurement orders`);
-              }}
+            <Link
+              href="/purchase-orders"
               className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors dark:text-indigo-400"
             >
               <span>View all purchase orders</span>
               <span>→</span>
-            </button>
+            </Link>
             <button
               type="button"
               onClick={() => setIsCreatePOModalOpen(true)}

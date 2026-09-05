@@ -31,7 +31,8 @@ interface NavItem {
 
 export const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Purchase Orders", href: "#", icon: ShoppingCart, roles: ["admin", "invoicing_user"] },
+  { label: "Sales Orders", href: "/sales-orders", icon: FileText, roles: ["admin", "invoicing_user"] },
+  { label: "Purchase Orders", href: "/purchase-orders", icon: ShoppingCart, roles: ["admin", "invoicing_user"] },
   { label: "Bills", href: "#", icon: Receipt, roles: ["admin", "invoicing_user"] },
   { label: "Payments", href: "#", icon: CreditCard, roles: ["admin", "invoicing_user"] },
   { label: "Reports", href: "#", icon: BarChart3, roles: ["admin", "invoicing_user"] },

@@ -805,7 +805,7 @@
       "label": "AppDashboardPage()",
       "file_type": "code",
       "source_file": "frontend/src/app/(app)/page.tsx",
-      "source_location": "L38",
+      "source_location": "L39",
       "id": "app_page_appdashboardpage",
       "community": 2,
       "norm_label": "appdashboardpage()"
@@ -814,7 +814,7 @@
       "label": "CreateSalesOrderModal()",
       "file_type": "code",
       "source_file": "frontend/src/app/(app)/page.tsx",
-      "source_location": "L1533",
+      "source_location": "L1526",
       "id": "app_page_createsalesordermodal",
       "community": 3,
       "norm_label": "createsalesordermodal()"
@@ -823,10 +823,28 @@
       "label": "CreatePurchaseOrderModal()",
       "file_type": "code",
       "source_file": "frontend/src/app/(app)/page.tsx",
-      "source_location": "L1712",
+      "source_location": "L1705",
       "id": "app_page_createpurchaseordermodal",
       "community": 3,
       "norm_label": "createpurchaseordermodal()"
+    },
+    {
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "frontend/src/app/(app)/purchase-orders/page.tsx",
+      "source_location": "L1",
+      "id": "frontend_src_app_app_purchase_orders_page_tsx",
+      "community": 3,
+      "norm_label": "page.tsx"
+    },
+    {
+      "label": "PurchaseOrdersPage()",
+      "file_type": "code",
+      "source_file": "frontend/src/app/(app)/purchase-orders/page.tsx",
+      "source_location": "L3",
+      "id": "purchase_orders_page_purchaseorderspage",
+      "community": 3,
+      "norm_label": "purchaseorderspage()"
     },
     {
       "label": "page.tsx",
@@ -845,6 +863,24 @@
       "id": "users_page_adminuserspage",
       "community": 2,
       "norm_label": "adminuserspage()"
+    },
+    {
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "frontend/src/app/(app)/sales-orders/page.tsx",
+      "source_location": "L1",
+      "id": "frontend_src_app_app_sales_orders_page_tsx",
+      "community": 3,
+      "norm_label": "page.tsx"
+    },
+    {
+      "label": "SalesOrdersPage()",
+      "file_type": "code",
+      "source_file": "frontend/src/app/(app)/sales-orders/page.tsx",
+      "source_location": "L3",
+      "id": "sales_orders_page_salesorderspage",
+      "community": 3,
+      "norm_label": "salesorderspage()"
     },
     {
       "label": "layout.tsx",
@@ -1392,7 +1428,7 @@
       "source_file": "frontend/src/features/auth/components/signup-form.tsx",
       "source_location": "L15",
       "id": "components_signup_form_signupformprops",
-      "community": 3,
+      "community": 1,
       "norm_label": "signupformprops"
     },
     {
@@ -1455,7 +1491,7 @@
       "source_file": "frontend/src/features/auth/hooks/use-signup-form.ts",
       "source_location": "L27",
       "id": "hooks_use_signup_form_usesignupformoptions",
-      "community": 3,
+      "community": 1,
       "norm_label": "usesignupformoptions"
     },
     {
@@ -1529,6 +1565,141 @@
       "id": "dashboard_dashboard_api_builddashboarddatafrombackend",
       "community": 3,
       "norm_label": "builddashboarddatafrombackend()"
+    },
+    {
+      "label": "orders-list-page.tsx",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L1",
+      "id": "frontend_src_features_orders_orders_list_page_tsx",
+      "community": 3,
+      "norm_label": "orders-list-page.tsx"
+    },
+    {
+      "label": "OrderKind",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L21",
+      "id": "orders_orders_list_page_orderkind",
+      "community": 3,
+      "norm_label": "orderkind"
+    },
+    {
+      "label": "Order",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L22",
+      "id": "orders_orders_list_page_order",
+      "community": 3,
+      "norm_label": "order"
+    },
+    {
+      "label": "OrdersListPageProps",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L24",
+      "id": "orders_orders_list_page_orderslistpageprops",
+      "community": 3,
+      "norm_label": "orderslistpageprops"
+    },
+    {
+      "label": "currency()",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L28",
+      "id": "orders_orders_list_page_currency",
+      "community": 3,
+      "norm_label": "currency()"
+    },
+    {
+      "label": "isSalesOrder()",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L32",
+      "id": "orders_orders_list_page_issalesorder",
+      "community": 3,
+      "norm_label": "issalesorder()"
+    },
+    {
+      "label": "statusClasses()",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L36",
+      "id": "orders_orders_list_page_statusclasses",
+      "community": 3,
+      "norm_label": "statusclasses()"
+    },
+    {
+      "label": "OrderStatus()",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L46",
+      "id": "orders_orders_list_page_orderstatus",
+      "community": 3,
+      "norm_label": "orderstatus()"
+    },
+    {
+      "label": "OrdersListPage()",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L57",
+      "id": "orders_orders_list_page_orderslistpage",
+      "community": 3,
+      "norm_label": "orderslistpage()"
+    },
+    {
+      "label": "StatCard()",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L268",
+      "id": "orders_orders_list_page_statcard",
+      "community": 3,
+      "norm_label": "statcard()"
+    },
+    {
+      "label": "OrderDetails()",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L301",
+      "id": "orders_orders_list_page_orderdetails",
+      "community": 3,
+      "norm_label": "orderdetails()"
+    },
+    {
+      "label": "Detail()",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L368",
+      "id": "orders_orders_list_page_detail",
+      "community": 3,
+      "norm_label": "detail()"
+    },
+    {
+      "label": "orders-api.ts",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L1",
+      "id": "frontend_src_features_orders_orders_api_ts",
+      "community": 3,
+      "norm_label": "orders-api.ts"
+    },
+    {
+      "label": "fetchSalesOrders()",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L8",
+      "id": "orders_orders_api_fetchsalesorders",
+      "community": 3,
+      "norm_label": "fetchsalesorders()"
+    },
+    {
+      "label": "fetchPurchaseOrders()",
+      "file_type": "code",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L17",
+      "id": "orders_orders_api_fetchpurchaseorders",
+      "community": 3,
+      "norm_label": "fetchpurchaseorders()"
     },
     {
       "label": "theme-provider.tsx",
@@ -1714,7 +1885,7 @@
       "label": "SiteSidebar()",
       "file_type": "code",
       "source_file": "frontend/src/components/site-sidebar.tsx",
-      "source_location": "L42",
+      "source_location": "L43",
       "id": "components_site_sidebar_sitesidebar",
       "community": 2,
       "norm_label": "sitesidebar()"
@@ -2220,7 +2391,7 @@
       "source_file": "frontend/src/lib/utils.ts",
       "source_location": "L1",
       "id": "frontend_src_lib_utils_ts",
-      "community": 1,
+      "community": 2,
       "norm_label": "utils.ts"
     },
     {
@@ -2238,7 +2409,7 @@
       "source_file": "frontend/src/lib/api.ts",
       "source_location": "L5",
       "id": "lib_api_apierror",
-      "community": 1,
+      "community": 3,
       "norm_label": "apierror"
     },
     {
@@ -2247,7 +2418,7 @@
       "source_file": "frontend/src/lib/api.ts",
       "source_location": "L11",
       "id": "lib_api_apierror_constructor",
-      "community": 1,
+      "community": 3,
       "norm_label": ".constructor()"
     },
     {
@@ -2328,7 +2499,7 @@
       "source_file": "frontend/src/lib/types.ts",
       "source_location": "L1",
       "id": "lib_types_authuser",
-      "community": 3,
+      "community": 1,
       "norm_label": "authuser"
     },
     {
@@ -10457,7 +10628,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 151,
       "norm_label": "application exception",
       "id": "exceptions_appexception"
     },
@@ -10483,7 +10654,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 151,
       "norm_label": "conflict exception",
       "id": "exceptions_conflictexception"
     },
@@ -10509,7 +10680,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 152,
       "norm_label": "unauthorized exception",
       "id": "exceptions_unauthorizedexception"
     },
@@ -10522,7 +10693,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 151,
       "norm_label": "forbidden exception",
       "id": "exceptions_forbiddenexception"
     },
@@ -10535,7 +10706,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 152,
       "norm_label": "build error response",
       "id": "exceptions_build_error_response"
     },
@@ -10548,7 +10719,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 152,
       "norm_label": "application exception handler",
       "id": "exceptions_app_exception_handler"
     },
@@ -10561,7 +10732,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 152,
       "norm_label": "validation exception handler",
       "id": "exceptions_validation_exception_handler"
     },
@@ -10574,7 +10745,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 152,
       "norm_label": "generic exception handler",
       "id": "exceptions_generic_exception_handler"
     },
@@ -10587,7 +10758,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 153,
       "norm_label": "user",
       "id": "user_user"
     },
@@ -10613,7 +10784,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "product",
       "id": "product_product"
     },
@@ -10652,7 +10823,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 89,
       "norm_label": "model package exports",
       "id": "__init___models_exports"
     },
@@ -10665,7 +10836,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 151,
       "norm_label": "register request",
       "id": "auth_register_request"
     },
@@ -10678,7 +10849,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 153,
       "norm_label": "admin user create request",
       "id": "auth_admin_user_create_request"
     },
@@ -10691,7 +10862,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 152,
       "norm_label": "login request",
       "id": "auth_login_request"
     },
@@ -10704,7 +10875,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 151,
       "norm_label": "authentication response",
       "id": "auth_auth_response"
     },
@@ -10717,7 +10888,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 153,
       "norm_label": "user profile response",
       "id": "auth_user_profile_response"
     },
@@ -10795,7 +10966,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "product create schema",
       "id": "product_product_create"
     },
@@ -10808,7 +10979,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "product update schema",
       "id": "product_product_update"
     },
@@ -10821,7 +10992,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "product response schema",
       "id": "product_product_response"
     },
@@ -10834,7 +11005,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "product list response schema",
       "id": "product_product_list_response"
     },
@@ -10899,7 +11070,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 89,
+      "community": 154,
       "norm_label": "account base schema",
       "id": "account_account_base"
     },
@@ -10912,7 +11083,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 89,
+      "community": 154,
       "norm_label": "account create schema",
       "id": "account_account_create"
     },
@@ -10925,7 +11096,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 89,
+      "community": 154,
       "norm_label": "account response schema",
       "id": "account_account_response"
     },
@@ -10938,7 +11109,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 89,
+      "community": 154,
       "norm_label": "account list response schema",
       "id": "account_account_list_response"
     },
@@ -10951,7 +11122,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 153,
       "norm_label": "authentication role map",
       "id": "auth_service_role_map"
     },
@@ -10964,7 +11135,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 151,
       "norm_label": "register user",
       "id": "auth_service_register_user"
     },
@@ -10977,7 +11148,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 153,
       "norm_label": "admin create user",
       "id": "auth_service_admin_create_user"
     },
@@ -10990,7 +11161,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 152,
       "norm_label": "login user",
       "id": "auth_service_login_user"
     },
@@ -11146,7 +11317,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "create product",
       "id": "product_service_create_product"
     },
@@ -11159,7 +11330,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "get products",
       "id": "product_service_get_products"
     },
@@ -11172,7 +11343,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "get product by id",
       "id": "product_service_get_product_by_id"
     },
@@ -11185,7 +11356,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "update product",
       "id": "product_service_update_product"
     },
@@ -11198,7 +11369,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "delete product",
       "id": "product_service_delete_product"
     },
@@ -11211,7 +11382,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "service package exports",
       "id": "__init___services_exports"
     },
@@ -11276,7 +11447,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "product crud flow test",
       "id": "test_products_test_product_crud_flow"
     },
@@ -11289,7 +11460,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 150,
       "norm_label": "product validation errors test",
       "id": "test_products_test_product_validation_errors"
     },
@@ -11315,7 +11486,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 151,
       "norm_label": "public registration role test",
       "id": "test_auth_test_public_registration_creates_accountant_role_only"
     },
@@ -11328,7 +11499,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 153,
       "norm_label": "admin user creation access test",
       "id": "test_auth_test_create_user_endpoint_strictly_restricted_to_admin"
     },
@@ -11341,7 +11512,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 152,
       "norm_label": "authentication login validation test",
       "id": "test_auth_test_auth_login_and_validations"
     },
@@ -11354,7 +11525,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 152,
       "norm_label": "authentication input validation test",
       "id": "test_auth_test_auth_validations"
     },
@@ -11367,7 +11538,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 153,
       "norm_label": "role gates and admin creation test",
       "id": "test_auth_test_role_gates_and_admin_user_creation"
     },
@@ -11380,7 +11551,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 151,
       "norm_label": "admin role registration rejection test",
       "id": "test_auth_test_auth_register_rejects_admin_role_in_payload"
     },
@@ -11393,7 +11564,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 151,
       "norm_label": "registration service role guard test",
       "id": "test_auth_test_auth_service_register_user_raises_forbidden_for_admin_role"
     },
@@ -11406,7 +11577,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 151,
       "norm_label": "registration role expectation conflict",
       "id": "test_auth_registration_role_expectation_conflict"
     },
@@ -11445,7 +11616,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 86,
+      "community": 152,
       "norm_label": "contact validation errors test",
       "id": "test_contacts_test_contact_validation_errors"
     },
@@ -13693,6 +13864,38 @@
       "target": "auth_auth_context_useauth"
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/app/(app)/purchase-orders/page.tsx",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "frontend_src_app_app_purchase_orders_page_tsx",
+      "target": "frontend_src_features_orders_orders_list_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/app/(app)/purchase-orders/page.tsx",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "frontend_src_app_app_purchase_orders_page_tsx",
+      "target": "orders_orders_list_page_orderslistpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/app/(app)/purchase-orders/page.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "frontend_src_app_app_purchase_orders_page_tsx",
+      "target": "purchase_orders_page_purchaseorderspage",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -13789,6 +13992,38 @@
       "confidence_score": 1.0,
       "source": "frontend_src_app_app_admin_users_page_tsx",
       "target": "users_page_adminuserspage"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/app/(app)/sales-orders/page.tsx",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "frontend_src_app_app_sales_orders_page_tsx",
+      "target": "frontend_src_features_orders_orders_list_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/app/(app)/sales-orders/page.tsx",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "frontend_src_app_app_sales_orders_page_tsx",
+      "target": "orders_orders_list_page_orderslistpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/app/(app)/sales-orders/page.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "frontend_src_app_app_sales_orders_page_tsx",
+      "target": "sales_orders_page_salesorderspage",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -13957,9 +14192,9 @@
       "source_file": "frontend/src/features/auth/components/auth-alert.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_features_auth_components_auth_alert_tsx",
-      "target": "frontend_src_features_auth_validation_ts",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_validation_ts"
     },
     {
       "relation": "imports_from",
@@ -13968,9 +14203,9 @@
       "source_file": "frontend/src/features/auth/components/signup-form.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_features_auth_components_signup_form_tsx",
-      "target": "frontend_src_features_auth_validation_ts",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_validation_ts"
     },
     {
       "relation": "imports_from",
@@ -13979,9 +14214,9 @@
       "source_file": "frontend/src/features/auth/hooks/use-login-form.ts",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_features_auth_hooks_use_login_form_ts",
-      "target": "frontend_src_features_auth_validation_ts",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_validation_ts"
     },
     {
       "relation": "imports_from",
@@ -13990,9 +14225,9 @@
       "source_file": "frontend/src/features/auth/hooks/use-signup-form.ts",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_features_auth_hooks_use_signup_form_ts",
-      "target": "frontend_src_features_auth_validation_ts",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_validation_ts"
     },
     {
       "relation": "contains",
@@ -14358,9 +14593,9 @@
       "source_file": "frontend/src/components/app-providers.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_app_providers_tsx",
-      "target": "frontend_src_features_auth_auth_context_tsx",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_auth_context_tsx"
     },
     {
       "relation": "imports_from",
@@ -14369,9 +14604,9 @@
       "source_file": "frontend/src/components/redirect-if-auth.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_redirect_if_auth_tsx",
-      "target": "frontend_src_features_auth_auth_context_tsx",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_auth_context_tsx"
     },
     {
       "relation": "imports_from",
@@ -14380,9 +14615,9 @@
       "source_file": "frontend/src/components/require-auth.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_require_auth_tsx",
-      "target": "frontend_src_features_auth_auth_context_tsx",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_auth_context_tsx"
     },
     {
       "relation": "imports_from",
@@ -14391,9 +14626,9 @@
       "source_file": "frontend/src/components/require-role.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_require_role_tsx",
-      "target": "frontend_src_features_auth_auth_context_tsx",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_auth_context_tsx"
     },
     {
       "relation": "imports_from",
@@ -14402,9 +14637,9 @@
       "source_file": "frontend/src/components/site-header.tsx",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_site_header_tsx",
-      "target": "frontend_src_features_auth_auth_context_tsx",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_auth_context_tsx"
     },
     {
       "relation": "imports_from",
@@ -14413,9 +14648,9 @@
       "source_file": "frontend/src/components/site-sidebar.tsx",
       "source_location": "L21",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_site_sidebar_tsx",
-      "target": "frontend_src_features_auth_auth_context_tsx",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_auth_context_tsx"
     },
     {
       "relation": "imports",
@@ -14743,9 +14978,9 @@
       "source_file": "frontend/src/features/auth/auth-context.tsx",
       "source_location": "L57",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "auth_auth_context_getstoreduser",
-      "target": "auth_auth_context_readuserfromstorage",
-      "confidence_score": 1.0
+      "target": "auth_auth_context_readuserfromstorage"
     },
     {
       "relation": "calls",
@@ -14754,9 +14989,9 @@
       "source_file": "frontend/src/features/auth/auth-context.tsx",
       "source_location": "L109",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "auth_auth_context_getinitialsession",
-      "target": "auth_auth_context_getstoreduser",
-      "confidence_score": 1.0
+      "target": "auth_auth_context_getstoreduser"
     },
     {
       "relation": "calls",
@@ -14776,9 +15011,9 @@
       "source_file": "frontend/src/features/auth/auth-context.tsx",
       "source_location": "L82",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "auth_auth_context_clearsession",
-      "target": "auth_auth_context_clearstoreduser",
-      "confidence_score": 1.0
+      "target": "auth_auth_context_clearstoreduser"
     },
     {
       "relation": "calls",
@@ -15349,9 +15584,9 @@
       "source_file": "frontend/src/features/auth/components/login-form.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_features_auth_components_login_form_tsx",
-      "target": "frontend_src_features_auth_components_text_field_tsx",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_components_text_field_tsx"
     },
     {
       "relation": "imports_from",
@@ -15360,9 +15595,9 @@
       "source_file": "frontend/src/features/auth/components/signup-form.tsx",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_features_auth_components_signup_form_tsx",
-      "target": "frontend_src_features_auth_components_text_field_tsx",
-      "confidence_score": 1.0
+      "target": "frontend_src_features_auth_components_text_field_tsx"
     },
     {
       "relation": "contains",
@@ -15974,6 +16209,83 @@
       "target": "lib_types_vendorbill"
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_api_ts",
+      "target": "frontend_src_features_dashboard_dashboard_api_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_api_ts",
+      "target": "dashboard_dashboard_api_fetchdashboardcontacts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "orders_orders_api_fetchpurchaseorders",
+      "target": "dashboard_dashboard_api_fetchdashboardcontacts"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "orders_orders_api_fetchsalesorders",
+      "target": "dashboard_dashboard_api_fetchdashboardcontacts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_api_ts",
+      "target": "dashboard_dashboard_api_fetchdashboardproducts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "orders_orders_api_fetchpurchaseorders",
+      "target": "dashboard_dashboard_api_fetchdashboardproducts"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "orders_orders_api_fetchsalesorders",
+      "target": "dashboard_dashboard_api_fetchdashboardproducts"
+    },
+    {
       "relation": "references",
       "context": "field",
       "confidence": "EXTRACTED",
@@ -16040,15 +16352,343 @@
       "target": "lib_types_vendorbill"
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_api_ts",
+      "target": "dashboard_dashboard_api_builddashboarddatafrombackend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "orders_orders_api_fetchpurchaseorders",
+      "target": "dashboard_dashboard_api_builddashboarddatafrombackend"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "orders_orders_api_fetchsalesorders",
+      "target": "dashboard_dashboard_api_builddashboarddatafrombackend"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "components_loading_spinner_loadingspinner",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "frontend_src_components_loading_spinner_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "frontend_src_features_orders_orders_api_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "frontend_src_lib_types_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "lib_types_purchaseorder",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "lib_types_salesorder",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_api_fetchpurchaseorders",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_api_fetchsalesorders",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_list_page_currency",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L368",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_list_page_detail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_list_page_issalesorder",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_list_page_order",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L301",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_list_page_orderdetails",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_list_page_orderkind",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_list_page_orderslistpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_list_page_orderslistpageprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_list_page_orderstatus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L268",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_list_page_statcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_list_page_tsx",
+      "target": "orders_orders_list_page_statusclasses",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L359",
+      "weight": 1.0,
+      "source": "orders_orders_list_page_orderdetails",
+      "target": "orders_orders_list_page_currency",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L160",
+      "weight": 1.0,
+      "source": "orders_orders_list_page_orderslistpage",
+      "target": "orders_orders_list_page_currency",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L310",
+      "weight": 1.0,
+      "source": "orders_orders_list_page_orderdetails",
+      "target": "orders_orders_list_page_issalesorder",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-list-page.tsx",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "orders_orders_list_page_orderstatus",
+      "target": "orders_orders_list_page_statusclasses",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_api_ts",
+      "target": "frontend_src_lib_types_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_api_ts",
+      "target": "lib_types_purchaseorder",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_api_ts",
+      "target": "lib_types_salesorder",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_api_ts",
+      "target": "orders_orders_api_fetchpurchaseorders",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/features/orders/orders-api.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "frontend_src_features_orders_orders_api_ts",
+      "target": "orders_orders_api_fetchsalesorders",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/components/site-header.tsx",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_site_header_tsx",
-      "target": "frontend_src_components_theme_provider_tsx",
-      "confidence_score": 1.0
+      "target": "frontend_src_components_theme_provider_tsx"
     },
     {
       "relation": "imports_from",
@@ -16057,9 +16697,9 @@
       "source_file": "frontend/src/components/site-sidebar.tsx",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_site_sidebar_tsx",
-      "target": "frontend_src_components_theme_provider_tsx",
-      "confidence_score": 1.0
+      "target": "frontend_src_components_theme_provider_tsx"
     },
     {
       "relation": "contains",
@@ -16865,9 +17505,9 @@
       "source_file": "frontend/src/components/ui/badge.tsx",
       "source_location": "L39",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "ui_badge_badge",
-      "target": "ui_badge_badgevariants",
-      "confidence_score": 1.0
+      "target": "ui_badge_badgevariants"
     },
     {
       "relation": "contains",
@@ -16906,9 +17546,9 @@
       "source_file": "frontend/src/components/ui/button.tsx",
       "source_location": "L51",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "ui_button_button",
-      "target": "ui_button_buttonvariants",
-      "confidence_score": 1.0
+      "target": "ui_button_buttonvariants"
     },
     {
       "relation": "contains",
@@ -17069,9 +17709,9 @@
       "source_file": "frontend/src/lib/api.ts",
       "source_location": "L103",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_api_apifetch",
-      "target": "lib_api_getapibaseurl",
-      "confidence_score": 1.0
+      "target": "lib_api_getapibaseurl"
     },
     {
       "relation": "calls",
@@ -17091,9 +17731,9 @@
       "source_file": "frontend/src/lib/api.ts",
       "source_location": "L97",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_api_apifetch",
-      "target": "lib_api_getstoredtoken",
-      "confidence_score": 1.0
+      "target": "lib_api_getstoredtoken"
     },
     {
       "relation": "calls",
@@ -17333,9 +17973,9 @@
       "source_file": "backend/app/main.py",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_main_rationale_1",
-      "target": "backend_app_main_py",
-      "confidence_score": 1.0
+      "target": "backend_app_main_py"
     },
     {
       "relation": "contains",
@@ -17416,9 +18056,9 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_core_deps_py",
-      "target": "fastapi",
-      "confidence_score": 1.0
+      "target": "fastapi"
     },
     {
       "relation": "imports_from",
@@ -17427,9 +18067,9 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_core_exceptions_py",
-      "target": "fastapi",
-      "confidence_score": 1.0
+      "target": "fastapi"
     },
     {
       "relation": "imports_from",
@@ -17438,9 +18078,9 @@
       "source_file": "backend/app/routers/accounts.py",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_routers_accounts_py",
-      "target": "fastapi",
-      "confidence_score": 1.0
+      "target": "fastapi"
     },
     {
       "relation": "imports_from",
@@ -17449,9 +18089,9 @@
       "source_file": "backend/app/routers/auth.py",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_routers_auth_py",
-      "target": "fastapi",
-      "confidence_score": 1.0
+      "target": "fastapi"
     },
     {
       "relation": "imports_from",
@@ -17460,9 +18100,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_routers_contacts_py",
-      "target": "fastapi",
-      "confidence_score": 1.0
+      "target": "fastapi"
     },
     {
       "relation": "imports_from",
@@ -17471,9 +18111,9 @@
       "source_file": "backend/app/routers/journals.py",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_routers_journals_py",
-      "target": "fastapi",
-      "confidence_score": 1.0
+      "target": "fastapi"
     },
     {
       "relation": "imports_from",
@@ -17482,9 +18122,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_routers_products_py",
-      "target": "fastapi",
-      "confidence_score": 1.0
+      "target": "fastapi"
     },
     {
       "relation": "imports_from",
@@ -17493,9 +18133,9 @@
       "source_file": "backend/app/routers/users.py",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_routers_users_py",
-      "target": "fastapi",
-      "confidence_score": 1.0
+      "target": "fastapi"
     },
     {
       "relation": "uses",
@@ -17543,9 +18183,9 @@
       "source_file": "backend/app/main.py",
       "source_location": "L111",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_main_rationale_111",
-      "target": "app_main_root",
-      "confidence_score": 1.0
+      "target": "app_main_root"
     },
     {
       "relation": "rationale_for",
@@ -17613,9 +18253,9 @@
       "source_file": "backend/app/routers/auth.py",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_auth_rationale_18",
-      "target": "routers_auth_register",
-      "confidence_score": 1.0
+      "target": "routers_auth_register"
     },
     {
       "relation": "references",
@@ -17645,9 +18285,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L8",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "authresponse",
-      "target": "backend_app_routers_auth_py_registerrequest",
-      "confidence_score": 0.5
+      "target": "backend_app_routers_auth_py_registerrequest"
     },
     {
       "relation": "uses",
@@ -17655,9 +18295,9 @@
       "source_file": "backend/app/routers/auth.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_auth_py_loginrequest",
-      "target": "backend_app_routers_auth_py_registerrequest",
-      "confidence_score": 0.5
+      "target": "backend_app_routers_auth_py_registerrequest"
     },
     {
       "relation": "uses",
@@ -17807,9 +18447,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L8",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "authresponse",
-      "target": "backend_app_routers_auth_py_loginrequest",
-      "confidence_score": 0.5
+      "target": "backend_app_routers_auth_py_loginrequest"
     },
     {
       "relation": "uses",
@@ -18032,9 +18672,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_contacts_create_contact",
-      "target": "backend_app_routers_contacts_py_user",
-      "confidence_score": 1.0
+      "target": "backend_app_routers_contacts_py_user"
     },
     {
       "relation": "rationale_for",
@@ -18052,9 +18692,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_contacts_rationale_20",
-      "target": "routers_contacts_create_contact",
-      "confidence_score": 1.0
+      "target": "routers_contacts_create_contact"
     },
     {
       "relation": "uses",
@@ -18062,9 +18702,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_contacts_py_contactcreate",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "uses",
@@ -18072,9 +18712,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_contacts_py_session",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "references",
@@ -18126,9 +18766,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_contacts_py_user",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "references",
@@ -18137,9 +18777,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L51",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_contacts_delete_contact",
-      "target": "backend_app_routers_contacts_py_user",
-      "confidence_score": 1.0
+      "target": "backend_app_routers_contacts_py_user"
     },
     {
       "relation": "references",
@@ -18148,9 +18788,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L39",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_contacts_get_contact",
-      "target": "backend_app_routers_contacts_py_user",
-      "confidence_score": 1.0
+      "target": "backend_app_routers_contacts_py_user"
     },
     {
       "relation": "references",
@@ -18159,9 +18799,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L26",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_contacts_list_contacts",
-      "target": "backend_app_routers_contacts_py_user",
-      "confidence_score": 1.0
+      "target": "backend_app_routers_contacts_py_user"
     },
     {
       "relation": "references",
@@ -18170,9 +18810,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L45",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_contacts_update_contact",
-      "target": "backend_app_routers_contacts_py_user",
-      "confidence_score": 1.0
+      "target": "backend_app_routers_contacts_py_user"
     },
     {
       "relation": "references",
@@ -18212,9 +18852,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L33",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_contacts_rationale_33",
-      "target": "routers_contacts_list_contacts",
-      "confidence_score": 1.0
+      "target": "routers_contacts_list_contacts"
     },
     {
       "relation": "uses",
@@ -18222,9 +18862,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_contacts_py_str",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "uses",
@@ -18232,9 +18872,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_contacts_py_bool",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "references",
@@ -18263,9 +18903,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L40",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_contacts_rationale_40",
-      "target": "routers_contacts_get_contact",
-      "confidence_score": 1.0
+      "target": "routers_contacts_get_contact"
     },
     {
       "relation": "uses",
@@ -18273,9 +18913,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_contacts_py_int",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "references",
@@ -18305,9 +18945,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L46",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_contacts_rationale_46",
-      "target": "routers_contacts_update_contact",
-      "confidence_score": 1.0
+      "target": "routers_contacts_update_contact"
     },
     {
       "relation": "references",
@@ -18336,9 +18976,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_contacts_py_contactupdate",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "rationale_for",
@@ -18356,9 +18996,9 @@
       "source_file": "backend/app/routers/contacts.py",
       "source_location": "L52",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_contacts_rationale_52",
-      "target": "routers_contacts_delete_contact",
-      "confidence_score": 1.0
+      "target": "routers_contacts_delete_contact"
     },
     {
       "relation": "contains",
@@ -18658,9 +19298,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_products_create_product",
-      "target": "backend_app_routers_products_py_user",
-      "confidence_score": 1.0
+      "target": "backend_app_routers_products_py_user"
     },
     {
       "relation": "rationale_for",
@@ -18678,9 +19318,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_products_rationale_20",
-      "target": "routers_products_create_product",
-      "confidence_score": 1.0
+      "target": "routers_products_create_product"
     },
     {
       "relation": "uses",
@@ -18688,9 +19328,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_products_py_productcreate",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "uses",
@@ -18698,9 +19338,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_products_py_session",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "references",
@@ -18752,9 +19392,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_products_py_user",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "references",
@@ -18763,9 +19403,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L50",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_products_delete_product",
-      "target": "backend_app_routers_products_py_user",
-      "confidence_score": 1.0
+      "target": "backend_app_routers_products_py_user"
     },
     {
       "relation": "references",
@@ -18774,9 +19414,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_products_get_product",
-      "target": "backend_app_routers_products_py_user",
-      "confidence_score": 1.0
+      "target": "backend_app_routers_products_py_user"
     },
     {
       "relation": "references",
@@ -18785,9 +19425,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L26",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_products_list_products",
-      "target": "backend_app_routers_products_py_user",
-      "confidence_score": 1.0
+      "target": "backend_app_routers_products_py_user"
     },
     {
       "relation": "references",
@@ -18796,9 +19436,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L44",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_products_update_product",
-      "target": "backend_app_routers_products_py_user",
-      "confidence_score": 1.0
+      "target": "backend_app_routers_products_py_user"
     },
     {
       "relation": "references",
@@ -18838,9 +19478,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_products_rationale_32",
-      "target": "routers_products_list_products",
-      "confidence_score": 1.0
+      "target": "routers_products_list_products"
     },
     {
       "relation": "uses",
@@ -18848,9 +19488,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_products_py_str",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "uses",
@@ -18858,9 +19498,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_products_py_bool",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "references",
@@ -18889,9 +19529,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L39",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_products_rationale_39",
-      "target": "routers_products_get_product",
-      "confidence_score": 1.0
+      "target": "routers_products_get_product"
     },
     {
       "relation": "uses",
@@ -18899,9 +19539,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_products_py_int",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "references",
@@ -18931,9 +19571,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L45",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_products_rationale_45",
-      "target": "routers_products_update_product",
-      "confidence_score": 1.0
+      "target": "routers_products_update_product"
     },
     {
       "relation": "references",
@@ -18962,9 +19602,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L12",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_routers_products_py_productupdate",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "rationale_for",
@@ -18982,9 +19622,9 @@
       "source_file": "backend/app/routers/products.py",
       "source_location": "L51",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routers_products_rationale_51",
-      "target": "routers_products_delete_product",
-      "confidence_score": 1.0
+      "target": "routers_products_delete_product"
     },
     {
       "relation": "contains",
@@ -19293,9 +19933,9 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L62",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_deps_rationale_62",
-      "target": "core_deps_require_roles",
-      "confidence_score": 1.0
+      "target": "core_deps_require_roles"
     },
     {
       "relation": "references",
@@ -19622,9 +20262,9 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L21",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_security_rationale_21",
-      "target": "core_security_verify_password",
-      "confidence_score": 1.0
+      "target": "core_security_verify_password"
     },
     {
       "relation": "references",
@@ -19851,9 +20491,9 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L89",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_exceptions_app_exception_handler",
-      "target": "core_exceptions_appexception",
-      "confidence_score": 1.0
+      "target": "core_exceptions_appexception"
     },
     {
       "relation": "method",
@@ -19952,9 +20592,9 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L115",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_exceptions_generic_exception_handler",
-      "target": "exception",
-      "confidence_score": 1.0
+      "target": "exception"
     },
     {
       "relation": "references",
@@ -20092,9 +20732,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_bool",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20102,9 +20742,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_contactcreate",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20112,9 +20752,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_contactupdate",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20122,9 +20762,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_int",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20132,9 +20772,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_session",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20142,9 +20782,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_str",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20152,9 +20792,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_bool",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20162,9 +20802,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_int",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20172,9 +20812,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_productcreate",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20182,9 +20822,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_productupdate",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20192,9 +20832,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_session",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20202,9 +20842,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_str",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "uses",
@@ -20212,9 +20852,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "contact",
-      "target": "core_exceptions_notfoundexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_notfoundexception"
     },
     {
       "relation": "method",
@@ -20285,9 +20925,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "authresponse",
-      "target": "core_exceptions_conflictexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_conflictexception"
     },
     {
       "relation": "uses",
@@ -20295,9 +20935,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_adminusercreaterequest",
-      "target": "core_exceptions_conflictexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_conflictexception"
     },
     {
       "relation": "uses",
@@ -20305,9 +20945,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_loginrequest",
-      "target": "core_exceptions_conflictexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_conflictexception"
     },
     {
       "relation": "uses",
@@ -20315,9 +20955,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_registerrequest",
-      "target": "core_exceptions_conflictexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_conflictexception"
     },
     {
       "relation": "uses",
@@ -20325,9 +20965,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_session",
-      "target": "core_exceptions_conflictexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_conflictexception"
     },
     {
       "relation": "uses",
@@ -20335,9 +20975,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_user",
-      "target": "core_exceptions_conflictexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_conflictexception"
     },
     {
       "relation": "method",
@@ -20398,9 +21038,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "authresponse",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20408,9 +21048,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_adminusercreaterequest",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20418,9 +21058,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_loginrequest",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20428,9 +21068,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_registerrequest",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20438,9 +21078,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_session",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20448,9 +21088,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_user",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20458,9 +21098,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_bool",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20468,9 +21108,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_contactcreate",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20478,9 +21118,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_contactupdate",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20488,9 +21128,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_int",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20498,9 +21138,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_session",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20508,9 +21148,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_str",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "uses",
@@ -20518,9 +21158,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "contact",
-      "target": "core_exceptions_validationexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_validationexception"
     },
     {
       "relation": "method",
@@ -20603,9 +21243,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "authresponse",
-      "target": "core_exceptions_unauthorizedexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_unauthorizedexception"
     },
     {
       "relation": "uses",
@@ -20613,9 +21253,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_adminusercreaterequest",
-      "target": "core_exceptions_unauthorizedexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_unauthorizedexception"
     },
     {
       "relation": "uses",
@@ -20623,9 +21263,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_loginrequest",
-      "target": "core_exceptions_unauthorizedexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_unauthorizedexception"
     },
     {
       "relation": "uses",
@@ -20633,9 +21273,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_registerrequest",
-      "target": "core_exceptions_unauthorizedexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_unauthorizedexception"
     },
     {
       "relation": "uses",
@@ -20643,9 +21283,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_session",
-      "target": "core_exceptions_unauthorizedexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_unauthorizedexception"
     },
     {
       "relation": "uses",
@@ -20653,9 +21293,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_user",
-      "target": "core_exceptions_unauthorizedexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_unauthorizedexception"
     },
     {
       "relation": "method",
@@ -20705,9 +21345,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "authresponse",
-      "target": "core_exceptions_forbiddenexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_forbiddenexception"
     },
     {
       "relation": "uses",
@@ -20715,9 +21355,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_adminusercreaterequest",
-      "target": "core_exceptions_forbiddenexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_forbiddenexception"
     },
     {
       "relation": "uses",
@@ -20725,9 +21365,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_loginrequest",
-      "target": "core_exceptions_forbiddenexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_forbiddenexception"
     },
     {
       "relation": "uses",
@@ -20735,9 +21375,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_registerrequest",
-      "target": "core_exceptions_forbiddenexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_forbiddenexception"
     },
     {
       "relation": "uses",
@@ -20745,9 +21385,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_session",
-      "target": "core_exceptions_forbiddenexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_forbiddenexception"
     },
     {
       "relation": "uses",
@@ -20755,9 +21395,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L10",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_user",
-      "target": "core_exceptions_forbiddenexception",
-      "confidence_score": 0.5
+      "target": "core_exceptions_forbiddenexception"
     },
     {
       "relation": "method",
@@ -20797,9 +21437,9 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L91",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_exceptions_app_exception_handler",
-      "target": "core_exceptions_build_error_response",
-      "confidence_score": 1.0
+      "target": "core_exceptions_build_error_response"
     },
     {
       "relation": "calls",
@@ -20851,9 +21491,9 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L89",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_exceptions_app_exception_handler",
-      "target": "jsonresponse",
-      "confidence_score": 1.0
+      "target": "jsonresponse"
     },
     {
       "relation": "references",
@@ -20862,9 +21502,9 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L115",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_exceptions_generic_exception_handler",
-      "target": "jsonresponse",
-      "confidence_score": 1.0
+      "target": "jsonresponse"
     },
     {
       "relation": "references",
@@ -20873,9 +21513,9 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L94",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_exceptions_validation_exception_handler",
-      "target": "jsonresponse",
-      "confidence_score": 1.0
+      "target": "jsonresponse"
     },
     {
       "relation": "uses",
@@ -20915,9 +21555,9 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L115",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_exceptions_generic_exception_handler",
-      "target": "request",
-      "confidence_score": 1.0
+      "target": "request"
     },
     {
       "relation": "references",
@@ -20926,9 +21566,9 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L94",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_exceptions_validation_exception_handler",
-      "target": "request",
-      "confidence_score": 1.0
+      "target": "request"
     },
     {
       "relation": "uses",
@@ -20946,9 +21586,9 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L95",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_exceptions_rationale_95",
-      "target": "core_exceptions_validation_exception_handler",
-      "confidence_score": 1.0
+      "target": "core_exceptions_validation_exception_handler"
     },
     {
       "relation": "references",
@@ -20997,9 +21637,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "authresponse",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "uses",
@@ -21007,9 +21647,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_adminusercreaterequest",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "uses",
@@ -21017,9 +21657,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_loginrequest",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "uses",
@@ -21027,9 +21667,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_registerrequest",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "uses",
@@ -21037,9 +21677,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_session",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "uses",
@@ -21047,9 +21687,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_user",
-      "target": "models_user_user",
-      "confidence_score": 0.5
+      "target": "models_user_user"
     },
     {
       "relation": "rationale_for",
@@ -21057,9 +21697,9 @@
       "source_file": "backend/app/models/user.py",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "models_user_rationale_12",
-      "target": "models_user_user",
-      "confidence_score": 1.0
+      "target": "models_user_user"
     },
     {
       "relation": "contains",
@@ -21087,9 +21727,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L8",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "account",
-      "target": "models_journal_journal",
-      "confidence_score": 0.5
+      "target": "models_journal_journal"
     },
     {
       "relation": "uses",
@@ -21097,9 +21737,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L8",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_accounting_service_py_bool",
-      "target": "models_journal_journal",
-      "confidence_score": 0.5
+      "target": "models_journal_journal"
     },
     {
       "relation": "uses",
@@ -21107,9 +21747,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L8",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_accounting_service_py_int",
-      "target": "models_journal_journal",
-      "confidence_score": 0.5
+      "target": "models_journal_journal"
     },
     {
       "relation": "uses",
@@ -21117,9 +21757,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L8",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_accounting_service_py_session",
-      "target": "models_journal_journal",
-      "confidence_score": 0.5
+      "target": "models_journal_journal"
     },
     {
       "relation": "uses",
@@ -21127,9 +21767,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L8",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_accounting_service_py_str",
-      "target": "models_journal_journal",
-      "confidence_score": 0.5
+      "target": "models_journal_journal"
     },
     {
       "relation": "uses",
@@ -21137,9 +21777,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L8",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "journalresponse",
-      "target": "models_journal_journal",
-      "confidence_score": 0.5
+      "target": "models_journal_journal"
     },
     {
       "relation": "contains",
@@ -21167,9 +21807,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_bool",
-      "target": "models_product_product",
-      "confidence_score": 0.5
+      "target": "models_product_product"
     },
     {
       "relation": "uses",
@@ -21177,9 +21817,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_int",
-      "target": "models_product_product",
-      "confidence_score": 0.5
+      "target": "models_product_product"
     },
     {
       "relation": "uses",
@@ -21187,9 +21827,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_productcreate",
-      "target": "models_product_product",
-      "confidence_score": 0.5
+      "target": "models_product_product"
     },
     {
       "relation": "uses",
@@ -21197,9 +21837,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_productupdate",
-      "target": "models_product_product",
-      "confidence_score": 0.5
+      "target": "models_product_product"
     },
     {
       "relation": "uses",
@@ -21207,9 +21847,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_session",
-      "target": "models_product_product",
-      "confidence_score": 0.5
+      "target": "models_product_product"
     },
     {
       "relation": "uses",
@@ -21217,9 +21857,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_product_service_py_str",
-      "target": "models_product_product",
-      "confidence_score": 0.5
+      "target": "models_product_product"
     },
     {
       "relation": "rationale_for",
@@ -21267,9 +21907,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "authresponse",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21277,9 +21917,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_adminusercreaterequest",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21287,9 +21927,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_loginrequest",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21297,9 +21937,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_registerrequest",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21307,9 +21947,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_session",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21317,9 +21957,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L11",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_auth_service_py_user",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21327,9 +21967,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_bool",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21337,9 +21977,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_contactcreate",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21347,9 +21987,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_contactupdate",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21357,9 +21997,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_int",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21367,9 +22007,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_session",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21377,9 +22017,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_contact_service_py_str",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "uses",
@@ -21387,9 +22027,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L9",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "contact",
-      "target": "models_contact_contact",
-      "confidence_score": 0.5
+      "target": "models_contact_contact"
     },
     {
       "relation": "rationale_for",
@@ -21427,9 +22067,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "account",
-      "target": "models_account_account",
-      "confidence_score": 0.5
+      "target": "models_account_account"
     },
     {
       "relation": "uses",
@@ -21437,9 +22077,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_accounting_service_py_bool",
-      "target": "models_account_account",
-      "confidence_score": 0.5
+      "target": "models_account_account"
     },
     {
       "relation": "uses",
@@ -21447,9 +22087,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_accounting_service_py_int",
-      "target": "models_account_account",
-      "confidence_score": 0.5
+      "target": "models_account_account"
     },
     {
       "relation": "uses",
@@ -21457,9 +22097,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_accounting_service_py_session",
-      "target": "models_account_account",
-      "confidence_score": 0.5
+      "target": "models_account_account"
     },
     {
       "relation": "uses",
@@ -21467,9 +22107,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "backend_app_services_accounting_service_py_str",
-      "target": "models_account_account",
-      "confidence_score": 0.5
+      "target": "models_account_account"
     },
     {
       "relation": "uses",
@@ -21477,9 +22117,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L7",
       "weight": 0.8,
+      "confidence_score": 0.5,
       "source": "journalresponse",
-      "target": "models_account_account",
-      "confidence_score": 0.5
+      "target": "models_account_account"
     },
     {
       "relation": "contains",
@@ -21547,9 +22187,9 @@
       "source_file": "backend/app/schemas/auth.py",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "schemas_auth_rationale_11",
-      "target": "schemas_auth_registerrequest",
-      "confidence_score": 1.0
+      "target": "schemas_auth_registerrequest"
     },
     {
       "relation": "inherits",
@@ -21842,9 +22482,9 @@
       "source_file": "backend/app/schemas/auth.py",
       "source_location": "L55",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "schemas_auth_rationale_55",
-      "target": "schemas_auth_adminusercreaterequest",
-      "confidence_score": 1.0
+      "target": "schemas_auth_adminusercreaterequest"
     },
     {
       "relation": "rationale_for",
@@ -21862,9 +22502,9 @@
       "source_file": "backend/app/schemas/auth.py",
       "source_location": "L90",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "schemas_auth_rationale_90",
-      "target": "schemas_auth_loginrequest",
-      "confidence_score": 1.0
+      "target": "schemas_auth_loginrequest"
     },
     {
       "relation": "rationale_for",
@@ -21882,9 +22522,9 @@
       "source_file": "backend/app/schemas/auth.py",
       "source_location": "L96",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "schemas_auth_rationale_96",
-      "target": "schemas_auth_authresponse",
-      "confidence_score": 1.0
+      "target": "schemas_auth_authresponse"
     },
     {
       "relation": "rationale_for",
@@ -21892,9 +22532,9 @@
       "source_file": "backend/app/schemas/auth.py",
       "source_location": "L108",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "schemas_auth_rationale_108",
-      "target": "schemas_auth_userprofileresponse",
-      "confidence_score": 1.0
+      "target": "schemas_auth_userprofileresponse"
     },
     {
       "relation": "rationale_for",
@@ -22272,9 +22912,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_auth_service_rationale_25",
-      "target": "services_auth_service_register_user",
-      "confidence_score": 1.0
+      "target": "services_auth_service_register_user"
     },
     {
       "relation": "references",
@@ -22401,9 +23041,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L93",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_auth_service_rationale_93",
-      "target": "services_auth_service_admin_create_user",
-      "confidence_score": 1.0
+      "target": "services_auth_service_admin_create_user"
     },
     {
       "relation": "references",
@@ -22432,9 +23072,9 @@
       "source_file": "backend/app/services/auth_service.py",
       "source_location": "L147",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_auth_service_rationale_147",
-      "target": "services_auth_service_login_user",
-      "confidence_score": 1.0
+      "target": "services_auth_service_login_user"
     },
     {
       "relation": "contains",
@@ -22442,9 +23082,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L81",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_services_accounting_service_py",
-      "target": "services_accounting_service_ensure_seeded",
-      "confidence_score": 1.0
+      "target": "services_accounting_service_ensure_seeded"
     },
     {
       "relation": "contains",
@@ -22452,9 +23092,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L36",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_services_accounting_service_py",
-      "target": "services_accounting_service_escape_like",
-      "confidence_score": 1.0
+      "target": "services_accounting_service_escape_like"
     },
     {
       "relation": "contains",
@@ -22503,9 +23143,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L36",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_accounting_service_escape_like",
-      "target": "backend_app_services_accounting_service_py_str",
-      "confidence_score": 1.0
+      "target": "backend_app_services_accounting_service_py_str"
     },
     {
       "relation": "calls",
@@ -22514,9 +23154,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L101",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_accounting_service_get_accounts",
-      "target": "services_accounting_service_escape_like",
-      "confidence_score": 1.0
+      "target": "services_accounting_service_escape_like"
     },
     {
       "relation": "rationale_for",
@@ -22524,9 +23164,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L37",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_accounting_service_rationale_37",
-      "target": "services_accounting_service_escape_like",
-      "confidence_score": 1.0
+      "target": "services_accounting_service_escape_like"
     },
     {
       "relation": "references",
@@ -22557,9 +23197,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L86",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_accounting_service_ensure_seeded",
-      "target": "services_accounting_service_seed_accounting_defaults",
-      "confidence_score": 1.0
+      "target": "services_accounting_service_seed_accounting_defaults"
     },
     {
       "relation": "rationale_for",
@@ -22567,9 +23207,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L42",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_accounting_service_rationale_42",
-      "target": "services_accounting_service_seed_accounting_defaults",
-      "confidence_score": 1.0
+      "target": "services_accounting_service_seed_accounting_defaults"
     },
     {
       "relation": "calls",
@@ -22654,9 +23294,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L81",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_accounting_service_ensure_seeded",
-      "target": "backend_app_services_accounting_service_py_session",
-      "confidence_score": 1.0
+      "target": "backend_app_services_accounting_service_py_session"
     },
     {
       "relation": "calls",
@@ -22665,9 +23305,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L97",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_accounting_service_get_accounts",
-      "target": "services_accounting_service_ensure_seeded",
-      "confidence_score": 1.0
+      "target": "services_accounting_service_ensure_seeded"
     },
     {
       "relation": "calls",
@@ -22676,9 +23316,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L119",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_accounting_service_get_journals",
-      "target": "services_accounting_service_ensure_seeded",
-      "confidence_score": 1.0
+      "target": "services_accounting_service_ensure_seeded"
     },
     {
       "relation": "rationale_for",
@@ -22686,9 +23326,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L82",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_accounting_service_rationale_82",
-      "target": "services_accounting_service_ensure_seeded",
-      "confidence_score": 1.0
+      "target": "services_accounting_service_ensure_seeded"
     },
     {
       "relation": "references",
@@ -22739,9 +23379,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L96",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_accounting_service_rationale_96",
-      "target": "services_accounting_service_get_accounts",
-      "confidence_score": 1.0
+      "target": "services_accounting_service_get_accounts"
     },
     {
       "relation": "references",
@@ -22792,9 +23432,9 @@
       "source_file": "backend/app/services/accounting_service.py",
       "source_location": "L118",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_accounting_service_rationale_118",
-      "target": "services_accounting_service_get_journals",
-      "confidence_score": 1.0
+      "target": "services_accounting_service_get_journals"
     },
     {
       "relation": "contains",
@@ -22822,9 +23462,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_services_contact_service_py",
-      "target": "services_contact_service_escape_like",
-      "confidence_score": 1.0
+      "target": "services_contact_service_escape_like"
     },
     {
       "relation": "contains",
@@ -22873,9 +23513,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_contact_service_escape_like",
-      "target": "backend_app_services_contact_service_py_str",
-      "confidence_score": 1.0
+      "target": "backend_app_services_contact_service_py_str"
     },
     {
       "relation": "calls",
@@ -22884,9 +23524,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L59",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_contact_service_get_contacts",
-      "target": "services_contact_service_escape_like",
-      "confidence_score": 1.0
+      "target": "services_contact_service_escape_like"
     },
     {
       "relation": "rationale_for",
@@ -22894,9 +23534,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_contact_service_rationale_17",
-      "target": "services_contact_service_escape_like",
-      "confidence_score": 1.0
+      "target": "services_contact_service_escape_like"
     },
     {
       "relation": "references",
@@ -22958,9 +23598,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_contact_service_rationale_22",
-      "target": "services_contact_service_create_contact",
-      "confidence_score": 1.0
+      "target": "services_contact_service_create_contact"
     },
     {
       "relation": "references",
@@ -23077,9 +23717,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L48",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_contact_service_rationale_48",
-      "target": "services_contact_service_get_contacts",
-      "confidence_score": 1.0
+      "target": "services_contact_service_get_contacts"
     },
     {
       "relation": "references",
@@ -23121,9 +23761,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L107",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_contact_service_delete_contact",
-      "target": "services_contact_service_get_contact_by_id",
-      "confidence_score": 1.0
+      "target": "services_contact_service_get_contact_by_id"
     },
     {
       "relation": "rationale_for",
@@ -23152,9 +23792,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L77",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_contact_service_rationale_77",
-      "target": "services_contact_service_get_contact_by_id",
-      "confidence_score": 1.0
+      "target": "services_contact_service_get_contact_by_id"
     },
     {
       "relation": "rationale_for",
@@ -23162,9 +23802,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L85",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_contact_service_rationale_85",
-      "target": "services_contact_service_update_contact",
-      "confidence_score": 1.0
+      "target": "services_contact_service_update_contact"
     },
     {
       "relation": "references",
@@ -23203,9 +23843,9 @@
       "source_file": "backend/app/services/contact_service.py",
       "source_location": "L106",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_contact_service_rationale_106",
-      "target": "services_contact_service_delete_contact",
-      "confidence_score": 1.0
+      "target": "services_contact_service_delete_contact"
     },
     {
       "relation": "contains",
@@ -23233,9 +23873,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_app_services_product_service_py",
-      "target": "services_product_service_escape_like",
-      "confidence_score": 1.0
+      "target": "services_product_service_escape_like"
     },
     {
       "relation": "contains",
@@ -23284,9 +23924,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_product_service_escape_like",
-      "target": "backend_app_services_product_service_py_str",
-      "confidence_score": 1.0
+      "target": "backend_app_services_product_service_py_str"
     },
     {
       "relation": "calls",
@@ -23295,9 +23935,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L46",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_product_service_get_products",
-      "target": "services_product_service_escape_like",
-      "confidence_score": 1.0
+      "target": "services_product_service_escape_like"
     },
     {
       "relation": "rationale_for",
@@ -23305,9 +23945,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_product_service_rationale_15",
-      "target": "services_product_service_escape_like",
-      "confidence_score": 1.0
+      "target": "services_product_service_escape_like"
     },
     {
       "relation": "references",
@@ -23369,9 +24009,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_product_service_rationale_20",
-      "target": "services_product_service_create_product",
-      "confidence_score": 1.0
+      "target": "services_product_service_create_product"
     },
     {
       "relation": "references",
@@ -23488,9 +24128,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L42",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_product_service_rationale_42",
-      "target": "services_product_service_get_products",
-      "confidence_score": 1.0
+      "target": "services_product_service_get_products"
     },
     {
       "relation": "references",
@@ -23532,9 +24172,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L86",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_product_service_delete_product",
-      "target": "services_product_service_get_product_by_id",
-      "confidence_score": 1.0
+      "target": "services_product_service_get_product_by_id"
     },
     {
       "relation": "rationale_for",
@@ -23563,9 +24203,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L64",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_product_service_rationale_64",
-      "target": "services_product_service_get_product_by_id",
-      "confidence_score": 1.0
+      "target": "services_product_service_get_product_by_id"
     },
     {
       "relation": "rationale_for",
@@ -23573,9 +24213,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L72",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_product_service_rationale_72",
-      "target": "services_product_service_update_product",
-      "confidence_score": 1.0
+      "target": "services_product_service_update_product"
     },
     {
       "relation": "references",
@@ -23614,9 +24254,9 @@
       "source_file": "backend/app/services/product_service.py",
       "source_location": "L85",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_product_service_rationale_85",
-      "target": "services_product_service_delete_product",
-      "confidence_score": 1.0
+      "target": "services_product_service_delete_product"
     },
     {
       "relation": "rationale_for",
@@ -23664,9 +24304,9 @@
       "source_file": "backend/tests/test_accounts_and_journals.py",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_accounts_and_journals_rationale_13",
-      "target": "tests_test_accounts_and_journals_setup_db",
-      "confidence_score": 1.0
+      "target": "tests_test_accounts_and_journals_setup_db"
     },
     {
       "relation": "rationale_for",
@@ -23714,9 +24354,9 @@
       "source_file": "backend/tests/test_products.py",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_products_rationale_13",
-      "target": "tests_test_products_setup_db",
-      "confidence_score": 1.0
+      "target": "tests_test_products_setup_db"
     },
     {
       "relation": "rationale_for",
@@ -23804,9 +24444,9 @@
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_auth_rationale_18",
-      "target": "tests_test_auth_setup_db",
-      "confidence_score": 1.0
+      "target": "tests_test_auth_setup_db"
     },
     {
       "relation": "rationale_for",
@@ -23834,9 +24474,9 @@
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_auth_rationale_24",
-      "target": "tests_test_auth_test_public_registration_creates_accountant_role_only",
-      "confidence_score": 1.0
+      "target": "tests_test_auth_test_public_registration_creates_accountant_role_only"
     },
     {
       "relation": "rationale_for",
@@ -23854,9 +24494,9 @@
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L74",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_auth_rationale_74",
-      "target": "tests_test_auth_test_create_user_endpoint_strictly_restricted_to_admin",
-      "confidence_score": 1.0
+      "target": "tests_test_auth_test_create_user_endpoint_strictly_restricted_to_admin"
     },
     {
       "relation": "rationale_for",
@@ -23914,9 +24554,9 @@
       "source_file": "backend/tests/test_contacts.py",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_contacts_rationale_13",
-      "target": "tests_test_contacts_setup_db",
-      "confidence_score": 1.0
+      "target": "tests_test_contacts_setup_db"
     },
     {
       "relation": "contains",
@@ -30170,5 +30810,5 @@
       "source_file": "SPECIFICATION.md"
     }
   ],
-  "built_at_commit": "678f4be05a04c0760e7908616f582a67e39b9e26"
+  "built_at_commit": "9488cff154fa3ac7fd6dc0d13d5503d2feeb5a07"
 }
