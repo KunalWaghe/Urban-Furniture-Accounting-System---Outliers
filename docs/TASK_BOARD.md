@@ -36,12 +36,10 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ## NOW — maximum two rows (one per owner)
 
-| P0-FE-01 | P0 | Sourabh | Next.js 14 App Router + Tailwind + shadcn shell + Query/Auth provider | 30m | None | — | App runs, Sidebar/Header renders, theme active, Query/Auth mounted | — |
-| P0-BE-01 | P0 | Kunal | FastAPI scaffold + PostgreSQL + Base setup | 30m | None | — | Healthcheck endpoint responds 200, DB connects | — |
 | ID | Pri | Owner | Task | Est. | Depends on | Contract | Acceptance Condition | Started |
 |---|---|---|---|---:|---|---|---|---|
-| P0-FE-01 | P0 | Sourabh | Next.js setup + Tailwind + shadcn shell | 30m | None | — | App runs, Navbar/Sidebar renders, theme active | — |
-| P0-BE-03 | P0 | Kunal | Contact & Product models + CRUD endpoints | 45m | P0-BE-02 | `GET/POST /api/v1/contacts`, `GET/POST /api/v1/products` | GET/POST contacts & products with validation | 11:35 AM |
+| P0-FE-01 | P0 | Sourabh | Next.js 14 App Router + Tailwind + shadcn shell + Query/Auth provider | 30m | None | — | App runs, Sidebar/Header renders, theme active | — |
+| P0-BE-04 | P0 | Kunal | Chart of Accounts & Journals seed + endpoints | 30m | P0-BE-01 | `GET /api/v1/accounts`, `GET /api/v1/journals` | 5 account types & 4 journals seeded and fetchable | 12:45 PM |
 
 ---
 
@@ -51,7 +49,6 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 |---:|---|---|---|---|---:|---|---|
 | 1 | P0-FE-02 | P0 | Sourabh | Login/Register UI + Auth Context + API client | 45m | P0-FE-01 | Form submits credentials, saves token, handles 401/422 |
 | 2 | P0-INT-01 | P0 | Both | Integrate Auth handshake | 15m | P0-BE-02, P0-FE-02 | User logs in from FE, navigates to dashboard |
-| 3 | P0-BE-04 | P0 | Kunal | Chart of Accounts & Journals seed + endpoints | 30m | P0-BE-01 | 5 account types & 4 journals seeded and fetchable |
 
 ---
 
@@ -132,6 +129,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 | 5 Sep, 10:45 AM | A-04 | Both | Locked Frontend & Backend Architecture ADRs, Logic & Screen Inventory | `docs/frontend/ARCHITECTURE_DECISIONS.md`, `docs/frontend/LOGIC.md` | Architecture locked |
 | 5 Sep, 11:25 AM | P0-BE-01 | Kunal | FastAPI scaffold + PostgreSQL setup | `GET /health` returns 200 `connected` | Integrated & Verified |
 | 5 Sep, 11:35 AM | P0-BE-02 | Kunal | User model + JWT Auth endpoints (register/login/me) | `tests/test_auth.py` PASSED + Live HTTP verified | Integrated & Verified |
+| 5 Sep, 12:45 PM | P0-BE-03 | Kunal | Contact & Product models + CRUD endpoints | `tests/test_contacts.py` & `test_products.py` PASSED | Integrated & Verified |
 
 ---
 

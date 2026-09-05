@@ -16,9 +16,12 @@ def setup_db():
     yield
 
 
+import uuid
+
 def test_auth_register_and_login_flow():
     with TestClient(app) as client:
-        test_email = "riya.test@urbanfurniture.com"
+        unique_suffix = uuid.uuid4().hex[:6]
+        test_email = f"riya.test.{unique_suffix}@urbanfurniture.com"
         test_password = "SecureP@ssword123"
         test_name = "Riya Test"
 
