@@ -37,9 +37,9 @@ This document defines the behavioral logic, state handling, golden paths, valida
 | **P0** | Contact Master | `/contacts` | List-first CRUD for customers/vendors with list ↔ kanban and form views | loading / empty / error / success / archived | Planned |
 | **P0** | Product Master | `/products` | List-first CRUD for products, type/category/pricing, with list ↔ kanban and form views | loading / empty / error / success / archived | Planned |
 | **P0** | Chart of Accounts | `/accounts` | Display hierarchy of Asset, Liability, Bank, Cash, Capital, Income, Expense, Other Expense | loading / empty / error / success | Planned |
-| **P0** | Purchase Orders List | `/purchase-orders` | View list of POs, filter by status, quick action to create | loading / empty / error / success | Planned |
+| **P0** | Purchase Orders List | `/purchase-orders` | View list of POs, filter by status, quick action to create | loading / empty / error / success | Implemented with demo adapter; live API wiring queued |
 | **P0** | Purchase Order Detail | `/purchase-orders/[id]` | Track PO status, convert to Bill, record vendor payment, inspect journal links | loading / mutating / error / success | Planned |
-| **P0** | Sales Orders List | `/sales-orders` | View list of SOs, filter by status, quick action to create | loading / empty / error / success | Planned |
+| **P0** | Sales Orders List | `/sales-orders` | View list of SOs, filter by status, quick action to create | loading / empty / error / success | Implemented with demo adapter; live API wiring queued |
 | **P0** | Sales Order Detail | `/sales-orders/[id]` | Track SO status, generate Invoice, record customer payment, inspect journal links | loading / mutating / error / success | Planned |
 | **P0** | Journal Entries | `/journal-entries` | Audit all double-entry ledger records, verify debit = credit balance | loading / empty / error / success | Planned |
 | **P0** | Balance Sheet | `/reports/balance-sheet` | Display live snapshot of Assets, Liabilities, and Capital | loading / empty / error / success | Planned |
