@@ -12,14 +12,12 @@
 
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { ArrowLeft, LogOut, ShieldAlert } from "lucide-react";
 
 import { useAuth } from "@/features/auth/auth-context";
+import { getHomeRouteForRole } from "@/features/auth/validation";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { Button } from "@/components/ui/button";
 import { useMounted } from "@/hooks/use-mounted";
 import type { UserRole } from "@/lib/types";
 
@@ -35,7 +33,7 @@ interface RequireRoleProps {
 }
 
 /** Maps backend role slugs to human-readable labels for error messages. */
-const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
+export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
   admin: "Administrator",
   invoicing_user: "Accountant",
   contact: "Portal User (Contact)",
@@ -59,10 +57,8 @@ const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
 export function RequireRole({
   allowedRoles,
   children,
-  fallbackTitle = "Access Denied",
-  fallbackMessage,
 }: RequireRoleProps) {
-  const { user, isAuthenticated, bootstrapping, logout } = useAuth();
+  const { user, isAuthenticated, bootstrapping } = useAuth();
   const router = useRouter();
   const mounted = useMounted();
 
@@ -71,6 +67,14 @@ export function RequireRole({
       router.replace("/login");
     }
   }, [mounted, bootstrapping, isAuthenticated, router]);
+
+  const isAllowed = user ? allowedRoles.includes(user.role) : false;
+
+  useEffect(() => {
+    if (mounted && !bootstrapping && user && !isAllowed) {
+      router.replace(getHomeRouteForRole(user.role));
+    }
+  }, [mounted, bootstrapping, user, isAllowed, router]);
 
   if (!mounted || bootstrapping) {
     return (
@@ -84,51 +88,10 @@ export function RequireRole({
     return null;
   }
 
-  const isAllowed = allowedRoles.includes(user.role);
-
   if (!isAllowed) {
-    const roleName = ROLE_DISPLAY_NAMES[user.role];
-    const requiredRoles = allowedRoles
-      .map((r) => ROLE_DISPLAY_NAMES[r])
-      .join(" or ");
-
     return (
-      <div className="mx-auto my-12 max-w-lg rounded-2xl border border-destructive/20 bg-surface p-8 text-center shadow-sm">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
-          <ShieldAlert className="h-7 w-7" />
-        </div>
-
-        <span className="mt-4 inline-block rounded-full bg-destructive/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-destructive">
-          403 Forbidden
-        </span>
-
-        <h2 className="mt-3 text-xl font-bold text-text">{fallbackTitle}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-text-muted">
-          {fallbackMessage ||
-            `Your current role (${roleName}) does not have permission to access this screen. This module requires ${requiredRoles} authorization.`}
-        </p>
-
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-700"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
-          </Link>
-
-          <Button
-            variant="outline"
-            onClick={() => {
-              logout();
-              router.replace("/login");
-            }}
-            className="gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Switch Account
-          </Button>
-        </div>
+      <div className="flex min-h-[400px] items-center justify-center">
+        <LoadingSpinner size="lg" label="Redirecting…" />
       </div>
     );
   }

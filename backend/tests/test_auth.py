@@ -18,8 +18,8 @@ def setup_db():
     yield
 
 
-def test_public_registration_creates_accountant_role_only():
-    """Public registration should not accept admin roles and strictly assign invoicing_user (accountant) role."""
+def test_public_registration_creates_contact_role_only():
+    """Public registration should not accept privileged roles and always assign contact (portal user) role."""
     with TestClient(app) as client:
         unique_suffix = uuid.uuid4().hex[:4]
         test_login_id = f"user_{unique_suffix}"
@@ -27,7 +27,7 @@ def test_public_registration_creates_accountant_role_only():
         test_password = "SecureP@ssword123!"
         test_name = "Regular Portal User"
 
-        # 1. Public signup without role specified -> defaults to invoicing_user (Accountant)
+        # 1. Public signup without role specified -> defaults to contact (Portal User)
         reg_payload = {
             "login_id": test_login_id,
             "email": test_email,
@@ -40,8 +40,22 @@ def test_public_registration_creates_accountant_role_only():
         assert data["login_id"] == test_login_id
         assert data["email"] == test_email
         assert data["name"] == test_name
-        assert data["role"] == "invoicing_user"
+        assert data["role"] == "contact"
         assert "token" in data
+
+        me_res = client.get(
+            "/api/v1/auth/me",
+            headers={"Authorization": f"Bearer {data['token']}"},
+        )
+        assert me_res.status_code == 200
+        assert me_res.json()["contact_id"] is not None
+
+        portal_res = client.get(
+            "/api/v1/self-service/my-invoices",
+            headers={"Authorization": f"Bearer {data['token']}"},
+        )
+        assert portal_res.status_code == 200, portal_res.text
+        assert "data" in portal_res.json()
 
         # 2. Attempt to register directly with admin role -> rejected
         admin_attempt_payload = {
@@ -64,6 +78,17 @@ def test_public_registration_creates_accountant_role_only():
         }
         admin_res2 = client.post("/api/v1/auth/register", json=admin_attempt_payload2)
         assert admin_res2.status_code in (403, 422)
+
+        # 4. Attempt to register with accountant role -> rejected
+        accountant_attempt_payload = {
+            "login_id": f"acc_{unique_suffix}",
+            "email": f"acc_{unique_suffix}@urbanfurniture.com",
+            "password": test_password,
+            "name": "Malicious Accountant",
+            "role": "invoicing_user",
+        }
+        accountant_res = client.post("/api/v1/auth/register", json=accountant_attempt_payload)
+        assert accountant_res.status_code in (403, 422)
 
 
 def test_create_user_endpoint_strictly_restricted_to_admin():
@@ -259,7 +284,7 @@ def test_auth_login_and_validations():
         # Check /me endpoint
         me_res = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert me_res.status_code == 200
-        assert me_res.json()["role"] == "invoicing_user"
+        assert me_res.json()["role"] == "contact"
 
         # Invalid Login ID (< 6 chars)
         short_res = client.post(

@@ -64,7 +64,7 @@ export function CustomerPaymentModal({
 
     onSubmit({
       payment_method: method,
-      payment_date: date + "T00:00:00",
+      payment_date: date,
       amount: numAmount,
       notes: notes.trim() || undefined,
     });

@@ -139,6 +139,11 @@ export const ROLES = [
 
 export type RoleValue = (typeof ROLES)[number]["value"];
 
+/** Default landing route after login or signup, based on account role. */
+export function getHomeRouteForRole(role: RoleValue): string {
+  return role === "contact" ? "/portal" : "/dashboard";
+}
+
 /** Roles an Admin can assign when creating a user from the dashboard. */
 export const ADMIN_CREATABLE_ROLES = [
   { value: "admin", label: "Admin" },

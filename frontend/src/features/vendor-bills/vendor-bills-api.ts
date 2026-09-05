@@ -8,6 +8,7 @@
  */
 
 import { apiFetch } from "@/lib/api";
+import { toPaymentDateTime } from "@/lib/format";
 import { payVendorBill as recordVendorBillPayment } from "@/features/payments/payments-api";
 
 /** Bill status values used in the UI (includes legacy backend strings). */
@@ -266,7 +267,7 @@ export async function payVendorBill(billId: string, payment: PaymentInput): Prom
   await recordVendorBillPayment(numericId, {
     amount: payment.amount,
     payment_method: payment.payment_method,
-    date: payment.payment_date + "T00:00:00",
+    date: toPaymentDateTime(payment.payment_date),
     note: payment.notes,
   });
 

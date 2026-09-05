@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from app.models.contact import Contact
+from app.models.user import User
 from app.schemas.contact import ContactCreate, ContactUpdate
 from app.core.exceptions import NotFoundException, ValidationException
 
@@ -50,6 +51,47 @@ def create_contact(db: Session, req: ContactCreate) -> Contact:
         db.rollback()
         raise
     db.refresh(contact)
+    return contact
+
+
+def ensure_contact_for_portal_user(
+    db: Session,
+    *,
+    name: str,
+    email: str,
+    contact_id: Optional[int] = None,
+    user: Optional[User] = None,
+) -> Contact:
+    """Find or create the customer contact record backing a portal user account."""
+    if contact_id is not None:
+        contact = db.query(Contact).filter(Contact.id == contact_id).first()
+        if not contact:
+            raise ValidationException(f"Contact with id {contact_id} does not exist")
+        if user is not None and user.contact_id != contact.id:
+            user.contact_id = contact.id
+        return contact
+
+    if user is not None and user.contact_id is not None:
+        contact = db.query(Contact).filter(Contact.id == user.contact_id).first()
+        if contact:
+            return contact
+
+    existing = db.query(Contact).filter(Contact.email == email).first()
+    if existing:
+        if user is not None and user.contact_id != existing.id:
+            user.contact_id = existing.id
+        return existing
+
+    contact = Contact(
+        name=name,
+        type="customer",
+        email=email,
+        is_active=True,
+    )
+    db.add(contact)
+    db.flush()
+    if user is not None:
+        user.contact_id = contact.id
     return contact
 
 

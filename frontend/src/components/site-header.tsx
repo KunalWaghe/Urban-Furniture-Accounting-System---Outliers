@@ -25,7 +25,9 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/auth-context";
+import { getHomeRouteForRole } from "@/features/auth/validation";
 import { useTheme } from "@/components/theme-provider";
+import { useMounted } from "@/hooks/use-mounted";
 import { cn } from "@/lib/utils";
 
 /** One link inside a navigation category dropdown. */
@@ -127,8 +129,9 @@ export const NAV_CATEGORIES: NavCategory[] = [
 export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
+  const mounted = useMounted();
   const { darkMode, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, bootstrapping } = useAuth();
 
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -144,7 +147,9 @@ export function SiteHeader() {
     router.replace("/login");
   }
 
-  const userRole = user?.role || "invoicing_user";
+  // Defer auth-dependent nav until client mount + session bootstrap to avoid SSR hydration mismatch.
+  const showAuthenticatedNav = mounted && !bootstrapping && Boolean(user);
+  const userRole = showAuthenticatedNav ? user!.role : null;
 
   // Remove admin-only items for non-admin users
   const categories = useMemo(() => {
@@ -164,6 +169,10 @@ export function SiteHeader() {
       }),
     }));
   }, [userRole]);
+
+  const homeHref = showAuthenticatedNav
+    ? getHomeRouteForRole(user!.role)
+    : "/";
 
   /**
    * Handle navigation from dropdown or search results.
@@ -246,7 +255,7 @@ export function SiteHeader() {
     >
       <div className="mx-auto flex h-16 w-full max-w-[1800px] items-center justify-between px-4 sm:px-6 lg:px-8 2xl:px-10 gap-3 sm:gap-4">
         {/* Left: Brand Logo */}
-        <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2.5 shrink-0">
+        <Link href={homeHref} className="flex items-center gap-2.5 shrink-0">
           <div className="rounded-xl bg-primary-600 p-2 text-white shadow-sm shadow-primary-500/20">
             <Armchair className="h-5 w-5" />
           </div>
@@ -386,7 +395,7 @@ export function SiteHeader() {
 
         {/* Right: User Pill + Dark Mode + Sign Out */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {user && (
+          {showAuthenticatedNav && user && (
             <div className="hidden lg:flex items-center gap-2 rounded-xl border border-border/70 bg-surface-muted/40 px-2.5 py-1.5 text-xs">
               <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
                 <User className="h-3.5 w-3.5" />
@@ -421,7 +430,7 @@ export function SiteHeader() {
             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          {user ? (
+          {showAuthenticatedNav && user ? (
             <button
               type="button"
               onClick={handleLogout}
@@ -431,7 +440,7 @@ export function SiteHeader() {
               <LogOut className="h-3.5 w-3.5" />
               <span>Sign out</span>
             </button>
-          ) : (
+          ) : !showAuthenticatedNav ? (
             <Link
               href="/login"
               className="hidden sm:flex h-9 items-center gap-1.5 rounded-xl bg-primary hover:bg-primary-700 text-white px-3.5 text-xs font-semibold shadow-xs transition-all"
@@ -439,7 +448,7 @@ export function SiteHeader() {
               <LogIn className="h-3.5 w-3.5" />
               <span>Sign in</span>
             </Link>
-          )}
+          ) : null}
 
           {/* Mobile menu hamburger toggle */}
           <button
@@ -459,7 +468,7 @@ export function SiteHeader() {
       {mobileMenuOpen && (
         <div className="border-t border-border bg-surface px-4 py-4 md:hidden max-h-[85vh] overflow-y-auto space-y-4">
           {/* User profile card */}
-          {user && (
+          {showAuthenticatedNav && user && (
             <div className="flex items-center justify-between rounded-xl border border-border/70 bg-surface-muted/40 p-2.5">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
@@ -522,7 +531,7 @@ export function SiteHeader() {
           </div>
 
           <div className="border-t border-border pt-3">
-            {user ? (
+            {showAuthenticatedNav && user ? (
               <button
                 type="button"
                 onClick={handleLogout}
@@ -531,7 +540,7 @@ export function SiteHeader() {
                 <LogOut className="h-4 w-4" />
                 <span>Sign out</span>
               </button>
-            ) : (
+            ) : !showAuthenticatedNav ? (
               <Link
                 href="/login"
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary-700 text-white px-3 py-2 text-xs font-semibold"
@@ -539,7 +548,7 @@ export function SiteHeader() {
                 <LogIn className="h-4 w-4" />
                 <span>Sign in</span>
               </Link>
-            )}
+            ) : null}
           </div>
         </div>
       )}

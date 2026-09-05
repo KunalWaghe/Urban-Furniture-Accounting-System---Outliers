@@ -1,4 +1,5 @@
 import { apiFetch } from "@/lib/api";
+import { toPaymentDateTime } from "@/lib/format";
 
 export interface PortalInvoice {
   id: number;
@@ -29,6 +30,6 @@ export async function payPortalInvoice(invoiceId: number, input: { amount: numbe
   return apiFetch(`/api/v1/self-service/my-invoices/${invoiceId}/pay`, {
     method: "POST",
     auth: true,
-    body: { amount: input.amount, payment_method: input.payment_method, date: input.date, note: input.note },
+    body: { amount: input.amount, payment_method: input.payment_method, date: toPaymentDateTime(input.date), note: input.note },
   });
 }

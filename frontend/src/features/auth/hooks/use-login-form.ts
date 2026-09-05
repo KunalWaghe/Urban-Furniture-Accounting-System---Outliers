@@ -26,7 +26,7 @@ import {
   getAuthErrorMessage,
   mapApiFieldsToLoginErrors,
 } from "../error-mapping";
-import { validateLoginFields } from "../validation";
+import { getHomeRouteForRole, validateLoginFields } from "../validation";
 import type { AuthNotice, LoginErrors, LoginFields } from "../validation";
 
 /** Order used to focus the first invalid field on validation failure. */
@@ -114,8 +114,8 @@ export function useLoginForm() {
         remember: rememberDevice,
       },
       {
-        onSuccess: () => {
-          router.push("/dashboard");
+        onSuccess: (user) => {
+          router.push(getHomeRouteForRole(user.role));
         },
         onError: handleLoginError,
       }

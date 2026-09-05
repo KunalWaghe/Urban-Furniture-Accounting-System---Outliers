@@ -3,7 +3,7 @@
  *
  * Role in the app:
  * - Wraps the `(auth)` layout (login, register)
- * - Redirects authenticated users to `/dashboard`
+ * - Redirects authenticated users to their role home route (`/portal` or `/dashboard`)
  * - Prevents a flash of the login form while `/auth/me` is loading
  *
  * Pair with RequireAuth on the `(app)` layout for the protected area.
@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
 import { useAuth } from "@/features/auth/auth-context";
+import { getHomeRouteForRole } from "@/features/auth/validation";
 import { useMounted } from "@/hooks/use-mounted";
 
 /**
@@ -39,15 +40,15 @@ import { useMounted } from "@/hooks/use-mounted";
  *  4. guest               → children (auth form)
  */
 export function RedirectIfAuth({ children }: { children: ReactNode }) {
-  const { isAuthenticated, bootstrapping } = useAuth();
+  const { isAuthenticated, bootstrapping, user } = useAuth();
   const router = useRouter();
   const mounted = useMounted();
 
   useEffect(() => {
-    if (mounted && !bootstrapping && isAuthenticated) {
-      router.replace("/dashboard");
+    if (mounted && !bootstrapping && isAuthenticated && user) {
+      router.replace(getHomeRouteForRole(user.role));
     }
-  }, [mounted, bootstrapping, isAuthenticated, router]);
+  }, [mounted, bootstrapping, isAuthenticated, user, router]);
 
   // Before mounting, render children so SSR HTML matches initial client hydration.
   if (!mounted) {

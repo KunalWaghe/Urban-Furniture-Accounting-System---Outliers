@@ -11,7 +11,7 @@ from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, AdminU
 from app.core.security import hash_password, verify_password, create_access_token, generate_reset_token
 from app.core.exceptions import ConflictException, UnauthorizedException, ValidationException, ForbiddenException
 from app.models.contact import Contact
-from app.services import email_service
+from app.services import contact_service, email_service
 
 
 ROLE_MAP = {
@@ -25,19 +25,18 @@ ROLE_MAP = {
 
 
 def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
-    """Register a new user with unique Login ID and Email (Public signup creates user/contact role)."""
-    # Safeguard against admin role escalation
+    """Register a new user with unique Login ID and Email (Public signup creates contact/portal role)."""
+    # Public registration is always contact — reject privilege escalation attempts
     if req.role:
         check_role = req.role.strip().lower()
-        if check_role in ("admin", "administrator"):
-            raise ForbiddenException(message="Registration with admin role is forbidden", code="ROLE_NOT_ALLOWED")
+        mapped_role = ROLE_MAP.get(check_role, check_role)
+        if mapped_role in ("admin", "invoicing_user"):
+            raise ForbiddenException(
+                message=f"Registration with {mapped_role} role is forbidden",
+                code="ROLE_NOT_ALLOWED",
+            )
 
-    # Map the requested role through ROLE_MAP, defaulting to "invoicing_user"
-    raw_role = req.role.strip().lower() if req.role else "invoicing_user"
-    assigned_role = ROLE_MAP.get(raw_role, "invoicing_user")
-    # Double-check no admin escalation after mapping
-    if assigned_role == "admin":
-        raise ForbiddenException(message="Registration with admin role is forbidden", code="ROLE_NOT_ALLOWED")
+    assigned_role = "contact"
 
     # 1. Check if Login ID is already taken
     existing_login = db.query(User).filter(User.login_id == req.login_id).first()
@@ -49,14 +48,19 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
     if existing_email:
         raise ConflictException(code="EMAIL_ALREADY_EXISTS", message=f"User with email '{req.email}' already exists")
 
-    # 3. Validate contact_id if provided
-    if req.contact_id is not None:
-        contact = db.query(Contact).filter(Contact.id == req.contact_id).first()
-        if not contact:
-            raise ValidationException(f"Contact with id {req.contact_id} does not exist")
+    # 3. Ensure portal users have a linked customer contact for self-service invoices
+    name = req.name if req.name and req.name.strip() else req.login_id
+    contact_id = req.contact_id
+    if assigned_role == "contact":
+        contact = contact_service.ensure_contact_for_portal_user(
+            db,
+            name=name,
+            email=req.email,
+            contact_id=contact_id,
+        )
+        contact_id = contact.id
 
     # 4. Create user record
-    name = req.name if req.name and req.name.strip() else req.login_id
     hashed_pw = hash_password(req.password)
     user = User(
         login_id=req.login_id,
@@ -64,7 +68,7 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
         password_hash=hashed_pw,
         name=name,
         role=assigned_role,
-        contact_id=req.contact_id,
+        contact_id=contact_id,
         is_active=True,
     )
     db.add(user)

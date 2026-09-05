@@ -30,6 +30,14 @@ export function todayDate(): string {
   return `${year}-${month}-${day}`;
 }
 
+/** Converts YYYY-MM-DD (or existing ISO datetime) to backend payment datetime once. */
+export function toPaymentDateTime(value: string): string {
+  const normalized = value.trim();
+  if (!normalized) return normalized;
+  if (normalized.includes("T")) return normalized;
+  return `${normalized}T00:00:00`;
+}
+
 function formatPlainDate(value: string): string | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) return null;

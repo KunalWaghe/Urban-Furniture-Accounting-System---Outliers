@@ -11,20 +11,25 @@ from app.core.deps import get_db, get_current_user
 from app.schemas.customer_invoice import CustomerInvoiceResponse, CustomerInvoiceListResponse
 from app.schemas.vendor_bill import VendorBillResponse, VendorBillListResponse
 from app.schemas.payment import InvoicePayRequest, BillPayRequest, PaymentResponse
-from app.services import customer_invoice_service, vendor_bill_service, payment_service
+from app.services import customer_invoice_service, vendor_bill_service, payment_service, contact_service
 from app.models.user import User
 from app.models.contact import Contact
-from app.core.exceptions import ForbiddenException, NotFoundException
+from app.core.exceptions import ForbiddenException
 
 # Self-service router: authenticated users only (any role can access their own data)
 router = APIRouter()
 
 
 def _get_contact_for_user(db: Session, user: User) -> Contact:
-    """Resolve the Contact entity linked to the current user's email."""
-    contact = db.query(Contact).filter(Contact.email == user.email).first()
-    if not contact:
-        raise NotFoundException("Contact", f"linked to user '{user.email}'")
+    """Resolve or create the Contact entity linked to the current portal user."""
+    contact = contact_service.ensure_contact_for_portal_user(
+        db,
+        name=user.name,
+        email=user.email,
+        user=user,
+    )
+    db.commit()
+    db.refresh(contact)
     return contact
 
 

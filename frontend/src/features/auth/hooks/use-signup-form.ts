@@ -26,7 +26,11 @@ import {
   getAuthErrorMessage,
   mapApiFieldsToSignupErrors,
 } from "../error-mapping";
-import { getPasswordStrength, validateSignupFields } from "../validation";
+import {
+  getHomeRouteForRole,
+  getPasswordStrength,
+  validateSignupFields,
+} from "../validation";
 import type { AuthNotice, RoleValue, SignupErrors, SignupFields } from "../validation";
 
 /** Order used to focus the first invalid field on validation failure. */
@@ -183,9 +187,10 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
         login_id: fields.login_id.trim(),
         email: fields.email.trim(),
         password: fields.password,
+        role: "contact",
       },
       {
-        onSuccess: () => router.push("/dashboard"),
+        onSuccess: (user) => router.push(getHomeRouteForRole(user.role)),
         onError: (error) => handleApiError(error, "create account"),
       }
     );
