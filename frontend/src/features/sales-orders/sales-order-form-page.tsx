@@ -17,6 +17,8 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Plus, Trash2, CheckCircle2 } from "lucide-react";
 
+import { ActionTooltip } from "@/components/ui/tooltip";
+
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { SearchableContactSelect } from "@/components/searchable-contact-select";
 import { Button } from "@/components/ui/button";
@@ -367,15 +369,16 @@ export function SalesOrderFormPage() {
 
                       {/* Delete */}
                       <td className="px-3 py-2.5 text-center">
-                        <button
-                          type="button"
-                          disabled={lines.length <= 1}
-                          onClick={() => handleRemoveLine(line.key)}
-                          className="text-text-muted transition-colors hover:text-red-500 disabled:opacity-30"
-                          title="Remove item"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <ActionTooltip label="Remove item">
+                          <button
+                            type="button"
+                            disabled={lines.length <= 1}
+                            onClick={() => handleRemoveLine(line.key)}
+                            className="text-text-muted transition-colors hover:text-red-500 disabled:opacity-30"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </ActionTooltip>
                       </td>
                     </tr>
                   );

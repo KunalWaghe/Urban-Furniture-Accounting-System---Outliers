@@ -60,6 +60,7 @@ import { SearchableContactSelect } from "@/components/searchable-contact-select"
 import { PaymentModal } from "@/components/payment-modal";
 import { DashboardKpiCards } from "@/features/dashboard/dashboard-kpi-cards";
 import { Button } from "@/components/ui/button";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { DASHBOARD_RECENT_LIMIT } from "@/lib/constants";
 import { formatINR } from "@/lib/format";
 
@@ -449,15 +450,16 @@ export default function AppDashboardPage() {
               <span>View all sales orders</span>
               <span>→</span>
             </Link>
-            <button
-              type="button"
-              onClick={handleRefresh}
-              disabled={dataLoading}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-surface text-text-muted transition-colors hover:bg-surface-muted hover:text-primary-600 disabled:opacity-50"
-              title="Refresh backend data"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${dataLoading ? "animate-spin" : ""}`} />
-            </button>
+            <ActionTooltip label="Refresh backend data">
+              <button
+                type="button"
+                onClick={handleRefresh}
+                disabled={dataLoading}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-surface text-text-muted transition-colors hover:bg-surface-muted hover:text-primary-600 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${dataLoading ? "animate-spin" : ""}`} />
+              </button>
+            </ActionTooltip>
             <button
               type="button"
               onClick={() => setIsCreateOrderModalOpen(true)}

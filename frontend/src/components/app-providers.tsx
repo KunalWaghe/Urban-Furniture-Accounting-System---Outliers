@@ -16,6 +16,7 @@ import type { ReactNode } from "react";
 import { AuthProvider } from "@/features/auth/auth-context";
 import { QueryProvider } from "@/components/query-provider";
 import { ToastProvider } from "@/components/toast-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 /**
  * Composes global React context providers around the app tree.
@@ -30,7 +31,11 @@ import { ToastProvider } from "@/components/toast-provider";
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryProvider>
-      <AuthProvider><ToastProvider>{children}</ToastProvider></AuthProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryProvider>
   );
 }

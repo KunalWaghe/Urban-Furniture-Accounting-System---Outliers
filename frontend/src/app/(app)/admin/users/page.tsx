@@ -13,6 +13,7 @@ import { RefreshCw, Search, Shield, Users } from "lucide-react";
 
 import { RequireRole } from "@/components/require-role";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { SignupForm } from "@/features/auth/components/signup-form";
 import { useUsers } from "@/features/users/queries";
 
@@ -91,18 +92,19 @@ export default function AdminUsersPage() {
                       className="w-full rounded-lg border border-border bg-surface-muted/60 py-1.5 pl-8 pr-3 text-xs text-text outline-none focus:border-primary-500 focus:bg-surface focus:ring-2 focus:ring-primary-500/20"
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPage(1);
-                      void refetchUsers();
-                    }}
-                    disabled={loading}
-                    className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text disabled:opacity-50"
-                    title="Refresh users"
-                  >
-                    <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-                  </button>
+                  <ActionTooltip label="Refresh users">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPage(1);
+                        void refetchUsers();
+                      }}
+                      disabled={loading}
+                      className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text disabled:opacity-50"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                    </button>
+                  </ActionTooltip>
                 </div>
               </div>
 

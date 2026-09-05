@@ -21,13 +21,14 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit3, Grid2X2, ImagePlus, List, Package, Plus, RotateCcw, Tag, Trash2, X } from "lucide-react";
+import { Edit3, Grid2X2, List, Package, Plus, RotateCcw, Trash2 } from "lucide-react";
 
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable, type DataTableColumn } from "@/components/data-table";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Product } from "@/lib/types";
 import {
@@ -44,7 +45,7 @@ import { ProductKanban } from "./product-kanban";
 const inputClass = "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20";
 
 /** Default empty form values when creating a new product. */
-const emptyForm: ProductInput = { name: "", product_type: "goods", category: "", price: 0, cost: null, tax_percent: 0, description: "", image_url: null };
+const emptyForm: ProductInput = { name: "", product_type: "goods", category: "", price: 0, cost: null, tax_percent: 0, description: "" };
 
 /** Turn API product_type into a display label. */
 function productTypeLabel(value: string) { return value === "goods" ? "Goods" : value === "service" ? "Service" : value[0].toUpperCase() + value.slice(1); }
@@ -200,7 +201,6 @@ export function ProductsPage() {
       cost: product.cost,
       tax_percent: product.tax_percent,
       description: product.description ?? "",
-      image_url: product.image_url ?? null,
     });
     setError(null);
     setIsModalOpen(true);
@@ -223,28 +223,6 @@ export function ProductsPage() {
       return;
     }
     saveMutation.mutate();
-  }
-
-  /** Read the selected image into the product payload for persistence. */
-  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError("Please choose an image file.");
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Product images must be 2 MB or smaller.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        updateField("image_url", reader.result);
-        setError(null);
-      }
-    };
-    reader.readAsDataURL(file);
   }
 
   const columns: DataTableColumn<Product>[] = [
@@ -303,15 +281,17 @@ export function ProductsPage() {
             Edit
           </Button>
           {product.is_active ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setDeletingProduct(product)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            <ActionTooltip label={`Deactivate ${product.name}`}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setDeletingProduct(product)}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </ActionTooltip>
           ) : (
             <Button
               type="button"
@@ -387,25 +367,22 @@ export function ProductsPage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="relative">
-                <Tag className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted pointer-events-none" />
-                <select
-                  value={categoryFilter}
-                  onChange={(event) => {
-                    setCategoryFilter(event.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-8 text-xs text-text outline-none focus:border-primary-500 sm:w-auto"
-                  aria-label="Filter products by category"
-                >
-                  <option value="all">All categories</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                value={categoryFilter}
+                onChange={(event) => {
+                  setCategoryFilter(event.target.value);
+                  setPage(1);
+                }}
+                className="rounded-lg border border-border bg-surface py-2 px-3 text-xs text-text outline-none focus:border-primary-500"
+                aria-label="Filter products by category"
+              >
+                <option value="all">All categories</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
               <select
                 value={productTypeFilter}
                 onChange={(event) => {
@@ -503,7 +480,7 @@ export function ProductsPage() {
         </CardContent>
       </Card>
     {/* Create / edit modal — submitForm validates then calls saveMutation */}
-    {isModalOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-2 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="product-dialog-title"><div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-surface p-4 shadow-2xl sm:p-6"><div className="flex items-start justify-between gap-4"><div><h2 id="product-dialog-title" className="text-base font-semibold text-text sm:text-lg">{editing ? "Edit product" : "New product"}</h2><p className="mt-1 text-xs text-text-muted sm:text-sm">Pricing here flows into sales orders and purchase orders.</p></div><button type="button" onClick={() => setIsModalOpen(false)} className="text-sm text-text-muted hover:text-text" aria-label="Close dialog">✕</button></div>{error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}<form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={submitForm}><label className="sm:col-span-2 text-sm font-medium text-text">Name *<input required value={form.name} onChange={(event) => updateField("name", event.target.value)} className={inputClass} placeholder="Executive Ergonomic Chair" /></label><label className="text-sm font-medium text-text">Product type<select value={form.product_type} onChange={(event) => updateField("product_type", event.target.value)} className={inputClass}><option value="goods">Goods</option><option value="service">Service</option><option value="combo">Combo</option></select></label><label className="text-sm font-medium text-text">Category<input list="product-categories" value={form.category ?? ""} onChange={(event) => updateField("category", event.target.value)} className={inputClass} placeholder="Office Seating" /><span className="mt-1 block text-xs font-normal text-text-muted">Choose a category or type a new one; it is saved when the product is created.</span><datalist id="product-categories">{categories.map((category) => <option key={category} value={category} />)}</datalist></label><label className="text-sm font-medium text-text">Sales price *<input type="number" min="0" step="0.01" required value={form.price} onChange={(event) => updateField("price", Number(event.target.value))} className={inputClass} /></label><label className="text-sm font-medium text-text">Cost price<input type="number" min="0" step="0.01" value={form.cost ?? ""} onChange={(event) => updateField("cost", event.target.value === "" ? null : Number(event.target.value))} className={inputClass} /></label><label className="text-sm font-medium text-text">Tax rate (%)<input type="number" min="0" max="100" step="0.01" value={form.tax_percent} onChange={(event) => updateField("tax_percent", Number(event.target.value))} className={inputClass} /></label><div className="sm:col-span-2"><span className="text-sm font-medium text-text">Product image</span><div className="mt-1 flex flex-wrap items-center gap-3"><label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text hover:bg-surface-muted"><ImagePlus className="h-4 w-4" />Upload image<input type="file" accept="image/*" className="sr-only" onChange={handleImageChange} /></label>{form.image_url && <><div role="img" aria-label="Product preview" className="h-12 w-12 rounded-lg border border-border bg-cover bg-center" style={{ backgroundImage: `url(${form.image_url})` }} /><button type="button" className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text" onClick={() => updateField("image_url", null)}><X className="h-3.5 w-3.5" />Remove</button></>}</div><p className="mt-1 text-xs text-text-muted">Used as the visual thumbnail on the Kanban card. PNG, JPG, or WEBP up to 2 MB.</p></div><label className="sm:col-span-2 text-sm font-medium text-text">Description<textarea rows={3} value={form.description} onChange={(event) => updateField("description", event.target.value)} className={inputClass} placeholder="Short description for users and invoices" /></label><div className="mt-2 flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 sm:col-span-2"><Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="w-full sm:w-auto">Cancel</Button><Button type="submit" disabled={saveMutation.isPending} className="w-full sm:w-auto">{saveMutation.isPending ? <LoadingSpinner /> : editing ? "Save changes" : "Create product"}</Button></div></form></div></div>}
+    {isModalOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-2 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="product-dialog-title"><div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-surface p-4 shadow-2xl sm:p-6"><div className="flex items-start justify-between gap-4"><div><h2 id="product-dialog-title" className="text-base font-semibold text-text sm:text-lg">{editing ? "Edit product" : "New product"}</h2><p className="mt-1 text-xs text-text-muted sm:text-sm">Pricing here flows into sales orders and purchase orders.</p></div><button type="button" onClick={() => setIsModalOpen(false)} className="text-sm text-text-muted hover:text-text" aria-label="Close dialog">✕</button></div>{error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}<form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={submitForm}><label className="sm:col-span-2 text-sm font-medium text-text">Name *<input required value={form.name} onChange={(event) => updateField("name", event.target.value)} className={inputClass} placeholder="Executive Ergonomic Chair" /></label><label className="text-sm font-medium text-text">Product type<select value={form.product_type} onChange={(event) => updateField("product_type", event.target.value)} className={inputClass}><option value="goods">Goods</option><option value="service">Service</option><option value="combo">Combo</option></select></label><label className="text-sm font-medium text-text">Category<input list="product-categories" value={form.category ?? ""} onChange={(event) => updateField("category", event.target.value)} className={inputClass} placeholder="Office Seating" /><span className="mt-1 block text-xs font-normal text-text-muted">Choose a category or type a new one; it is saved when the product is created.</span><datalist id="product-categories">{categories.map((category) => <option key={category} value={category} />)}</datalist></label><label className="text-sm font-medium text-text">Sales price *<input type="number" min="0" step="0.01" required value={form.price} onChange={(event) => updateField("price", Number(event.target.value))} className={inputClass} /></label><label className="text-sm font-medium text-text">Cost price<input type="number" min="0" step="0.01" value={form.cost ?? ""} onChange={(event) => updateField("cost", event.target.value === "" ? null : Number(event.target.value))} className={inputClass} /></label><label className="text-sm font-medium text-text">Tax rate (%)<input type="number" min="0" max="100" step="0.01" value={form.tax_percent} onChange={(event) => updateField("tax_percent", Number(event.target.value))} className={inputClass} /></label><label className="sm:col-span-2 text-sm font-medium text-text">Description<textarea rows={3} value={form.description} onChange={(event) => updateField("description", event.target.value)} className={inputClass} placeholder="Short description for users and invoices" /></label><div className="mt-2 flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 sm:col-span-2"><Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="w-full sm:w-auto">Cancel</Button><Button type="submit" disabled={saveMutation.isPending} className="w-full sm:w-auto">{saveMutation.isPending ? <LoadingSpinner /> : editing ? "Save changes" : "Create product"}</Button></div></form></div></div>}
     {/* Deactivate confirmation — deleteMutation runs on confirm */}
     <ConfirmDialog
       open={Boolean(deletingProduct)}

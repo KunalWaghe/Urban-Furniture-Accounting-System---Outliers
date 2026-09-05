@@ -31,6 +31,7 @@ import {
 
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { formatDate, formatINR } from "@/lib/format";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
@@ -219,14 +220,15 @@ export function VendorBillsListPage() {
                 className="w-full rounded-xl border border-border bg-surface-muted/60 py-1.5 pl-8 pr-3 text-xs text-text outline-none focus:border-primary-500 focus:bg-surface focus:ring-2 focus:ring-primary-500/20"
               />
             </div>
-            <button
-              type="button"
-              onClick={() => void queryClient.invalidateQueries({ queryKey: ["vendor-bills"] })}
-              className="rounded-xl border border-border p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
-              title="Refresh directory"
-            >
-              <RefreshCw className={`h-4 w-4 ${billsQuery.isFetching ? "animate-spin" : ""}`} />
-            </button>
+            <ActionTooltip label="Refresh directory">
+              <button
+                type="button"
+                onClick={() => void queryClient.invalidateQueries({ queryKey: ["vendor-bills"] })}
+                className="rounded-xl border border-border p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+              >
+                <RefreshCw className={`h-4 w-4 ${billsQuery.isFetching ? "animate-spin" : ""}`} />
+              </button>
+            </ActionTooltip>
           </div>
         </div>
 

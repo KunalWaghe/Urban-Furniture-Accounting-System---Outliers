@@ -76,6 +76,58 @@ async def lifespan(app: FastAPI):
             conn.execute(text("ALTER TABLE payments ALTER COLUMN amount TYPE NUMERIC(15, 2) USING amount::NUMERIC(15, 2)"))
             conn.execute(text("ALTER TABLE vendor_bills ADD COLUMN IF NOT EXISTS due_date TIMESTAMPTZ"))
             conn.execute(text("ALTER TABLE customer_invoices ADD COLUMN IF NOT EXISTS due_date TIMESTAMPTZ"))
+            # Upgrade legacy analytic_accounts table (pre-Phase 6 schema) to current model shape
+            conn.execute(text("ALTER TABLE analytic_accounts ADD COLUMN IF NOT EXISTS code VARCHAR(50)"))
+            conn.execute(text("ALTER TABLE analytic_accounts ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'expense'"))
+            conn.execute(text("ALTER TABLE analytic_accounts ADD COLUMN IF NOT EXISTS description TEXT"))
+            conn.execute(text(
+                "ALTER TABLE analytic_accounts ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW()"
+            ))
+            conn.execute(text(
+                "ALTER TABLE analytic_accounts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()"
+            ))
+            conn.execute(text(
+                "UPDATE analytic_accounts SET code = 'ANL-' || id::text WHERE code IS NULL OR btrim(code) = ''"
+            ))
+            conn.execute(text(
+                "UPDATE analytic_accounts SET type = 'expense' WHERE type IS NULL OR btrim(type) = ''"
+            ))
+            conn.execute(text(
+                "UPDATE analytic_accounts SET created_at = NOW() WHERE created_at IS NULL"
+            ))
+            conn.execute(text(
+                "UPDATE analytic_accounts SET updated_at = NOW() WHERE updated_at IS NULL"
+            ))
+            if engine.dialect.name == "postgresql":
+                conn.execute(text("""
+                    DO $$
+                    BEGIN
+                        IF EXISTS (
+                            SELECT 1
+                            FROM information_schema.columns
+                            WHERE table_name = 'analytic_accounts'
+                              AND column_name = 'code'
+                              AND is_nullable = 'YES'
+                        ) THEN
+                            ALTER TABLE analytic_accounts ALTER COLUMN code SET NOT NULL;
+                        END IF;
+                        IF EXISTS (
+                            SELECT 1
+                            FROM information_schema.columns
+                            WHERE table_name = 'analytic_accounts'
+                              AND column_name = 'type'
+                              AND is_nullable = 'YES'
+                        ) THEN
+                            ALTER TABLE analytic_accounts ALTER COLUMN type SET NOT NULL;
+                        END IF;
+                        IF NOT EXISTS (
+                            SELECT 1 FROM pg_indexes
+                            WHERE indexname = 'ix_analytic_accounts_code'
+                        ) THEN
+                            CREATE UNIQUE INDEX ix_analytic_accounts_code ON analytic_accounts (code);
+                        END IF;
+                    END $$;
+                """))
             if engine.dialect.name == "postgresql":
                 conn.execute(text("""
                     DO $$

@@ -5,6 +5,7 @@ import { Edit3, RotateCcw, Trash2 } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Badge } from "@/components/ui/badge";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { formatINR } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
@@ -22,15 +23,6 @@ export interface ProductKanbanProps {
 
 function productTypeLabel(value: string) {
   return value === "goods" ? "Goods" : value === "service" ? "Service" : value[0].toUpperCase() + value.slice(1);
-}
-
-function productInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
 }
 
 /**
@@ -183,23 +175,6 @@ export function ProductKanban({
                         onClick={() => onEdit(product)}
                         className="block w-full text-left"
                       >
-                        <div
-                          role="img"
-                          aria-label={`${product.name} product image`}
-                          className="mb-3 flex h-32 w-full items-center justify-center overflow-hidden rounded-lg bg-primary-50 bg-cover bg-center text-primary-600 dark:bg-primary-950/40"
-                          style={
-                            product.image_url
-                              ? { backgroundImage: `url(${product.image_url})` }
-                              : undefined
-                          }
-                        >
-                          {product.image_url ? null : (
-                            <span className="text-2xl font-bold">
-                              {productInitials(product.name)}
-                            </span>
-                          )}
-                        </div>
-
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-semibold text-text">{product.name}</p>
@@ -231,33 +206,36 @@ export function ProductKanban({
                       </button>
 
                       <div className="absolute right-3 top-3 flex items-center gap-1 rounded-md bg-surface/90 p-1 shadow-sm">
-                        <button
-                          type="button"
-                          onClick={() => onEdit(product)}
-                          className="p-1 text-text-muted hover:text-text"
-                          title="Edit product"
-                        >
-                          <Edit3 className="h-3.5 w-3.5" />
-                        </button>
+                        <ActionTooltip label="Edit product">
+                          <button
+                            type="button"
+                            onClick={() => onEdit(product)}
+                            className="p-1 text-text-muted hover:text-text"
+                          >
+                            <Edit3 className="h-3.5 w-3.5" />
+                          </button>
+                        </ActionTooltip>
                         {product.is_active ? (
-                          <button
-                            type="button"
-                            onClick={() => onDelete(product)}
-                            className="p-1 text-red-600 hover:text-red-700"
-                            title="Deactivate product"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          <ActionTooltip label="Deactivate product">
+                            <button
+                              type="button"
+                              onClick={() => onDelete(product)}
+                              className="p-1 text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </ActionTooltip>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => onReactivate(product)}
-                            disabled={reactivating}
-                            className="p-1 text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
-                            title="Reactivate product"
-                          >
-                            <RotateCcw className="h-3.5 w-3.5" />
-                          </button>
+                          <ActionTooltip label="Reactivate product">
+                            <button
+                              type="button"
+                              onClick={() => onReactivate(product)}
+                              disabled={reactivating}
+                              className="p-1 text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                            </button>
+                          </ActionTooltip>
                         )}
                       </div>
                     </div>

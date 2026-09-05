@@ -20,6 +20,7 @@ export interface PaymentRecord {
   bill_id?: number | null;
   bill_number?: string | null;
   invoice_id?: number | null;
+  invoice_number?: string | null;
   journal_id: number;
   journal_code?: string | null;
   journal_name?: string | null;
@@ -82,11 +83,15 @@ export async function fetchPayments(params?: {
   payment_type?: string;
   bill_id?: number;
   search?: string;
+  page?: number;
+  limit?: number;
 }): Promise<PaymentListResponse> {
   const query = new URLSearchParams();
   if (params?.payment_type) query.set("payment_type", params.payment_type);
   if (params?.bill_id) query.set("bill_id", String(params.bill_id));
   if (params?.search) query.set("search", params.search);
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
 
   return apiFetch<PaymentListResponse>(`/api/v1/payments?${query.toString()}`, {
     auth: true,

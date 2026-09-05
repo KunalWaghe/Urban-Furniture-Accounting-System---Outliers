@@ -18,6 +18,8 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 
+import { ActionTooltip } from "@/components/ui/tooltip";
+
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { SearchableContactSelect } from "@/components/searchable-contact-select";
 import { Button } from "@/components/ui/button";
@@ -268,15 +270,16 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
                 <div key={line.key} className="rounded-xl border border-border bg-surface-muted/40 p-4">
                   <div className="mb-3 flex items-center justify-between">
                     <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">Line {index + 1}</span>
-                    <button
-                      type="button"
-                      disabled={lines.length === 1}
-                      onClick={() => setLines((prev) => prev.filter((row) => row.key !== line.key))}
-                      className="rounded-lg p-1.5 text-text-muted hover:bg-surface hover:text-red-600 disabled:opacity-40"
-                      aria-label="Remove line"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <ActionTooltip label="Remove line">
+                      <button
+                        type="button"
+                        disabled={lines.length === 1}
+                        onClick={() => setLines((prev) => prev.filter((row) => row.key !== line.key))}
+                        className="rounded-lg p-1.5 text-text-muted hover:bg-surface hover:text-red-600 disabled:opacity-40"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </ActionTooltip>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="sm:col-span-2">

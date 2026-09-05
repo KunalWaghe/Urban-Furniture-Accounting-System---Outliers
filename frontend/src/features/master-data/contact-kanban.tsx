@@ -5,6 +5,7 @@ import { Edit3, Mail, MapPin, Phone, Trash2, Users } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Badge } from "@/components/ui/badge";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import type { Contact } from "@/lib/types";
 
 export interface ContactKanbanProps {
@@ -198,22 +199,24 @@ export function ContactKanban({
                         </div>
 
                         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                          <button
-                            type="button"
-                            onClick={() => onEdit(contact)}
-                            aria-label={`Edit ${contact.name}`}
-                            className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text"
-                          >
-                            <Edit3 className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onDelete(contact)}
-                            aria-label={`Delete ${contact.name}`}
-                            className="rounded-lg p-1 text-text-muted hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          <ActionTooltip label={`Edit ${contact.name}`}>
+                            <button
+                              type="button"
+                              onClick={() => onEdit(contact)}
+                              className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text"
+                            >
+                              <Edit3 className="h-3.5 w-3.5" />
+                            </button>
+                          </ActionTooltip>
+                          <ActionTooltip label={`Deactivate ${contact.name}`}>
+                            <button
+                              type="button"
+                              onClick={() => onDelete(contact)}
+                              className="rounded-lg p-1 text-text-muted hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </ActionTooltip>
                         </div>
                       </div>
 

@@ -1,30 +1,310 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, CreditCard, Search } from "lucide-react";
+import { useCallback, useState } from "react";
+import { ArrowDownLeft, ArrowUpRight, CreditCard, FileDown, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import { SkeletonCard } from "@/components/skeleton-card";
 import { SkeletonTable } from "@/components/skeleton-table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatINR } from "@/lib/format";
-import { fetchPayments, type PaymentRecord } from "./payments-api";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { exportHtmlAsPdf } from "@/lib/export-pdf";
+import { formatDate, formatINR } from "@/lib/format";
+import { showInfoToast } from "@/lib/toast-utils";
+import { fetchPayments, type PaymentRecord } from "./payments-api";
 
 function paymentLabel(payment: PaymentRecord) {
   return payment.payment_type === "inbound" ? "Receipt" : "Payment";
 }
 
+function documentLabel(payment: PaymentRecord) {
+  if (payment.bill_id) {
+    return payment.bill_number ?? `Bill #${payment.bill_id}`;
+  }
+  if (payment.invoice_id) {
+    return payment.invoice_number ?? `Invoice #${payment.invoice_id}`;
+  }
+  return "—";
+}
+
+function buildPaymentsExportHtml(
+  payments: PaymentRecord[],
+  inboundTotal: number,
+  outboundTotal: number,
+  filterLabel: string
+) {
+  const rows = payments
+    .map(
+      (payment) => `<tr>
+        <td>${payment.payment_number}</td>
+        <td>${paymentLabel(payment)}</td>
+        <td>${payment.contact_name ?? "—"}</td>
+        <td>${documentLabel(payment)}</td>
+        <td>${formatDate(payment.date?.split("T")[0] ?? payment.date)}</td>
+        <td>${payment.payment_method}</td>
+        <td class="amount">${formatINR(payment.amount)}</td>
+        <td>${payment.journal_name ?? payment.journal_code ?? "—"}</td>
+      </tr>`
+    )
+    .join("");
+
+  return `<h1>Payments Report</h1>
+    <p class="meta">Generated on ${formatDate(new Date().toISOString())} · Filter: ${filterLabel}</p>
+    <div class="summary">
+      <div class="summary-item">Receipts<strong>${formatINR(inboundTotal)}</strong></div>
+      <div class="summary-item">Payments<strong>${formatINR(outboundTotal)}</strong></div>
+      <div class="summary-item">Transactions<strong>${payments.length}</strong></div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Number</th>
+          <th>Type</th>
+          <th>Partner</th>
+          <th>Document</th>
+          <th>Date</th>
+          <th>Method</th>
+          <th>Amount</th>
+          <th>Journal</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
 export function PaymentsPage() {
   const [search, setSearch] = useState("");
   const [type, setType] = useState<"all" | "inbound" | "outbound">("all");
+  const [exporting, setExporting] = useState(false);
   const debouncedSearch = useDebouncedValue(search);
-  const query = useQuery({ queryKey: ["payments", type, debouncedSearch], queryFn: () => fetchPayments({ payment_type: type === "all" ? undefined : type, search: debouncedSearch.trim() || undefined }) });
+  const query = useQuery({
+    queryKey: ["payments", type, debouncedSearch],
+    queryFn: () =>
+      fetchPayments({
+        payment_type: type === "all" ? undefined : type,
+        search: debouncedSearch.trim() || undefined,
+      }),
+  });
   const payments = query.data?.data ?? [];
-  const inbound = payments.filter((payment) => payment.payment_type === "inbound").reduce((sum, payment) => sum + payment.amount, 0);
-  const outbound = payments.filter((payment) => payment.payment_type === "outbound").reduce((sum, payment) => sum + payment.amount, 0);
+  const inbound = payments
+    .filter((payment) => payment.payment_type === "inbound")
+    .reduce((sum, payment) => sum + payment.amount, 0);
+  const outbound = payments
+    .filter((payment) => payment.payment_type === "outbound")
+    .reduce((sum, payment) => sum + payment.amount, 0);
 
-  return <div className="space-y-6 pb-12"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">Accounting / Cash flow</p><h1 className="mt-2 text-2xl font-bold tracking-tight text-text sm:text-3xl">Payments</h1><p className="mt-1 max-w-2xl text-sm text-text-muted">Review inbound receipts and outbound vendor payments posted through Cash or Bank.</p></div>{query.isLoading ? <div className="grid gap-4 sm:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} showHeader={false} lines={2} />)}</div> : <div className="grid gap-4 sm:grid-cols-3"><Card size="sm"><CardContent className="flex items-center gap-3"><div className="rounded-lg bg-emerald-50 p-2.5 text-emerald-600 dark:bg-emerald-950/40"><ArrowDownLeft className="h-5 w-5" /></div><div><p className="text-xs text-text-muted">Receipts</p><p className="text-xl font-bold text-text">{formatINR(inbound)}</p></div></CardContent></Card><Card size="sm"><CardContent className="flex items-center gap-3"><div className="rounded-lg bg-amber-50 p-2.5 text-amber-600 dark:bg-amber-950/40"><ArrowUpRight className="h-5 w-5" /></div><div><p className="text-xs text-text-muted">Payments</p><p className="text-xl font-bold text-text">{formatINR(outbound)}</p></div></CardContent></Card><Card size="sm"><CardContent className="flex items-center gap-3"><div className="rounded-lg bg-primary-50 p-2.5 text-primary-600 dark:bg-primary-950/40"><CreditCard className="h-5 w-5" /></div><div><p className="text-xs text-text-muted">Transactions</p><p className="text-xl font-bold text-text">{query.data?.total ?? "—"}</p></div></CardContent></Card></div>}<Card><CardContent className="p-0"><div className="flex flex-col gap-3 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between"><div className="relative w-full sm:w-96"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search payment, partner, bill, or invoice..." className="w-full rounded-lg border border-border bg-surface py-2 pl-10 pr-3 text-sm text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" /></div><select value={type} onChange={(event) => setType(event.target.value as "all" | "inbound" | "outbound")} className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text"><option value="all">All transactions</option><option value="inbound">Receipts</option><option value="outbound">Payments</option></select></div>{query.isLoading ? <div className="p-8"><SkeletonTable columns={8} rows={7} showSearch={false} showPagination={false} /></div> : query.isError ? <div className="p-10 text-center"><p className="text-sm font-medium text-red-600">Unable to load payments.</p><p className="mt-1 text-xs text-text-muted">Check the payments API and try again.</p></div> : payments.length === 0 ? <div className="p-10 text-center text-sm text-text-muted">No payments match your filters.</div> : <div className="overflow-x-auto"><table className="min-w-[900px] w-full text-left text-sm"><thead className="bg-surface-muted text-xs font-semibold uppercase tracking-wider text-text-muted"><tr><th className="px-5 py-3">Number</th><th className="px-5 py-3">Type</th><th className="px-5 py-3">Partner</th><th className="px-5 py-3">Document</th><th className="px-5 py-3">Date</th><th className="px-5 py-3">Method</th><th className="px-5 py-3">Amount</th><th className="px-5 py-3">Journal</th></tr></thead><tbody className="divide-y divide-border">{payments.map((payment) => <tr key={payment.id} className="hover:bg-surface-muted/40"><td className="px-5 py-3 font-mono text-xs font-semibold text-primary-600">{payment.payment_number}</td><td className="px-5 py-3"><Badge variant={payment.payment_type === "inbound" ? "secondary" : "outline"}>{paymentLabel(payment)}</Badge></td><td className="px-5 py-3 text-text">{payment.contact_name ?? "—"}</td><td className="px-5 py-3">{payment.bill_id ? <Link href={`/vendor-bills/${payment.bill_id}`} className="text-primary-600 hover:underline">{payment.bill_number ?? `Bill #${payment.bill_id}`}</Link> : payment.invoice_id ? <Link href={`/sales-invoices/${payment.invoice_id}`} className="text-primary-600 hover:underline">{payment.invoice_id ? `Invoice #${payment.invoice_id}` : "Invoice"}</Link> : "—"}</td><td className="px-5 py-3 text-text-muted">{payment.date?.split("T")[0]}</td><td className="px-5 py-3 capitalize text-text-muted">{payment.payment_method}</td><td className="px-5 py-3 font-mono font-semibold text-text">{formatINR(payment.amount)}</td><td className="px-5 py-3 text-text-muted">{payment.journal_name ?? payment.journal_code ?? "—"}</td></tr>)}</tbody></table></div>}</CardContent></Card></div>;
+  const handleExportPdf = useCallback(async () => {
+    setExporting(true);
+    try {
+      const response = await fetchPayments({
+        payment_type: type === "all" ? undefined : type,
+        search: debouncedSearch.trim() || undefined,
+        page: 1,
+        limit: 100,
+      });
+      const exportPayments = response.data;
+      if (exportPayments.length === 0) {
+        showInfoToast("No payments match your filters to export.");
+        return;
+      }
+
+      const exportInbound = exportPayments
+        .filter((payment) => payment.payment_type === "inbound")
+        .reduce((sum, payment) => sum + payment.amount, 0);
+      const exportOutbound = exportPayments
+        .filter((payment) => payment.payment_type === "outbound")
+        .reduce((sum, payment) => sum + payment.amount, 0);
+      const filterLabel =
+        type === "all"
+          ? "All transactions"
+          : type === "inbound"
+            ? "Receipts only"
+            : "Payments only";
+
+      const opened = exportHtmlAsPdf(
+        "Payments Report",
+        buildPaymentsExportHtml(exportPayments, exportInbound, exportOutbound, filterLabel)
+      );
+      if (!opened) {
+        showInfoToast("Allow pop-ups to export the payments report as PDF.");
+      }
+    } finally {
+      setExporting(false);
+    }
+  }, [debouncedSearch, type]);
+
+  return (
+    <div className="space-y-6 pb-12">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">
+          Accounting / Cash flow
+        </p>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-text sm:text-3xl">Payments</h1>
+        <p className="mt-1 max-w-2xl text-sm text-text-muted">
+          Review inbound receipts and outbound vendor payments posted through Cash or Bank.
+        </p>
+      </div>
+
+      {query.isLoading ? (
+        <div className="grid gap-4 sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <SkeletonCard key={i} showHeader={false} lines={2} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Card size="sm">
+            <CardContent className="flex items-center gap-3">
+              <div className="rounded-lg bg-emerald-50 p-2.5 text-emerald-600 dark:bg-emerald-950/40">
+                <ArrowDownLeft className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs text-text-muted">Receipts</p>
+                <p className="text-xl font-bold text-text">{formatINR(inbound)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card size="sm">
+            <CardContent className="flex items-center gap-3">
+              <div className="rounded-lg bg-amber-50 p-2.5 text-amber-600 dark:bg-amber-950/40">
+                <ArrowUpRight className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs text-text-muted">Payments</p>
+                <p className="text-xl font-bold text-text">{formatINR(outbound)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card size="sm">
+            <CardContent className="flex items-center gap-3">
+              <div className="rounded-lg bg-primary-50 p-2.5 text-primary-600 dark:bg-primary-950/40">
+                <CreditCard className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs text-text-muted">Transactions</p>
+                <p className="text-xl font-bold text-text">{query.data?.total ?? "—"}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Card>
+        <CardContent className="p-0">
+          <div className="flex flex-col gap-3 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:w-96">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search payment, partner, bill, or invoice..."
+                className="w-full rounded-lg border border-border bg-surface py-2 pl-10 pr-3 text-sm text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={type}
+                onChange={(event) => setType(event.target.value as "all" | "inbound" | "outbound")}
+                className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text"
+              >
+                <option value="all">All transactions</option>
+                <option value="inbound">Receipts</option>
+                <option value="outbound">Payments</option>
+              </select>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleExportPdf}
+                disabled={exporting || query.isLoading}
+              >
+                <FileDown className="h-4 w-4" />
+                Export PDF
+              </Button>
+            </div>
+          </div>
+
+          {query.isLoading ? (
+            <div className="p-8">
+              <SkeletonTable columns={8} rows={7} showSearch={false} showPagination={false} />
+            </div>
+          ) : query.isError ? (
+            <div className="p-10 text-center">
+              <p className="text-sm font-medium text-red-600">Unable to load payments.</p>
+              <p className="mt-1 text-xs text-text-muted">Check the payments API and try again.</p>
+            </div>
+          ) : payments.length === 0 ? (
+            <div className="p-10 text-center text-sm text-text-muted">
+              No payments match your filters.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-[900px] w-full text-left text-sm">
+                <thead className="bg-surface-muted text-xs font-semibold uppercase tracking-wider text-text-muted">
+                  <tr>
+                    <th className="px-5 py-3">Number</th>
+                    <th className="px-5 py-3">Type</th>
+                    <th className="px-5 py-3">Partner</th>
+                    <th className="px-5 py-3">Document</th>
+                    <th className="px-5 py-3">Date</th>
+                    <th className="px-5 py-3">Method</th>
+                    <th className="px-5 py-3">Amount</th>
+                    <th className="px-5 py-3">Journal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {payments.map((payment) => (
+                    <tr key={payment.id} className="hover:bg-surface-muted/40">
+                      <td className="px-5 py-3 font-mono text-xs font-semibold text-primary-600">
+                        {payment.payment_number}
+                      </td>
+                      <td className="px-5 py-3">
+                        <Badge variant={payment.payment_type === "inbound" ? "secondary" : "outline"}>
+                          {paymentLabel(payment)}
+                        </Badge>
+                      </td>
+                      <td className="px-5 py-3 text-text">{payment.contact_name ?? "—"}</td>
+                      <td className="px-5 py-3">
+                        {payment.bill_id ? (
+                          <Link
+                            href={`/vendor-bills/${payment.bill_id}`}
+                            className="text-primary-600 hover:underline"
+                          >
+                            {payment.bill_number ?? `Bill #${payment.bill_id}`}
+                          </Link>
+                        ) : payment.invoice_id ? (
+                          <Link
+                            href={`/sales-invoices/${payment.invoice_id}`}
+                            className="text-primary-600 hover:underline"
+                          >
+                            {payment.invoice_number ?? `Invoice #${payment.invoice_id}`}
+                          </Link>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="px-5 py-3 text-text-muted">
+                        {payment.date?.split("T")[0]}
+                      </td>
+                      <td className="px-5 py-3 capitalize text-text-muted">
+                        {payment.payment_method}
+                      </td>
+                      <td className="px-5 py-3 font-mono font-semibold text-text">
+                        {formatINR(payment.amount)}
+                      </td>
+                      <td className="px-5 py-3 text-text-muted">
+                        {payment.journal_name ?? payment.journal_code ?? "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

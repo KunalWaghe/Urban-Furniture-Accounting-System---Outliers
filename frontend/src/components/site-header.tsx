@@ -27,6 +27,7 @@ import {
 import { useAuth } from "@/features/auth/auth-context";
 import { getHomeRouteForRole } from "@/features/auth/validation";
 import { useTheme } from "@/components/theme-provider";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { useMounted } from "@/hooks/use-mounted";
 import { cn } from "@/lib/utils";
 
@@ -421,14 +422,15 @@ export function SiteHeader() {
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-text transition-colors hover:bg-surface-muted shadow-xs"
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
+          <ActionTooltip label={darkMode ? "Switch to light mode" : "Switch to dark mode"}>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-text transition-colors hover:bg-surface-muted shadow-xs"
+            >
+              {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          </ActionTooltip>
 
           {showAuthenticatedNav && user ? (
             <button
@@ -451,14 +453,15 @@ export function SiteHeader() {
           ) : null}
 
           {/* Mobile menu hamburger toggle */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-text transition-colors hover:bg-surface-muted md:hidden"
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </button>
+          <ActionTooltip label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-text transition-colors hover:bg-surface-muted md:hidden"
+            >
+              {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
+          </ActionTooltip>
         </div>
       </div>
 

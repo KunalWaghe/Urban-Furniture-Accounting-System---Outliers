@@ -8,6 +8,8 @@
 
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
+import { ActionTooltip } from "@/components/ui/tooltip";
+
 interface TablePaginationProps {
   /** Current active page (1-based). */
   page: number;
@@ -21,19 +23,6 @@ interface TablePaginationProps {
 
 /**
  * Pagination button bar with first/prev/numbers/next/last controls.
- *
- * **State OWNED:** none — fully controlled by parent via `page` prop.
- *
- * **State CONSUMED:**
- * - `page`, `totalPages` from parent
- * - `onPageChange` callback to notify parent of page clicks
- *
- * **Source of truth:** parent owns current page (DataTable or page component).
- *
- * **Flow:**
- * 1. Return null if totalPages <= 1 (nothing to paginate)
- * 2. Compute a sliding window of page numbers around current page
- * 3. Render nav buttons; disabled state when at first/last page
  */
 export function TablePagination({
   page,
@@ -43,11 +32,9 @@ export function TablePagination({
 }: TablePaginationProps) {
   if (totalPages <= 1) return null;
 
-  // Build the sliding window of page numbers to render
   const half = Math.floor(windowSize / 2);
   let start = Math.max(1, page - half);
   const end = Math.min(totalPages, start + windowSize - 1);
-  // Shift start left if we're near the last page and window is not full
   if (end - start + 1 < windowSize) {
     start = Math.max(1, end - windowSize + 1);
   }
@@ -67,36 +54,34 @@ export function TablePagination({
       role="navigation"
       aria-label="Pagination"
     >
-      {/* First page */}
-      <button
-        type="button"
-        className={`${btnBase} ${btnIdle}`}
-        onClick={() => onPageChange(1)}
-        disabled={page === 1}
-        aria-label="First page"
-      >
-        <ChevronsLeft className="h-4 w-4" />
-      </button>
+      <ActionTooltip label="First page">
+        <button
+          type="button"
+          className={`${btnBase} ${btnIdle}`}
+          onClick={() => onPageChange(1)}
+          disabled={page === 1}
+        >
+          <ChevronsLeft className="h-4 w-4" />
+        </button>
+      </ActionTooltip>
 
-      {/* Previous page */}
-      <button
-        type="button"
-        className={`${btnBase} ${btnIdle}`}
-        onClick={() => onPageChange(page - 1)}
-        disabled={page === 1}
-        aria-label="Previous page"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
+      <ActionTooltip label="Previous page">
+        <button
+          type="button"
+          className={`${btnBase} ${btnIdle}`}
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+      </ActionTooltip>
 
-      {/* Left ellipsis when window does not start at page 1 */}
       {start > 1 && (
         <span className="inline-flex h-8 min-w-[2rem] items-center justify-center text-sm text-text-muted">
           …
         </span>
       )}
 
-      {/* Numbered page buttons */}
       {pageNumbers.map((n) => (
         <button
           key={n}
@@ -110,34 +95,33 @@ export function TablePagination({
         </button>
       ))}
 
-      {/* Right ellipsis when window does not reach last page */}
       {end < totalPages && (
         <span className="inline-flex h-8 min-w-[2rem] items-center justify-center text-sm text-text-muted">
           …
         </span>
       )}
 
-      {/* Next page */}
-      <button
-        type="button"
-        className={`${btnBase} ${btnIdle}`}
-        onClick={() => onPageChange(page + 1)}
-        disabled={page === totalPages}
-        aria-label="Next page"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
+      <ActionTooltip label="Next page">
+        <button
+          type="button"
+          className={`${btnBase} ${btnIdle}`}
+          onClick={() => onPageChange(page + 1)}
+          disabled={page === totalPages}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </ActionTooltip>
 
-      {/* Last page */}
-      <button
-        type="button"
-        className={`${btnBase} ${btnIdle}`}
-        onClick={() => onPageChange(totalPages)}
-        disabled={page === totalPages}
-        aria-label="Last page"
-      >
-        <ChevronsRight className="h-4 w-4" />
-      </button>
+      <ActionTooltip label="Last page">
+        <button
+          type="button"
+          className={`${btnBase} ${btnIdle}`}
+          onClick={() => onPageChange(totalPages)}
+          disabled={page === totalPages}
+        >
+          <ChevronsRight className="h-4 w-4" />
+        </button>
+      </ActionTooltip>
     </div>
   );
 }

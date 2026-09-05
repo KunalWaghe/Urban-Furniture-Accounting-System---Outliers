@@ -27,6 +27,7 @@ import { DataTable, type DataTableColumn } from "@/components/data-table";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Contact } from "@/lib/types";
 import { ContactKanban } from "./contact-kanban";
@@ -258,15 +259,17 @@ export function ContactsPage() {
             Edit
           </Button>
           {contact.is_active && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setDeletingContact(contact)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            <ActionTooltip label={`Deactivate ${contact.name}`}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setDeletingContact(contact)}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </ActionTooltip>
           )}
         </div>
       ),
