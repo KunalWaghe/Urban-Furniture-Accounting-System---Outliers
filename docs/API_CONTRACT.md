@@ -312,6 +312,7 @@ Create a product or service catalog item.
   "price": 500.00,
   "cost": 350.00,
   "tax_percent": 18.0,
+  "image_url": "data:image/jpeg;base64,...",
   "description": "Solid teak wood dining chair"
 }
 
@@ -324,6 +325,7 @@ Create a product or service catalog item.
   "price": 500.00,
   "cost": 350.00,
   "tax_percent": 18.0,
+  "image_url": "data:image/jpeg;base64,...",
   "description": "Solid teak wood dining chair",
   "is_active": true
 }
@@ -347,6 +349,7 @@ List products with optional query filters:
       "price": 500.00,
       "cost": 350.00,
       "tax_percent": 18.0,
+      "image_url": "data:image/jpeg;base64,...",
       "description": "Solid teak wood dining chair",
       "is_active": true
     }

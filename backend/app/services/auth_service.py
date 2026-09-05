@@ -8,7 +8,7 @@ from sqlalchemy import or_
 from app.models.user import User
 from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, AdminUserCreateRequest, ForgotPasswordRequest, ForgotPasswordResponse, ResetPasswordRequest, ResetPasswordResponse
 from app.core.security import hash_password, verify_password, create_access_token, generate_reset_token
-from app.core.exceptions import ConflictException, UnauthorizedException, ValidationException, ForbiddenException, NotFoundException
+from app.core.exceptions import ConflictException, UnauthorizedException, ValidationException, ForbiddenException
 from app.models.contact import Contact
 
 

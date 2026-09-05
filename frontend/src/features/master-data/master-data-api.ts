@@ -38,11 +38,12 @@ export interface ContactInput {
 export interface ProductInput {
   name: string;
   product_type: string;
-  category?: string;
+  category?: string | null;
   price: number;
   cost?: number | null;
   tax_percent: number;
   description?: string;
+  image_url?: string | null;
 }
 
 /** Optional filters and pagination for the contacts list endpoint. */

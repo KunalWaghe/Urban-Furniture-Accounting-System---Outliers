@@ -110,6 +110,7 @@ export interface Product {
   cost?: number | null;
   tax_percent: number;
   description?: string | null;
+  image_url?: string | null;
   is_active: boolean;
 }
 

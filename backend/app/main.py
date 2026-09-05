@@ -57,6 +57,7 @@ async def lifespan(app: FastAPI):
             conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS product_type VARCHAR(50) DEFAULT 'goods'"))
             conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS category VARCHAR(100)"))
             conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS cost NUMERIC(10, 2)"))
+            conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT"))
             conn.execute(text("ALTER TABLE journals ADD COLUMN IF NOT EXISTS default_account_id INTEGER REFERENCES accounts(id)"))
             conn.commit()
         print("[OK] Database connected & models synchronized")
@@ -136,4 +137,3 @@ app.include_router(journal_router, prefix="/api/v1/journals", tags=["Journals"])
 app.include_router(purchase_order_router, prefix="/api/v1/purchase-orders", tags=["Purchase Orders"])
 app.include_router(vendor_bill_router, prefix="/api/v1/vendor-bills", tags=["Vendor Bills"])
 app.include_router(journal_entry_router, prefix="/api/v1/journal-entries", tags=["Journal Entries"])
-
