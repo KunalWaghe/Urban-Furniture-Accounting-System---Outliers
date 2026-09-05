@@ -60,6 +60,15 @@ class ValidationException(AppException):
         )
 
 
+class InvalidStatusTransitionException(AppException):
+    def __init__(self, message: str = "Invalid status transition"):
+        super().__init__(
+            status_code=422,
+            code="INVALID_STATUS_TRANSITION",
+            message=message,
+        )
+
+
 class UnauthorizedException(AppException):
     def __init__(self, message: str = "Invalid credentials", code: str = "INVALID_CREDENTIALS"):
         super().__init__(status_code=401, code=code, message=message)

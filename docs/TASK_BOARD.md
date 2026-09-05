@@ -45,6 +45,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Backend
 
+- [x] **P0-BE-06** — Vendor Bill creation + auto Journal Entry logic · Kunal · 5 Sep, 4:35 PM — Evidence: `tests/test_vendor_bills.py` PASSED (5/5 tests passed; VendorBill BILL-0001 created, balanced Journal Entry JE-0001 posted with Debit Purchase Expense 5010 / Credit Accounts Payable 2010; status updated to 'billed'; 409 conflict and 422 status guards verified; 19/19 full backend suite passed) · Integrated & Verified
 - [x] **P0-BE-05** — Purchase Order model & create/confirm endpoints · Kunal · 5 Sep, 4:05 PM — Evidence: `tests/test_purchase_order.py` PASSED (2/2 lifecycle & validation tests passed, sequential PO-0001 generation, line items, status draft -> confirmed) · Integrated & Verified
 - [x] **P0-BE-02R** — Auth identity and role contract correction · Kunal · 5 Sep, 3:45 PM — Evidence: `tests/test_auth.py` PASSED (3/3 auth tests, 9/9 backend suite); public registration strictly creates `invoicing_user`; privilege escalation to admin rejected with 422; Admin user creation protected via `POST /api/v1/users` (403 for non-admins, 201 for admin); login uses `login_id` with 401 "Invalid Login Id or Password" · Integrated & Verified
 - [x] **P0-BE-04** — Chart of Accounts & Journals seed + endpoints · Kunal · 5 Sep, 1:25 PM — Evidence: `tests/test_accounts_and_journals.py` PASSED (5 account types & 4 journals seeded and fetchable); `seed.py` deterministic master data run verified · Integrated & Verified
@@ -72,7 +73,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Backend
 
-- [ ] **P0-BE-06** — Vendor Bill creation + auto Journal Entry logic · Kunal · 60m · Depends: P0-BE-05, P0-BE-04 — Contract: `POST /api/v1/purchase-orders/:id/create-bill` · Done when: bill created; balanced Journal Entry (Debit Expense / Credit AP)
+- [ ] **P0-BE-07** — Payment endpoint + auto Journal Entry (Outbound) · Kunal · 45m · Depends: P0-BE-06 — Contract: `POST /api/v1/payments` · Done when: bill status updated to paid; Debit AP / Credit Bank or Cash
 
 ### Frontend
 
@@ -84,7 +85,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Backend
 
-- [ ] **P0-BE-07** — Payment endpoint + auto Journal Entry (Outbound) · Kunal · 45m · Depends: P0-BE-06 — Contract: `POST /api/v1/payments` · Done when: bill status updated to paid; Debit AP / Credit Bank or Cash
+- [ ] **P0-BE-08** — Sales Order model & create/confirm endpoints · Kunal · 45m · Depends: P0-BE-03R, P0-BE-04 — Contract: `POST /api/v1/sales-orders` · Done when: SO created in draft, confirmed changes status, and lines retain account/income-analytic references
 
 ### Frontend
 
@@ -97,7 +98,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 ### Backend
 
 - [ ] **P0-BE-03R** — Contact/Product Excalidraw fields + category support · Kunal · 45m · Depends: P0-BE-03 · Add contact profile image/phone parity and product type (`goods|service|combo`), category, sales price, cost price, and optional image; support inline category creation · Done when: corrected schemas/tests expose the fields without breaking baseline CRUD
-- [ ] **P0-BE-06** — Vendor Bill creation + auto Journal Entry logic · Kunal · 60m · Depends: P0-BE-05, P0-BE-04 — Contract: `POST /api/v1/purchase-orders/:id/create-bill` · Done when: bill created; balanced Journal Entry (Debit Expense / Credit AP)
+- [x] **P0-BE-06** — Vendor Bill creation + auto Journal Entry logic · Kunal · 60m · Depends: P0-BE-05, P0-BE-04 — Contract: `POST /api/v1/purchase-orders/:id/create-bill` · Done when: bill created; balanced Journal Entry (Debit Expense / Credit AP)
 - [ ] **P0-BE-07** — Payment endpoint + auto Journal Entry (Outbound) · Kunal · 45m · Depends: P0-BE-06 — Contract: `POST /api/v1/payments` · Done when: bill status updated to paid; Debit AP / Credit Bank or Cash
 - [ ] **P0-BE-08** — Sales Order model & create/confirm endpoints · Kunal · 45m · Depends: P0-BE-03R, P0-BE-04 — Contract: `POST /api/v1/sales-orders` · Done when: SO created in draft, confirmed changes status, and lines retain account/income-analytic references
 - [ ] **P0-BE-09** — Customer Invoice creation + auto Journal Entry logic · Kunal · 60m · Depends: P0-BE-08, P0-BE-04 — Contract: `POST /api/v1/sales-orders/:id/create-invoice` · Done when: invoice created; balanced Journal Entry (Debit AR / Credit Sales + Tax)

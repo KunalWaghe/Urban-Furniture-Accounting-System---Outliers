@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
 from app.schemas.purchase_order import POCreate, POResponse, POListResponse
-from app.services import purchase_order_service
+from app.schemas.vendor_bill import CreateBillResponse
+from app.services import purchase_order_service, vendor_bill_service
 
 router = APIRouter()
 
@@ -57,3 +58,9 @@ def get_purchase_order(po_id: int, db: Session = Depends(get_db)):
 def confirm_purchase_order(po_id: int, db: Session = Depends(get_db)):
     """Confirm a Purchase Order (draft -> confirmed)."""
     return purchase_order_service.confirm_purchase_order(db, po_id)
+
+
+@router.post("/{po_id}/create-bill", response_model=CreateBillResponse, status_code=status.HTTP_201_CREATED)
+def create_bill_from_purchase_order(po_id: int, db: Session = Depends(get_db)):
+    """Convert a confirmed Purchase Order into a Vendor Bill and post balanced Journal Entry."""
+    return vendor_bill_service.create_bill_from_po(db, po_id)
