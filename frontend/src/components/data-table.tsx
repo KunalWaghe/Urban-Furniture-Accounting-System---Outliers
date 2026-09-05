@@ -86,7 +86,7 @@ export function DataTable<T extends { id?: string | number }>({
   return (
     <div className="space-y-4">
       {/* Search bar */}
-      <div className="relative max-w-sm">
+      <div className="relative w-full sm:max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
         <input
           type="search"
@@ -101,6 +101,7 @@ export function DataTable<T extends { id?: string | number }>({
         <EmptyState title={emptyTitle} description={emptyDescription} />
       ) : (
         <div className="overflow-hidden rounded-xl border border-border bg-surface">
+          {/* Horizontal scroll wrapper for tables on mobile */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-border text-sm">
               <thead className="bg-surface-muted">
@@ -108,7 +109,7 @@ export function DataTable<T extends { id?: string | number }>({
                   {columns.map((col) => (
                     <th
                       key={col.key}
-                      className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted"
+                      className="whitespace-nowrap px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted sm:px-4"
                     >
                       {col.label}
                     </th>
@@ -119,7 +120,7 @@ export function DataTable<T extends { id?: string | number }>({
                 {visibleData.map((row, index) => (
                   <tr key={row.id ?? index} className="hover:bg-surface-muted/60">
                     {columns.map((col) => (
-                      <td key={col.key} className="px-4 py-3 text-text">
+                      <td key={col.key} className="px-3 py-3 text-text sm:px-4">
                         {col.render
                           ? col.render(row)
                           : ((row as Record<string, unknown>)[col.key] as ReactNode)}
@@ -133,8 +134,8 @@ export function DataTable<T extends { id?: string | number }>({
 
           {/* Pagination footer */}
           {paginationEnabled && totalPages > 1 && (
-            <div className="border-t border-border px-4">
-              <div className="flex items-center justify-between py-2">
+            <div className="border-t border-border px-3 sm:px-4">
+              <div className="flex flex-col items-center justify-between gap-2 py-2 sm:flex-row sm:gap-0">
                 <p className="text-xs text-text-muted">
                   {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filteredData.length)} of {filteredData.length}
                 </p>

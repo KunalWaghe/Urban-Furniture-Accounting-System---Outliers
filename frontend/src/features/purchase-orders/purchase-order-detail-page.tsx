@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, CheckCircle2, FileText, Pencil } from "lucide-react";
 
+import { useRouter } from "next/navigation";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import {
   fetchPurchaseOrderApi,
   mapPurchaseOrder,
 } from "@/features/purchase-orders/purchase-orders-api";
+import { createBillFromPo } from "@/features/vendor-bills/vendor-bills-api";
 import { formatDate, formatINR } from "@/lib/format";
 
 interface PurchaseOrderDetailPageProps {
@@ -21,6 +23,7 @@ interface PurchaseOrderDetailPageProps {
 }
 
 export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -35,6 +38,14 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
       setConfirmOpen(false);
       void queryClient.invalidateQueries({ queryKey: ["purchase-order", poId] });
       void queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+    },
+  });
+
+  const createBillMutation = useMutation({
+    mutationFn: () => createBillFromPo(poId),
+    onSuccess: (bill) => {
+      void queryClient.invalidateQueries({ queryKey: ["vendor-bills"] });
+      router.push(`/vendor-bills/${bill.id}`);
     },
   });
 
@@ -97,9 +108,13 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
             </>
           )}
           {isConfirmed && (
-            <Button variant="outline" disabled title="Vendor Bill workflow coming soon">
+            <Button
+              onClick={() => createBillMutation.mutate()}
+              disabled={createBillMutation.isPending}
+              className="bg-primary-600 hover:bg-primary-700 text-white"
+            >
               <FileText className="h-4 w-4" />
-              Create Bill
+              {createBillMutation.isPending ? "Creating Bill…" : "Create Bill"}
             </Button>
           )}
         </div>

@@ -6,6 +6,7 @@ import {
   Armchair,
   BarChart3,
   CreditCard,
+  FolderKanban,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -36,6 +37,9 @@ export const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Bills", href: "#", icon: Receipt, roles: ["admin", "invoicing_user"] },
   { label: "Payments", href: "#", icon: CreditCard, roles: ["admin", "invoicing_user"] },
   { label: "Reports", href: "#", icon: BarChart3, roles: ["admin", "invoicing_user"] },
+  { label: "Contacts", href: "/contacts", icon: Users, roles: ["admin", "invoicing_user"] },
+  { label: "Products", href: "/products", icon: FolderKanban, roles: ["admin", "invoicing_user"] },
+  { label: "Chart of Accounts", href: "/chart-of-accounts", icon: CreditCard, roles: ["admin", "invoicing_user"] },
   { label: "User Management", href: "/admin/users", icon: Users, roles: ["admin"] },
   { label: "Portal Invoices", href: "#", icon: FileText, roles: ["contact"] },
 ]

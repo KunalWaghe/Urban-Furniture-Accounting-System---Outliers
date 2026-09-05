@@ -1,6 +1,6 @@
 # Urban Furniture Accounting System — Master Task List
 > **Ground source of truth.** Frontend: Sourabh · Backend: Kunal · Integration: Both
-> Last synced: 5 Sep 2026, 7:55 PM IST
+> Last synced: 5 Sep 2026, 9:14 PM IST
 
 ---
 
@@ -21,28 +21,33 @@
 
 ---
 
-## Step 3 — Dashboard & Navigation Shell 🔲 NEXT
+## Step 3 — Dashboard & Navigation Header Shell ✅ COMPLETE
 
-- [ ] 3.1 · FE · Dashboard layout shell with sidebar navigation (P0-FE-03)
-  - Sales, Purchase, Accounting, Reports, Master Data nav items
-  - Role-based visibility (admin sees all, invoicing_user sees subset)
-  - Active route highlighting, responsive collapse on mobile
+- [x] 3.1 · FE · Dashboard layout shell with top header navigation (P0-FE-03)
+  - Sales, Purchase, Account, Reports navigation categories & mega dropdowns
+  - Role-based visibility (admin sees user management, invoicing_user sees accounting operations)
+  - Global search with ⌘K shortcut, dark theme toggle, responsive mobile navigation drawer
 
 ---
 
-## Step 4 — Master Data Pages 🔲
+## Step 4 — Master Data Pages ✅ COMPLETE
 
 > Build generic reusable List/Form components here; every later page reuses them.
 
-- [ ] 4.1 · FE · Contacts list page + create/edit form (P0-FE-04a)
+- [x] 4.1 · FE · Contacts list page + create/edit form + deactivation (P0-FE-04a)
   - `GET /api/v1/contacts` → table with search/filter
   - New Contact form → `POST /api/v1/contacts`
   - Click row → edit form → `PUT /api/v1/contacts/:id`
-- [ ] 4.2 · FE · Products list page + create/edit form (P0-FE-04b)
-  - Same pattern as Contacts
-- [ ] 4.3 · FE · Chart of Accounts hierarchical list view (P0-FE-05-CoA)
-  - `GET /api/v1/accounts` → grouped by type (Asset, Liability, Income, Expense…)
-  - Read-only for now (seeded data)
+  - Deactivate contact → `DELETE /api/v1/contacts/:id`
+- [x] 4.2 · FE · Products list page + create/edit form + Kanban view + deactivation (P0-FE-04b)
+  - Table & Kanban toggle with category filter
+  - New Product form → `POST /api/v1/products`
+  - Click row/card → edit form → `PUT /api/v1/products/:id`
+  - Deactivate product → `DELETE /api/v1/products/:id`
+- [x] 4.3 · FE · Chart of Accounts hierarchical list view (P0-FE-05-CoA)
+  - `GET /api/v1/accounts` → grouped by type (Asset, Liability, Income, Expense, Capital)
+  - Read-only ledger structure
+
 
 ---
 
@@ -60,7 +65,7 @@
 - [ ] 5B.2 · BE · Vendor Bill creation endpoint + auto Journal Entry (P0-BE-06)
   - `POST /api/v1/purchase-orders/:id/create-bill`
   - Journal: Dr Purchase Expense / Cr Creditors (AP)
-- [ ] 5B.3 · FE · Vendor Bill UI — list, detail, status badges (P0-FE-06)
+- [x] 5B.3 · FE · Vendor Bill UI — list, detail, status badges (P0-FE-06)
   - Show bill linked from PO detail page
   - Status: Draft → Confirmed → Paid
 
@@ -70,7 +75,7 @@
   - `POST /api/v1/payments` (type: outbound)
   - Journal: Dr AP / Cr Bank or Cash
   - Bill status → Paid
-- [ ] 5C.2 · FE · Bill Payment modal/form + status update (P0-FE-08)
+- [x] 5C.2 · FE · Bill Payment modal/form + status update (P0-FE-08)
   - Payment method selector (Cash / Bank)
   - Disables repeat payment after paid
 

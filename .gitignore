@@ -1,3 +1,7 @@
 # graphify (knowledge graph tool — generated output, do not commit)
 graphify-out/
+.graphify/
+graphify*.json
+*.graphify
 raw/
+

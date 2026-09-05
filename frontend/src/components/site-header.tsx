@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Armchair,
   ChevronDown,
-  LayoutGrid,
   LogOut,
   Menu,
   Moon,
@@ -52,8 +51,8 @@ export const NAV_CATEGORIES: NavCategory[] = [
     color: "bg-indigo-500",
     items: [
       { label: "Purchase Orders", href: "/purchase-orders", description: "Supplier purchase orders & goods receipt" },
-      { label: "Purchase Bills", href: "/#purchase-bills", tab: "bills", description: "Vendor bills & accounts payable" },
-      { label: "Payments", href: "/#purchase-section", description: "Bank & cash vendor disbursements" },
+      { label: "Purchase Bills", href: "/vendor-bills", description: "Vendor bills & accounts payable" },
+      { label: "Payments", href: "/vendor-bills", description: "Bank & cash vendor disbursements" },
     ],
   },
   {
@@ -61,10 +60,10 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: "Account",
     color: "bg-emerald-500",
     items: [
-      { label: "Contacts", href: "/#contacts", description: "Customers & Vendors master directory" },
-      { label: "Products Catalog", href: "/#products", description: "Furniture inventory & sales pricing" },
+      { label: "Contacts", href: "/contacts", description: "Customers & Vendors master directory" },
+      { label: "Products Catalog", href: "/products", description: "Furniture inventory & sales pricing" },
       { label: "Analytical Budget", href: "/#budget-section", description: "Production & operational cost centers" },
-      { label: "Chart of Accounts", href: "/#budget-section", description: "8 canonical double-entry ledger accounts" },
+      { label: "Chart of Accounts", href: "/chart-of-accounts", description: "8 canonical double-entry ledger accounts" },
       { label: "Journals & Entries", href: "/#budget-section", description: "Sales, Purchase, Bank & Cash journal entries" },
       { label: "User Management", href: "/admin/users", description: "RBAC & system user administration", adminOnly: true },
     ],
@@ -88,7 +87,6 @@ export function SiteHeader() {
   const { user, logout } = useAuth();
 
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -118,7 +116,6 @@ export function SiteHeader() {
   const handleNavClick = useCallback(
     (item: SubNavItem) => {
       setActiveDropdown(null);
-      setIsMegaMenuOpen(false);
       setIsSearchFocused(false);
       setMobileMenuOpen(false);
 
@@ -136,7 +133,7 @@ export function SiteHeader() {
     [pathname, router]
   );
 
-  // Close dropdowns and mega menu when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -144,7 +141,6 @@ export function SiteHeader() {
         !navContainerRef.current.contains(e.target as Node)
       ) {
         setActiveDropdown(null);
-        setIsMegaMenuOpen(false);
         setIsSearchFocused(false);
       }
     }
@@ -163,7 +159,6 @@ export function SiteHeader() {
       }
       if (e.key === "Escape") {
         setActiveDropdown(null);
-        setIsMegaMenuOpen(false);
         setIsSearchFocused(false);
         searchInputRef.current?.blur();
       }
@@ -226,7 +221,6 @@ export function SiteHeader() {
                   <button
                     type="button"
                     onClick={() => {
-                      setIsMegaMenuOpen(false);
                       setActiveDropdown(isOpen ? null : cat.id);
                     }}
                     className={cn(
@@ -289,7 +283,6 @@ export function SiteHeader() {
               onFocus={() => {
                 setIsSearchFocused(true);
                 setActiveDropdown(null);
-                setIsMegaMenuOpen(false);
               }}
               placeholder="Search orders, bills, accounts..."
               className="w-full rounded-2xl border border-border/80 bg-surface-muted/60 py-1.5 pl-8 pr-11 text-xs text-text placeholder:text-text-muted transition-all focus:border-primary-500 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary-500/20 shadow-xs"
@@ -341,27 +334,6 @@ export function SiteHeader() {
               </div>
             )}
           </div>
-
-          {/* ERP Central Directory App Launcher Button */}
-          <button
-            type="button"
-            id="globalMegaMenuBtn"
-            onClick={() => {
-              setActiveDropdown(null);
-              setIsSearchFocused(false);
-              setIsMegaMenuOpen((prev) => !prev)}
-            }
-            className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-border/80 bg-surface transition-all shadow-xs",
-              isMegaMenuOpen
-                ? "border-primary-500 bg-primary-50 text-primary-600 dark:bg-primary-950/40"
-                : "text-text-muted hover:border-primary-300 hover:bg-surface-muted hover:text-primary-600"
-            )}
-            title="ERP Central Directory (Sketch Model)"
-            aria-label="Toggle ERP Central Directory"
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </button>
         </div>
 
         {/* Right: User Pill + Dark Mode + Sign Out */}
@@ -423,67 +395,7 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* ERP Central Directory Mega Menu (4 Columns matching Sketch Model) */}
-      {/* ========================================================================= */}
-      {isMegaMenuOpen && (
-        <div className="absolute right-4 sm:right-6 lg:right-8 top-16 z-50 w-[840px] max-w-[94vw] rounded-2xl border border-border bg-surface p-6 shadow-2xl transition-all animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="flex items-center justify-between border-b border-border pb-4">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-primary-600 animate-pulse" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-text">
-                ERP Central Directory (Sketch Model)
-              </h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-[11px] text-text-muted">
-                Press <kbd className="rounded bg-surface-muted px-1.5 py-0.5 text-[10px]">ESC</kbd> to close
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsMegaMenuOpen(false)}
-                className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 gap-6 pt-5 sm:grid-cols-2 lg:grid-cols-4">
-            {categories.map((cat) => (
-              <div key={cat.id}>
-                <h3 className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text">
-                  <span className={cn("h-1.5 w-1.5 rounded-full", cat.color)} />
-                  {cat.label}
-                </h3>
-                <ul className="space-y-2 text-xs">
-                  {cat.items.map((sub) => (
-                    <li key={sub.label}>
-                      <button
-                        type="button"
-                        onClick={() => handleNavClick(sub)}
-                        className="flex items-center gap-1.5 text-text-muted transition-all hover:translate-x-1 hover:text-primary-600 text-left w-full"
-                      >
-                        <span>{sub.label}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 border-t border-border pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-text-muted">
-            <div className="flex items-center gap-2">
-              <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-              <span>Double-entry accounting, procurement &amp; customer dispatch connected</span>
-            </div>
-            <div className="font-medium text-primary-600">
-              Urban Furniture ERP
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ========================================================================= */}
       {/* Mobile navigation drawer */}
