@@ -24,6 +24,7 @@ from app.schemas.journal_entry import (
     JournalItemResponse,
 )
 from app.services.accounting_service import seed_accounting_defaults
+from app.services.journal_engine import generate_je_number, post_journal_entry
 from app.core.exceptions import (
     NotFoundException,
     ConflictException,
@@ -32,20 +33,14 @@ from app.core.exceptions import (
 )
 
 
+# Generates a sequential bill identifier formatted as BILL-0001
 def generate_bill_number(db: Session) -> str:
-    """Generate sequential Vendor Bill number in BILL-0001 format."""
     count = db.scalar(select(func.count(VendorBill.id))) or 0
     return f"BILL-{(count + 1):04d}"
 
 
-def generate_je_number(db: Session) -> str:
-    """Generate sequential Journal Entry number in JE-0001 format."""
-    count = db.scalar(select(func.count(JournalEntry.id))) or 0
-    return f"JE-{(count + 1):04d}"
-
-
+# Converts a VendorBill ORM entity into a validated Pydantic response schema
 def _build_bill_response(bill: VendorBill) -> VendorBillResponse:
-    """Helper to convert VendorBill ORM object to VendorBillResponse."""
     lines_resp = []
     if bill.lines:
         for line in bill.lines:
@@ -67,6 +62,7 @@ def _build_bill_response(bill: VendorBill) -> VendorBillResponse:
         id=bill.id,
         bill_number=bill.bill_number,
         po_id=bill.po_id,
+        po_number=bill.purchase_order.po_number if bill.purchase_order else None,
         vendor_id=bill.vendor_id,
         vendor_name=bill.vendor.name if bill.vendor else None,
         bill_date=bill.bill_date,
@@ -78,8 +74,8 @@ def _build_bill_response(bill: VendorBill) -> VendorBillResponse:
     )
 
 
+# Converts a JournalEntry ORM entity and its items into a Pydantic response schema
 def _build_je_response(je: JournalEntry) -> JournalEntryResponse:
-    """Helper to convert JournalEntry ORM object to JournalEntryResponse."""
     items_resp = []
     if je.items:
         for it in je.items:
@@ -106,12 +102,8 @@ def _build_je_response(je: JournalEntry) -> JournalEntryResponse:
     )
 
 
+# Converts a confirmed purchase order into a vendor bill and posts the corresponding journal entry
 def create_bill_from_po(db: Session, po_id: int) -> CreateBillResponse:
-    """
-    Convert a confirmed Purchase Order into a Vendor Bill and post the balanced Journal Entry.
-    Debit: Purchase Expense accounts (for each line subtotal)
-    Credit: Accounts Payable (2010) (for total bill amount)
-    """
     # 1. Fetch Purchase Order
     po = db.scalar(
         select(PurchaseOrder)
@@ -142,12 +134,6 @@ def create_bill_from_po(db: Session, po_id: int) -> CreateBillResponse:
     # 4. Seed and resolve accounting master data
     seed_accounting_defaults(db)
 
-    purchase_journal = db.scalar(select(Journal).where(Journal.code == "PUR"))
-    if not purchase_journal:
-        purchase_journal = db.scalar(select(Journal).where(Journal.type == "purchase"))
-    if not purchase_journal:
-        raise ValidationException("Purchase Journal ('PUR') is not configured")
-
     ap_account = db.scalar(select(Account).where(Account.code == "2010"))
     if not ap_account:
         raise ValidationException("Accounts Payable (2010) account is not configured")
@@ -155,58 +141,44 @@ def create_bill_from_po(db: Session, po_id: int) -> CreateBillResponse:
     default_expense = db.scalar(select(Account).where(Account.code == "5010"))
     default_expense_id = default_expense.id if default_expense else None
 
-    # 5. Build Journal Entry items (balanced debits and credits)
     bill_number = generate_bill_number(db)
-    je_number = generate_je_number(db)
     now_utc = datetime.now(timezone.utc)
 
-    journal_entry = JournalEntry(
-        entry_number=je_number,
-        journal_id=purchase_journal.id,
-        reference=bill_number,
-        date=now_utc,
-        total_amount=po.total,
-        is_posted=True,
-    )
-    db.add(journal_entry)
-    db.flush()
-
-    total_debits = 0.0
-    # Debit each expense line
+    # 5. Build Journal Entry lines and post via reusable journal engine
+    journal_lines = []
     for line in po.lines:
         line_account_id = line.account_id or default_expense_id
         if not line_account_id:
             raise ValidationException(f"No expense account configured for line item with product #{line.product_id}")
 
-        item_debit = JournalItem(
-            journal_entry_id=journal_entry.id,
-            account_id=line_account_id,
-            partner_id=po.vendor_id,
-            debit=line.subtotal,
-            credit=0.0,
-            description=f"Purchase of {line.product.name if line.product else 'product'}",
-            analytic_account_id=line.analytic_account_id,
-        )
-        db.add(item_debit)
-        total_debits += line.subtotal
+        journal_lines.append({
+            "account_id": line_account_id,
+            "partner_id": po.vendor_id,
+            "debit": line.subtotal,
+            "credit": 0.0,
+            "description": f"Purchase of {line.product.name if line.product else 'product'}",
+            "analytic_account_id": line.analytic_account_id,
+        })
 
-    total_debits = round(total_debits, 2)
-    total_credits = round(po.total, 2)
+    # Credit Accounts Payable (Creditors) for total bill amount
+    journal_lines.append({
+        "account_id": ap_account.id,
+        "partner_id": po.vendor_id,
+        "debit": 0.0,
+        "credit": po.total,
+        "description": f"Vendor Bill {bill_number} payable",
+        "analytic_account_id": None,
+    })
 
-    if total_debits != total_credits:
-        raise ValidationException(f"Total debits ({total_debits}) do not match total credits ({total_credits})")
-
-    # Credit Accounts Payable (Creditors)
-    item_credit = JournalItem(
-        journal_entry_id=journal_entry.id,
-        account_id=ap_account.id,
-        partner_id=po.vendor_id,
-        debit=0.0,
-        credit=total_credits,
-        description=f"Vendor Bill {bill_number} payable",
+    # Post balanced journal entry using the unified journal engine
+    journal_entry = post_journal_entry(
+        db=db,
+        journal_code="PUR",
+        reference=bill_number,
+        entry_date=now_utc,
+        lines=journal_lines,
+        is_posted=True,
     )
-    db.add(item_credit)
-    db.flush()
 
     # 6. Create Vendor Bill record
     vendor_bill = VendorBill(
@@ -265,10 +237,11 @@ def create_bill_from_po(db: Session, po_id: int) -> CreateBillResponse:
     )
 
 
+# Fetches an individual vendor bill by ID and loads associated lines and relationships
 def get_vendor_bill(db: Session, bill_id: int) -> VendorBillResponse:
-    """Retrieve Vendor Bill detail by ID."""
     bill = db.scalar(
         select(VendorBill)
+        # 'joinedload' keyword is used here to eagerly load foreign relationships in SQL JOINs to prevent N+1 queries
         .options(
             joinedload(VendorBill.vendor),
             joinedload(VendorBill.lines).joinedload(VendorBillLine.product),
@@ -291,6 +264,7 @@ BILL_SORT_MAP = {
 }
 
 
+# Queries paginated, filtered, and sorted vendor bills with calculated page totals
 def list_vendor_bills(
     db: Session,
     status: Optional[str] = None,
@@ -301,7 +275,6 @@ def list_vendor_bills(
     sort_by: str = "created_at",
     sort_order: str = "desc",
 ) -> Tuple[List[VendorBillResponse], int, int, int, int]:
-    """List Vendor Bills with optional filtering, sorting, and pagination."""
     count_stmt = select(func.count(VendorBill.id))
 
     if status:

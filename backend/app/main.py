@@ -32,6 +32,7 @@ from app.routers import (
     journal_router,
     purchase_order_router,
     vendor_bill_router,
+    journal_entry_router,
 )
 
 
@@ -129,4 +130,5 @@ app.include_router(account_router, prefix="/api/v1/accounts", tags=["Chart of Ac
 app.include_router(journal_router, prefix="/api/v1/journals", tags=["Journals"])
 app.include_router(purchase_order_router, prefix="/api/v1/purchase-orders", tags=["Purchase Orders"])
 app.include_router(vendor_bill_router, prefix="/api/v1/vendor-bills", tags=["Vendor Bills"])
+app.include_router(journal_entry_router, prefix="/api/v1/journal-entries", tags=["Journal Entries"])
 
