@@ -27,12 +27,19 @@ def list_contacts(
     type: Optional[str] = Query(None, description="Filter by contact type (customer, vendor, both)"),
     search: Optional[str] = Query(None, description="Search by name, email, or city"),
     is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
+    sort_by: str = Query("name", description="Field to sort by (name, type, city, id)"),
+    sort_order: str = Query("asc", description="Sort order (asc, desc)"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Retrieve contacts with optional filtering."""
-    contacts, total = contact_service.get_contacts(db, type_filter=type, search=search, is_active=is_active)
-    return ContactListResponse(data=contacts, total=total)
+    """Retrieve contacts with optional filtering, sorting, and pagination."""
+    contacts, total, page, limit, pages = contact_service.get_contacts(
+        db, type_filter=type, search=search, is_active=is_active, page=page, limit=limit, sort_by=sort_by, sort_order=sort_order
+    )
+    return ContactListResponse(data=contacts, total=total, page=page, limit=limit, pages=pages)
+
 
 
 @router.get("/{contact_id}", response_model=ContactResponse, status_code=status.HTTP_200_OK)

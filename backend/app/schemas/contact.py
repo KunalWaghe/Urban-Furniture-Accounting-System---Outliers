@@ -45,6 +45,10 @@ class ContactResponse(BaseModel):
 
 
 class ContactListResponse(BaseModel):
-    """Paginated or total list response envelope."""
+    """Paginated list response envelope."""
     data: List[ContactResponse]
     total: int
+    page: int = 1
+    limit: int = 20
+    pages: int = 1
+

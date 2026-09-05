@@ -11,6 +11,18 @@ from app.schemas.product import ProductCreate, ProductUpdate
 from app.core.exceptions import NotFoundException
 
 
+import math
+from sqlalchemy import asc, desc
+
+PRODUCT_SORT_MAP = {
+    "name": Product.name,
+    "price": Product.price,
+    "cost": Product.cost,
+    "category": Product.category,
+    "id": Product.id,
+}
+
+
 def _escape_like(s: str) -> str:
     """Escape LIKE wildcard characters to prevent search manipulation."""
     return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
@@ -37,10 +49,22 @@ def create_product(db: Session, req: ProductCreate) -> Product:
 def get_products(
     db: Session,
     search: Optional[str] = None,
+    category: Optional[str] = None,
+    product_type: Optional[str] = None,
     is_active: Optional[bool] = None,
-) -> Tuple[List[Product], int]:
-    """Retrieve products with optional search and is_active filters."""
+    page: int = 1,
+    limit: int = 20,
+    sort_by: str = "name",
+    sort_order: str = "asc",
+) -> Tuple[List[Product], int, int, int, int]:
+    """Retrieve products with optional filtering, sorting, and pagination."""
     query = db.query(Product)
+
+    if category:
+        query = query.filter(Product.category.ilike(f"%{category}%"))
+
+    if product_type:
+        query = query.filter(Product.product_type == product_type)
 
     if search:
         search_term = f"%{_escape_like(search)}%"
@@ -56,8 +80,15 @@ def get_products(
         query = query.filter(Product.is_active == is_active)
 
     total = query.count()
-    products = query.order_by(Product.name.asc()).all()
-    return products, total
+    sort_col = PRODUCT_SORT_MAP.get(sort_by, Product.name)
+    order_func = desc if sort_order.lower() == "desc" else asc
+    query = query.order_by(order_func(sort_col))
+
+    offset = (page - 1) * limit
+    products = query.offset(offset).limit(limit).all()
+    pages = math.ceil(total / limit) if limit > 0 and total > 0 else 1
+    return products, total, page, limit, pages
+
 
 
 def get_product_by_id(db: Session, product_id: int) -> Product:

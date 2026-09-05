@@ -45,6 +45,10 @@ class ProductResponse(BaseModel):
 
 
 class ProductListResponse(BaseModel):
-    """Paginated or total list response envelope."""
+    """Paginated list response envelope."""
     data: List[ProductResponse]
     total: int
+    page: int = 1
+    limit: int = 20
+    pages: int = 1
+
