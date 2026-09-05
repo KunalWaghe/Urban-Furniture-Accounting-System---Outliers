@@ -5,6 +5,21 @@ from app.models.product import Product
 from app.models.account import Account
 from app.models.journal import Journal
 from app.models.purchase_order import PurchaseOrder, PurchaseOrderLine
+from app.models.journal_entry import JournalEntry, JournalItem
+from app.models.vendor_bill import VendorBill, VendorBillLine
 
-__all__ = ["Base", "User", "Contact", "Product", "Account", "Journal", "PurchaseOrder", "PurchaseOrderLine"]
+__all__ = [
+    "Base",
+    "User",
+    "Contact",
+    "Product",
+    "Account",
+    "Journal",
+    "PurchaseOrder",
+    "PurchaseOrderLine",
+    "JournalEntry",
+    "JournalItem",
+    "VendorBill",
+    "VendorBillLine",
+]
 

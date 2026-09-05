@@ -74,10 +74,9 @@ export type LoginErrors = Partial<Record<keyof LoginFields, string>>;
 
 export function validateLoginFields(fields: LoginFields): LoginErrors {
   const errors: LoginErrors = {};
-  if (!fields.login_id.trim()) {
-    errors.login_id = "Login ID is required.";
-  } else if (!isValidLoginId(fields.login_id)) {
-    errors.login_id = "Login ID must be 6–12 alphanumeric characters.";
+  const trimmed = fields.login_id.trim();
+  if (!trimmed) {
+    errors.login_id = "Login ID or Email is required.";
   }
   if (!fields.password) {
     errors.password = "Password is required.";

@@ -20,18 +20,46 @@ export function LoginForm() {
           <AuthAlert {...form.notice} onDismiss={form.dismissNotice} />
         )}
 
+        <div className="mb-5 rounded-xl border border-primary-200 bg-primary-50/60 p-3.5 text-xs text-text-muted">
+          <div className="flex items-center justify-between font-semibold text-text-main">
+            <span>Demo Accounts</span>
+            <span className="text-[10px] font-normal uppercase tracking-wider text-primary-700 bg-primary-100 px-1.5 py-0.5 rounded">Quick Fill</span>
+          </div>
+          <div className="mt-2 flex flex-col gap-1.5 sm:flex-row sm:items-center">
+            <button
+              type="button"
+              onClick={() => {
+                form.setField("login_id", "admin");
+                form.setField("password", "Admin@123");
+              }}
+              className="flex-1 rounded-lg border border-primary-200 bg-surface px-2.5 py-1.5 text-left font-mono text-xs hover:border-primary-400 transition cursor-pointer"
+            >
+              <span className="font-sans font-semibold text-primary-700">Admin:</span> admin / Admin@123
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                form.setField("login_id", "accountant");
+                form.setField("password", "Accountant@123");
+              }}
+              className="flex-1 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-left font-mono text-xs hover:border-primary-400 transition cursor-pointer"
+            >
+              <span className="font-sans font-semibold text-text-main">Accountant:</span> accountant / Accountant@123
+            </button>
+          </div>
+        </div>
+
         <form className="space-y-4" onSubmit={form.handleSubmit} noValidate>
           <TextField
             id="login_id"
-            label="Login ID"
+            label="Login ID or Email"
             icon={KeyRound}
             type="text"
             autoComplete="username"
-            placeholder="e.g. riya001"
+            placeholder="e.g. admin or admin@urbanfurniture.com"
             value={form.fields.login_id}
             onChange={(value) => form.setField("login_id", value)}
             error={form.errors.login_id}
-            hint="6–12 alphanumeric characters"
             required
           />
 
