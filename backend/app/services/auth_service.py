@@ -1,32 +1,51 @@
 """
-Business logic service for user authentication and registration.
+Business logic service for user authentication and registration with Login ID support.
 """
 
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from app.models.user import User
 from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse
 from app.core.security import hash_password, verify_password, create_access_token
 from app.core.exceptions import ConflictException, UnauthorizedException, ValidationException
 
 
-ALLOWED_ROLES = {"admin", "invoicing_user", "contact"}
+ROLE_MAP = {
+    "admin": "admin",
+    "administrator": "admin",
+    "accountant": "invoicing_user",
+    "invoicing_user": "invoicing_user",
+    "user": "contact",
+    "contact": "contact",
+}
 
 
 def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
-    """Register a new user, store in DB, and return user profile + JWT token."""
-    if req.role not in ALLOWED_ROLES:
-        raise ValidationException(f"Invalid role '{req.role}'. Must be one of: {', '.join(ALLOWED_ROLES)}")
+    """Register a new user with unique Login ID and Email."""
+    raw_role = req.role.lower().strip() if req.role else "invoicing_user"
+    normalized_role = ROLE_MAP.get(raw_role)
+    if not normalized_role:
+        raise ValidationException(f"Invalid role '{req.role}'. Allowed roles: admin, administrator, accountant, invoicing_user, user, contact")
 
-    existing_user = db.query(User).filter(User.email == req.email).first()
-    if existing_user:
+    # 1. Check if Login ID is already taken
+    existing_login = db.query(User).filter(User.login_id == req.login_id).first()
+    if existing_login:
+        raise ConflictException(code="LOGIN_ID_ALREADY_EXISTS", message=f"User with Login ID '{req.login_id}' already exists")
+
+    # 2. Check if Email is already taken
+    existing_email = db.query(User).filter(User.email == req.email).first()
+    if existing_email:
         raise ConflictException(code="EMAIL_ALREADY_EXISTS", message=f"User with email '{req.email}' already exists")
 
+    # 3. Create user record
+    name = req.name if req.name and req.name.strip() else req.login_id
     hashed_pw = hash_password(req.password)
     user = User(
+        login_id=req.login_id,
         email=req.email,
         password_hash=hashed_pw,
-        name=req.name,
-        role=req.role,
+        name=name,
+        role=normalized_role,
         contact_id=req.contact_id,
         is_active=True,
     )
@@ -34,9 +53,12 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
     db.commit()
     db.refresh(user)
 
+    # 4. Generate JWT token
     token_data = {
-        "sub": user.email,
+        "sub": user.login_id or user.email,
         "id": user.id,
+        "login_id": user.login_id,
+        "email": user.email,
         "role": user.role,
         "name": user.name,
     }
@@ -44,6 +66,7 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
 
     return AuthResponse(
         id=user.id,
+        login_id=user.login_id,
         email=user.email,
         name=user.name,
         role=user.role,
@@ -52,17 +75,23 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
 
 
 def login_user(db: Session, req: LoginRequest) -> AuthResponse:
-    """Authenticate user credentials and return user profile + JWT token."""
-    user = db.query(User).filter(User.email == req.email).first()
+    """Authenticate user credentials by Login ID (or email) and return user profile + JWT token."""
+    login_input = req.login_id.strip()
+    user = db.query(User).filter(
+        or_(User.login_id == login_input, User.email == login_input)
+    ).first()
+
     if not user or not verify_password(req.password, user.password_hash):
-        raise UnauthorizedException("Invalid email or password")
+        raise UnauthorizedException(message="Invalid Login Id or Password", code="INVALID_CREDENTIALS")
 
     if not user.is_active:
-        raise UnauthorizedException("User account is inactive")
+        raise UnauthorizedException(message="User account is inactive", code="USER_INACTIVE")
 
     token_data = {
-        "sub": user.email,
+        "sub": user.login_id or user.email,
         "id": user.id,
+        "login_id": user.login_id,
+        "email": user.email,
         "role": user.role,
         "name": user.name,
     }
@@ -70,6 +99,7 @@ def login_user(db: Session, req: LoginRequest) -> AuthResponse:
 
     return AuthResponse(
         id=user.id,
+        login_id=user.login_id,
         email=user.email,
         name=user.name,
         role=user.role,

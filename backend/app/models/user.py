@@ -13,12 +13,13 @@ class User(Base):
     User entity representing system accounts.
     Roles:
     - admin: Full access
-    - invoicing_user: Standard accountant user
-    - contact: Portal user tied to a specific contact_id
+    - invoicing_user / accountant: Standard accountant user
+    - contact / user: Portal user tied to a specific contact_id
     """
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
+    login_id: Mapped[Optional[str]] = mapped_column(String(50), unique=True, index=True, nullable=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)

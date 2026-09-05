@@ -6,6 +6,7 @@ from typing import Generator, List
 from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from jose import JWTError
 
 from app.core.database import SessionLocal
@@ -42,13 +43,13 @@ def get_current_user(
     token = credentials.credentials
     try:
         payload = decode_access_token(token)
-        email: str = payload.get("sub")
-        if email is None:
+        sub_val: str = payload.get("sub")
+        if sub_val is None:
             raise UnauthorizedException("Invalid token payload")
     except JWTError:
         raise UnauthorizedException("Invalid or expired token")
 
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(or_(User.login_id == sub_val, User.email == sub_val)).first()
     if not user:
         raise UnauthorizedException("User no longer exists")
     if not user.is_active:

@@ -64,24 +64,44 @@ This document is the boundary between Sourabh (Frontend) and Kunal (Backend). Lo
 
 ### 1. Auth
 
+#### `POST /api/v1/auth/register`
+```json
+// Request (Create User / Sign Up)
+{
+  "login_id": "riya_admin",  // Unique, 6-12 characters
+  "email": "riya@urbanfurniture.com", // Unique
+  "password": "SecureP@ssword123", // >8 chars, 1 upper, 1 lower, 1 special char
+  "name": "Riya Sharma",
+  "role": "administrator" // administrator / admin, accountant / invoicing_user, user / contact
+}
+
+// Response 201
+{
+  "id": 1,
+  "login_id": "riya_admin",
+  "email": "riya@urbanfurniture.com",
+  "name": "Riya Sharma",
+  "role": "admin",
+  "token": "eyJhbGciOi..."
+}
+```
+
 #### `POST /api/v1/auth/login`
 ```json
-// Request
+// Request (Login by Login ID or Email)
 {
-  "email": "riya@urbanfurniture.com",
-  "password": "password123"
+  "login_id": "riya_admin",
+  "password": "SecureP@ssword123"
 }
 
 // Response 200
 {
-  "access_token": "eyJhbGciOi...",
-  "token_type": "bearer",
-  "user": {
-    "id": 1,
-    "email": "riya@urbanfurniture.com",
-    "name": "Riya Sharma",
-    "role": "admin"
-  }
+  "id": 1,
+  "login_id": "riya_admin",
+  "email": "riya@urbanfurniture.com",
+  "name": "Riya Sharma",
+  "role": "admin",
+  "token": "eyJhbGciOi..."
 }
 ```
 

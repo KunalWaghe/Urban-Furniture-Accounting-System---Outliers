@@ -61,8 +61,8 @@ class ValidationException(AppException):
 
 
 class UnauthorizedException(AppException):
-    def __init__(self, message: str = "Invalid credentials"):
-        super().__init__(status_code=401, code="INVALID_CREDENTIALS", message=message)
+    def __init__(self, message: str = "Invalid credentials", code: str = "INVALID_CREDENTIALS"):
+        super().__init__(status_code=401, code=code, message=message)
 
 
 class ForbiddenException(AppException):
