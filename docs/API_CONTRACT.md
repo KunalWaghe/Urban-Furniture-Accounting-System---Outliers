@@ -369,6 +369,20 @@ Soft-deletes the product by setting `is_active = false`. Returns `204 No Content
 
 ---
 
+### 3. Financial Reports
+
+#### `GET /api/v1/reports/balance-sheet`
+
+Returns balances from posted journal entries through the selected date. If
+`as_of_date` is omitted, the current date is used.
+
+Example: `/api/v1/reports/balance-sheet?as_of_date=2026-09-05`
+
+The response includes Assets, Liabilities, Capital, current-period net income,
+totals, and an equation check for `Assets = Liabilities + Capital + Net Income`.
+
+---
+
 ### 3. Chart of Accounts & Journals
 
 The system auto-seeds standard accounting master data on startup to guarantee double-entry transaction compliance.

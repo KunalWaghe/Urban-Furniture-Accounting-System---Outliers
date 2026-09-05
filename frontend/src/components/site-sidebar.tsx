@@ -48,7 +48,7 @@ export const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Sales Invoices", href: "/sales-invoices", icon: Receipt, roles: ["admin", "invoicing_user"] },
   { label: "Purchase Orders", href: "/purchase-orders", icon: ShoppingCart, roles: ["admin", "invoicing_user"] },
   { label: "Vendor Bills", href: "/vendor-bills", icon: Receipt, roles: ["admin", "invoicing_user"] },
-  { label: "Reports", href: "/#budget-section", icon: BarChart3, roles: ["admin", "invoicing_user"] },
+  { label: "Reports", href: "/reports/balance-sheet", icon: BarChart3, roles: ["admin", "invoicing_user"] },
   { label: "Contacts", href: "/contacts", icon: Users, roles: ["admin", "invoicing_user"] },
   { label: "Products", href: "/products", icon: FolderKanban, roles: ["admin", "invoicing_user"] },
   { label: "Chart of Accounts", href: "/chart-of-accounts", icon: CreditCard, roles: ["admin", "invoicing_user"] },

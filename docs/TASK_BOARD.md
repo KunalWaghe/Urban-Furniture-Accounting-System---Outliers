@@ -128,9 +128,10 @@
 
 ### 7B — Financial Reports
 
-- [ ] 7B.1 · BE · Balance Sheet & Profit & Loss report queries (P0-BE-12)
-  - `GET /api/v1/reports/balance-sheet`, `GET /api/v1/reports/profit-loss`
-- [ ] 7B.2 · FE · Balance Sheet page — Assets, Liabilities, Capital with equation check (P0-FE-13a)
+- [x] 7B.1 · BE · Balance Sheet report query (P0-BE-12a)
+  - `GET /api/v1/reports/balance-sheet`
+- [x] 7B.2 · FE · Balance Sheet page — Assets, Liabilities, Capital with equation check (P0-FE-13a)
+  - `/reports/balance-sheet` with date filter, totals, equation status, and print action
 - [ ] 7B.3 · FE · P&L page — Income, Expenses, Net Income (P0-FE-13b)
 
 ---

@@ -36,6 +36,7 @@ from app.routers import (
     payment_router,
     sales_order_router,
     customer_invoice_router,
+    report_router,
 )
 
 
@@ -143,4 +144,4 @@ app.include_router(journal_entry_router, prefix="/api/v1/journal-entries", tags=
 app.include_router(payment_router, prefix="/api/v1/payments", tags=["Payments"])
 app.include_router(sales_order_router, prefix="/api/v1/sales-orders", tags=["Sales Orders"])
 app.include_router(customer_invoice_router, prefix="/api/v1/customer-invoices", tags=["Customer Invoices"])
-
+app.include_router(report_router, prefix="/api/v1/reports", tags=["Reports"])

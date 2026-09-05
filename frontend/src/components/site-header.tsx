@@ -90,7 +90,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: "Reports",
     color: "bg-purple-500",
     items: [
-      { label: "Balance Sheet", href: "/#budget-section", description: "Assets = Liabilities + Capital check" },
+      { label: "Balance Sheet", href: "/reports/balance-sheet", description: "Assets = Liabilities + Capital check" },
       { label: "Profit and Loss", href: "/#budget-section", description: "Operating revenue, COGS & net income" },
       { label: "Budget Report", href: "/#budget-section", description: "Committed vs Achieved utilization metrics" },
     ],

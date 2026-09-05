@@ -39,6 +39,7 @@ import type {
   Product,
   SalesOrder,
   PurchaseOrder,
+  VendorBill,
 } from "@/lib/types";
 import {
   useDashboardCustomerInvoiceStats,
@@ -56,6 +57,7 @@ import {
 } from "@/features/sales-orders/sales-orders-api";
 import { createBillFromPo } from "@/features/vendor-bills/vendor-bills-api";
 import { SearchableContactSelect } from "@/components/searchable-contact-select";
+import { PaymentModal } from "@/components/payment-modal";
 
 /**
  * Main dashboard page — sales, purchase, and budget overview in one scrollable view.
@@ -88,9 +90,10 @@ export default function AppDashboardPage() {
   const [salesSearchQuery, setSalesSearchQuery] = useState<string>("");
   const [purchaseActiveTab, setPurchaseActiveTab] = useState<"po" | "bills">("po");
 
-  // Selected Order / PO for Inspection Modals
+  // Selected Order / PO / Bill for Inspection & Payment Modals
   const [selectedSalesOrder, setSelectedSalesOrder] = useState<SalesOrder | null>(null);
   const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState<PurchaseOrder | null>(null);
+  const [selectedBillForPayment, setSelectedBillForPayment] = useState<VendorBill | null>(null);
 
   // Create Modals
   const [isCreateOrderModalOpen, setIsCreateOrderModalOpen] = useState(false);
@@ -126,6 +129,7 @@ export default function AppDashboardPage() {
       if (e.key === "Escape") {
         setSelectedSalesOrder(null);
         setSelectedPurchaseOrder(null);
+        setSelectedBillForPayment(null);
         setIsCreateOrderModalOpen(false);
         setIsCreatePOModalOpen(false);
       }
@@ -1530,32 +1534,12 @@ export default function AppDashboardPage() {
             (selectedBillForPayment.payment_status === "Paid" ? selectedBillForPayment.amount : 0)
           }
           onSuccess={(payment) => {
-            setCreatedBills((prev) => {
-              const existingIdx = prev.findIndex((b) => b.id === selectedBillForPayment.id);
-              const targetBill = existingIdx >= 0 ? prev[existingIdx] : selectedBillForPayment;
-              const prevPaid =
-                targetBill.amount_paid ?? (targetBill.payment_status === "Paid" ? targetBill.amount : 0);
-              const newPaid = prevPaid + payment.amount;
-              const newStatus: "Paid" | "Partially Paid" =
-                newPaid >= targetBill.amount - 0.001 ? "Paid" : "Partially Paid";
-
-              const updatedBill: VendorBill = {
-                ...targetBill,
-                amount_paid: newPaid,
-                payment_status: newStatus,
-              };
-
-              if (existingIdx >= 0) {
-                return prev.map((b, i) => (i === existingIdx ? updatedBill : b));
-              }
-              return [updatedBill, ...prev];
-            });
-
             showToast(
               `Payment ${payment.payment_number} ($${payment.amount.toFixed(
                 2
               )}) recorded for Bill ${selectedBillForPayment.bill_number}! Journal Entry auto-posted.`
             );
+            refetchAll();
             queryClient.invalidateQueries({ queryKey: ["vendor-bills"] });
             setSelectedBillForPayment(null);
           }}
