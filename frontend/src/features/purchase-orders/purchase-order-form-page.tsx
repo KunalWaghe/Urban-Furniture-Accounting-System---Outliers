@@ -32,6 +32,7 @@ import {
   updatePurchaseOrder,
   type PurchaseOrderApi,
 } from "@/features/purchase-orders/purchase-orders-api";
+import { fetchAnalyticAccounts } from "@/features/analytics-budget/analytics-budget-api";
 import { formatINR, todayDate } from "@/lib/format";
 
 /** One editable row in the line items table (all fields stored as strings for inputs). */
@@ -39,6 +40,7 @@ interface LineRow {
   key: string;
   productId: string;
   accountId: string;
+  analyticAccountId: string;
   quantity: string;
   unitPrice: string;
 }
@@ -49,6 +51,7 @@ function emptyLine(): LineRow {
     key: crypto.randomUUID(),
     productId: "",
     accountId: "",
+    analyticAccountId: "",
     quantity: "1",
     unitPrice: "",
   };
@@ -78,6 +81,7 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
     key: String(line.id),
     productId: String(line.product_id),
     accountId: line.account_id ? String(line.account_id) : "",
+    analyticAccountId: line.analytic_account_id ? String(line.analytic_account_id) : "",
     quantity: String(line.quantity),
     unitPrice: String(line.unit_price),
   })) : [emptyLine()]);
@@ -89,10 +93,15 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
   const vendorsQuery = useQuery({ queryKey: ["po-vendors"], queryFn: fetchVendors });
   const productsQuery = useQuery({ queryKey: ["po-products"], queryFn: fetchProducts });
   const accountsQuery = useQuery({ queryKey: ["po-expense-accounts"], queryFn: fetchExpenseAccounts });
+  const analyticsQuery = useQuery({
+    queryKey: ["analytic-accounts", "po-form"],
+    queryFn: () => fetchAnalyticAccounts({ type: "expense", is_active: true }),
+  });
 
   const vendors = useMemo(() => vendorsQuery.data ?? [], [vendorsQuery.data]);
   const products = productsQuery.data ?? [];
   const accounts = useMemo(() => accountsQuery.data ?? [], [accountsQuery.data]);
+  const analytics = analyticsQuery.data ?? [];
 
   const defaultAccountId = useMemo(() => {
     const purchaseExpense = accounts.find((a) => a.code === "5010" || a.name === "Purchase Expense");
@@ -101,7 +110,8 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
 
   const grandTotal = lines.reduce((sum, line) => sum + lineTotal(line), 0);
 
-  const loadingMaster = vendorsQuery.isLoading || productsQuery.isLoading || accountsQuery.isLoading;
+  const loadingMaster =
+    vendorsQuery.isLoading || productsQuery.isLoading || accountsQuery.isLoading || analyticsQuery.isLoading;
 
   /** Updates one line row by its unique key. */
   function updateLine(key: string, patch: Partial<LineRow>) {
@@ -142,6 +152,7 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
       lines: lines.map((line) => ({
         product_id: Number(line.productId),
         account_id: line.accountId ? Number(line.accountId) : defaultAccountId,
+        analytic_account_id: line.analyticAccountId ? Number(line.analyticAccountId) : null,
         quantity: Number(line.quantity),
         unit_price: Number(line.unitPrice),
       })),
@@ -281,8 +292,8 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
                       </button>
                     </ActionTooltip>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="sm:col-span-2">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="sm:col-span-2 lg:col-span-3">
                       <label className="text-xs text-text-muted">Product *</label>
                       <select
                         value={line.productId}
@@ -307,6 +318,21 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
                         {accounts.map((account) => (
                           <option key={account.id} value={account.id}>
                             {account.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs text-text-muted">Budget Analytics</label>
+                      <select
+                        value={line.analyticAccountId}
+                        onChange={(e) => updateLine(line.key, { analyticAccountId: e.target.value })}
+                        className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text"
+                      >
+                        <option value="">No budget tag</option>
+                        {analytics.map((analytic) => (
+                          <option key={analytic.id} value={analytic.id}>
+                            {analytic.name}
                           </option>
                         ))}
                       </select>

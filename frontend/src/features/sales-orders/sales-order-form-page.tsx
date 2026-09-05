@@ -29,6 +29,7 @@ import {
   fetchIncomeAccounts,
   fetchProducts,
 } from "./sales-orders-api";
+import { fetchAnalyticAccounts } from "@/features/analytics-budget/analytics-budget-api";
 import { formatINR, todayDate } from "@/lib/format";
 
 /** One editable row in the line items table. */
@@ -36,6 +37,7 @@ interface LineRow {
   key: string;
   productId: string;
   accountId: string;
+  analyticAccountId: string;
   quantity: string;
   unitPrice: string;
 }
@@ -45,6 +47,7 @@ function emptyLine(): LineRow {
     key: crypto.randomUUID(),
     productId: "",
     accountId: "",
+    analyticAccountId: "",
     quantity: "1",
     unitPrice: "",
   };
@@ -73,10 +76,15 @@ export function SalesOrderFormPage() {
   const customersQuery = useQuery({ queryKey: ["so-customers"], queryFn: fetchCustomers });
   const productsQuery = useQuery({ queryKey: ["so-products"], queryFn: fetchProducts });
   const accountsQuery = useQuery({ queryKey: ["so-income-accounts"], queryFn: fetchIncomeAccounts });
+  const analyticsQuery = useQuery({
+    queryKey: ["analytic-accounts", "so-form"],
+    queryFn: () => fetchAnalyticAccounts({ type: "income", is_active: true }),
+  });
 
   const customers = useMemo(() => customersQuery.data ?? [], [customersQuery.data]);
   const products = productsQuery.data ?? [];
   const accounts = useMemo(() => accountsQuery.data ?? [], [accountsQuery.data]);
+  const analytics = analyticsQuery.data ?? [];
 
   const defaultAccountId = useMemo(() => {
     const salesIncome = accounts.find((a) => a.code === "4010" || a.name?.toLowerCase().includes("sales"));
@@ -84,7 +92,8 @@ export function SalesOrderFormPage() {
   }, [accounts]);
 
   const grandTotal = lines.reduce((sum, line) => sum + lineTotal(line), 0);
-  const loadingMaster = customersQuery.isLoading || productsQuery.isLoading || accountsQuery.isLoading;
+  const loadingMaster =
+    customersQuery.isLoading || productsQuery.isLoading || accountsQuery.isLoading || analyticsQuery.isLoading;
 
   function handleAddLine() {
     setLines((prev) => [...prev, emptyLine()]);
@@ -139,6 +148,7 @@ export function SalesOrderFormPage() {
     const cleanLines = lines.map((l) => ({
       product_id: Number(l.productId),
       account_id: l.accountId ? Number(l.accountId) : defaultAccountId,
+      analytic_account_id: l.analyticAccountId ? Number(l.analyticAccountId) : null,
       quantity: Number(l.quantity),
       unit_price: Number(l.unitPrice),
     }));
@@ -292,6 +302,7 @@ export function SalesOrderFormPage() {
                 <tr>
                   <th className="px-3 py-2.5">Product</th>
                   <th className="px-3 py-2.5">Sales Account</th>
+                  <th className="px-3 py-2.5">Budget Analytics</th>
                   <th className="w-24 px-3 py-2.5 text-right">Qty</th>
                   <th className="w-36 px-3 py-2.5 text-right">Unit Price (₹)</th>
                   <th className="w-36 px-3 py-2.5 text-right">Subtotal (₹)</th>
@@ -330,6 +341,22 @@ export function SalesOrderFormPage() {
                           {accounts.map((a) => (
                             <option key={a.id} value={a.id}>
                               {a.code} - {a.name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+
+                      {/* Budget Analytics */}
+                      <td className="px-3 py-2.5">
+                        <select
+                          value={line.analyticAccountId}
+                          onChange={(e) => handleLineChange(line.key, { analyticAccountId: e.target.value })}
+                          className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs text-text-primary focus:border-primary-500 focus:outline-hidden"
+                        >
+                          <option value="">No budget tag</option>
+                          {analytics.map((analytic) => (
+                            <option key={analytic.id} value={analytic.id}>
+                              {analytic.name}
                             </option>
                           ))}
                         </select>

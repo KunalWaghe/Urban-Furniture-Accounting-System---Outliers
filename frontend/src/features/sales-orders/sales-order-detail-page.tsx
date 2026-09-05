@@ -84,6 +84,8 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
       void queryClient.invalidateQueries({ queryKey: ["sales-order", soId] });
       void queryClient.invalidateQueries({ queryKey: ["sales-orders"] });
       void queryClient.invalidateQueries({ queryKey: ["customer-invoices"] });
+      void queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      void queryClient.invalidateQueries({ queryKey: ["budget-report"] });
       router.push(`/sales-invoices/${invoice.id}`);
     },
   });

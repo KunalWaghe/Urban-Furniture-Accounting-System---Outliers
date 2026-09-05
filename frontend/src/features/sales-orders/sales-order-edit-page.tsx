@@ -28,6 +28,7 @@ import {
   fetchProducts,
   mapSalesOrder,
 } from "./sales-orders-api";
+import { fetchAnalyticAccounts } from "@/features/analytics-budget/analytics-budget-api";
 import { apiFetch } from "@/lib/api";
 import type { SalesOrderApi } from "./sales-orders-api";
 import { formatINR, todayDate } from "@/lib/format";
@@ -36,6 +37,7 @@ interface LineRow {
   key: string;
   productId: string;
   accountId: string;
+  analyticAccountId: string;
   quantity: string;
   unitPrice: string;
 }
@@ -45,6 +47,7 @@ function emptyLine(): LineRow {
     key: crypto.randomUUID(),
     productId: "",
     accountId: "",
+    analyticAccountId: "",
     quantity: "1",
     unitPrice: "",
   };
@@ -68,6 +71,10 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
   const customersQuery = useQuery({ queryKey: ["so-customers"], queryFn: fetchCustomers });
   const productsQuery = useQuery({ queryKey: ["so-products"], queryFn: fetchProducts });
   const accountsQuery = useQuery({ queryKey: ["so-income-accounts"], queryFn: fetchIncomeAccounts });
+  const analyticsQuery = useQuery({
+    queryKey: ["analytic-accounts", "so-edit"],
+    queryFn: () => fetchAnalyticAccounts({ type: "income", is_active: true }),
+  });
 
   // ── Load existing SO ────────────────────────────────────────────────────
   const soQuery = useQuery({
@@ -85,6 +92,7 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
   const customers = useMemo(() => customersQuery.data ?? [], [customersQuery.data]);
   const products = productsQuery.data ?? [];
   const accounts = useMemo(() => accountsQuery.data ?? [], [accountsQuery.data]);
+  const analytics = analyticsQuery.data ?? [];
 
   const defaultAccountId = useMemo(() => {
     const salesIncome = accounts.find((a) => a.code === "4010" || a.name?.toLowerCase().includes("sales"));
@@ -101,6 +109,7 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
         key: String(l.id),
         productId: String(l.product_id),
         accountId: l.account_id ? String(l.account_id) : "",
+        analyticAccountId: l.analytic_account_id ? String(l.analytic_account_id) : "",
         quantity: String(l.quantity),
         unitPrice: String(l.unit_price),
       }))
@@ -110,7 +119,11 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
 
   const grandTotal = lines.reduce((sum, line) => sum + lineTotal(line), 0);
   const loadingMaster =
-    customersQuery.isLoading || productsQuery.isLoading || accountsQuery.isLoading || soQuery.isLoading;
+    customersQuery.isLoading ||
+    productsQuery.isLoading ||
+    accountsQuery.isLoading ||
+    analyticsQuery.isLoading ||
+    soQuery.isLoading;
 
   function handleAddLine() {
     setLines((prev) => [...prev, emptyLine()]);
@@ -148,6 +161,7 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
     const cleanLines = lines.map((l) => ({
       product_id: Number(l.productId),
       account_id: l.accountId ? Number(l.accountId) : defaultAccountId,
+      analytic_account_id: l.analyticAccountId ? Number(l.analyticAccountId) : null,
       quantity: Number(l.quantity),
       unit_price: Number(l.unitPrice),
     }));
@@ -283,6 +297,7 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
                 <tr>
                   <th className="px-5 py-3">Product</th>
                   <th className="px-5 py-3">Account</th>
+                  <th className="px-5 py-3">Budget Analytics</th>
                   <th className="px-5 py-3 text-right">Qty</th>
                   <th className="px-5 py-3 text-right">Unit Price</th>
                   <th className="px-5 py-3 text-right">Total</th>
@@ -317,6 +332,20 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
                         {accounts.map((a) => (
                           <option key={a.id} value={String(a.id)}>
                             {a.code} — {a.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-5 py-3">
+                      <select
+                        value={line.analyticAccountId}
+                        onChange={(e) => handleLineChange(line.key, { analyticAccountId: e.target.value })}
+                        className="w-full rounded-lg border border-border bg-surface-muted/60 px-2 py-1.5 text-xs text-text outline-none focus:border-primary-500"
+                      >
+                        <option value="">No budget tag</option>
+                        {analytics.map((analytic) => (
+                          <option key={analytic.id} value={String(analytic.id)}>
+                            {analytic.name}
                           </option>
                         ))}
                       </select>

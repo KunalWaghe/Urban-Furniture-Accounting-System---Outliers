@@ -58,6 +58,7 @@ export interface SalesOrderListParams {
 export interface SalesOrderLineInput {
   product_id: number;
   account_id?: number;
+  analytic_account_id?: number | null;
   quantity: number;
   unit_price: number;
 }

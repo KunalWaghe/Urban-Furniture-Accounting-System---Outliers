@@ -95,6 +95,8 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
       void queryClient.invalidateQueries({ queryKey: ["purchase-order", poId] });
       void queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
       void queryClient.invalidateQueries({ queryKey: ["vendor-bill-for-po", poId] });
+      void queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      void queryClient.invalidateQueries({ queryKey: ["budget-report"] });
     },
   });
 
