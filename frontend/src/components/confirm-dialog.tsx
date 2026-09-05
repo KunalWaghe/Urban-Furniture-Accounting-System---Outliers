@@ -2,6 +2,9 @@
 
 import { useEffect, useId, useRef } from "react";
 
+import { AppModal } from "@/components/app-modal";
+import { Button } from "@/components/ui/button";
+
 interface ConfirmDialogProps {
   open: boolean;
   title: string;
@@ -30,7 +33,6 @@ export function ConfirmDialog({
   destructive = false,
   pending = false,
 }: ConfirmDialogProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
@@ -44,8 +46,7 @@ export function ConfirmDialog({
       : null;
     document.body.style.overflow = "hidden";
 
-    // Cancelling is safer than confirming by default for destructive actions.
-    const target = destructive ? cancelButtonRef.current : dialogRef.current;
+    const target = destructive ? cancelButtonRef.current : cancelButtonRef.current;
     target?.focus();
 
     return () => {
@@ -70,72 +71,42 @@ export function ConfirmDialog({
 
   if (!open) return null;
 
-  function trapFocus(event: React.KeyboardEvent<HTMLDivElement>) {
-    if (event.key !== "Tab") return;
-
-    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    );
-    if (!focusable?.length) {
-      event.preventDefault();
-      return;
-    }
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  }
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !pending) onCancel();
-      }}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={descriptionId}
-        tabIndex={-1}
-        onKeyDown={trapFocus}
-        className="w-full max-w-md rounded-xl border border-border bg-surface p-6 shadow-xl"
-      >
-        <h2 id={titleId} className="text-lg font-semibold text-text">{title}</h2>
-        <p id={descriptionId} className="mt-2 text-sm text-text-muted">{message}</p>
-        <div className="mt-6 flex justify-end gap-3">
+    <AppModal
+      open={open}
+      onClose={onCancel}
+      title={title}
+      titleId={titleId}
+      maxWidth="sm"
+      closeOnBackdrop={!pending}
+      disableClose={pending}
+      footer={
+        <div className="flex justify-end gap-3">
           <button
             ref={cancelButtonRef}
             type="button"
             onClick={onCancel}
             disabled={pending}
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-8 items-center justify-center rounded-lg border border-border px-2.5 text-sm font-medium text-text hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60"
           >
             {cancelLabel}
           </button>
-          <button
+          <Button
             type="button"
+            variant={destructive ? "destructive" : "default"}
             onClick={() => {
               if (!pending) onConfirm();
             }}
             disabled={pending}
-            className={[
-              "rounded-lg px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60",
-              destructive ? "bg-red-600 hover:bg-red-700" : "bg-primary-600 hover:bg-primary-700",
-            ].join(" ")}
           >
             {confirmLabel}
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      }
+    >
+      <p id={descriptionId} className="text-sm leading-relaxed text-text-muted">
+        {message}
+      </p>
+    </AppModal>
   );
 }

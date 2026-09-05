@@ -223,6 +223,15 @@ export async function reactivateProduct(id: number): Promise<Product> {
   return updateProduct(id, { is_active: true });
 }
 
+/** Shape of the form body when creating or updating a ledger account. */
+export interface AccountInput {
+  code: string;
+  name: string;
+  type: Account["type"];
+  description?: string;
+  is_active?: boolean;
+}
+
 /** Optional filters and pagination for the accounts (chart of accounts) list endpoint. */
 export interface AccountListParams {
   page?: number;
@@ -260,14 +269,45 @@ export async function fetchAccountsPage(
 
 /**
  * Fetch active accounts (up to 100) sorted by account code.
- * Used by the Chart of Accounts page for a read-only ledger view.
+ * Used by dropdowns and the Chart of Accounts page.
  */
-export async function fetchAccounts(): Promise<Account[]> {
+export async function fetchAccounts(params: { is_active?: boolean } = {}): Promise<Account[]> {
   const response = await fetchAccountsPage({
-    is_active: true,
     limit: 100,
     sort_by: "code",
     sort_order: "asc",
+    ...(params.is_active !== undefined ? { is_active: params.is_active } : {}),
   });
   return response.data ?? [];
+}
+
+/** Create a new ledger account. */
+export async function createAccount(input: AccountInput): Promise<Account> {
+  return apiFetch<Account>("/api/v1/accounts", {
+    method: "POST",
+    auth: true,
+    body: input,
+  });
+}
+
+/** Update an existing ledger account by ID. */
+export async function updateAccount(id: number, input: Partial<AccountInput>): Promise<Account> {
+  return apiFetch<Account>(`/api/v1/accounts/${id}`, {
+    method: "PUT",
+    auth: true,
+    body: input,
+  });
+}
+
+/** Soft-delete (deactivate) a ledger account by ID. */
+export async function deleteAccount(id: number): Promise<void> {
+  return apiFetch<void>(`/api/v1/accounts/${id}`, {
+    method: "DELETE",
+    auth: true,
+  });
+}
+
+/** Restore a deactivated ledger account. */
+export async function reactivateAccount(id: number): Promise<Account> {
+  return updateAccount(id, { is_active: true });
 }

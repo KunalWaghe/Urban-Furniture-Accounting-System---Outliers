@@ -7,9 +7,9 @@ import threading
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from app.models.user import User
-from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, AdminUserCreateRequest, ForgotPasswordRequest, ForgotPasswordResponse, ResetPasswordRequest, ResetPasswordResponse
+from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, AdminUserCreateRequest, AdminUserUpdateRequest, ForgotPasswordRequest, ForgotPasswordResponse, ResetPasswordRequest, ResetPasswordResponse
 from app.core.security import hash_password, verify_password, create_access_token, generate_reset_token
-from app.core.exceptions import ConflictException, UnauthorizedException, ValidationException, ForbiddenException
+from app.core.exceptions import ConflictException, UnauthorizedException, ValidationException, ForbiddenException, NotFoundException
 from app.models.contact import Contact
 from app.services import contact_service, email_service
 
@@ -238,6 +238,107 @@ def admin_create_user(db: Session, req: AdminUserCreateRequest) -> User:
     db.refresh(user)
 
     return user
+
+
+def admin_update_user(db: Session, user_id: int, req: AdminUserUpdateRequest, acting_admin: User) -> User:
+    """
+    Update an existing user account.
+    Only authorized Admin users may invoke this.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise NotFoundException("User", user_id)
+
+    if req.login_id is not None:
+        login_id = req.login_id.strip()
+        existing_login = (
+            db.query(User)
+            .filter(User.login_id == login_id, User.id != user_id)
+            .first()
+        )
+        if existing_login:
+            raise ConflictException(
+                code="LOGIN_ID_ALREADY_EXISTS",
+                message=f"User with Login ID '{login_id}' already exists",
+            )
+        user.login_id = login_id
+
+    if req.email is not None:
+        email = str(req.email).strip()
+        existing_email = (
+            db.query(User)
+            .filter(User.email == email, User.id != user_id)
+            .first()
+        )
+        if existing_email:
+            raise ConflictException(
+                code="EMAIL_ALREADY_EXISTS",
+                message=f"User with email '{email}' already exists",
+            )
+        user.email = email
+
+    if req.name is not None:
+        name = req.name.strip()
+        if not name:
+            raise ValidationException("Name cannot be empty")
+        user.name = name
+
+    if req.role is not None:
+        raw_role = req.role.strip().lower()
+        normalized_role = ROLE_MAP.get(raw_role)
+        if not normalized_role or normalized_role not in ("admin", "invoicing_user", "contact"):
+            raise ValidationException(
+                f"Invalid role '{req.role}'. Allowed internal roles: admin, invoicing_user, contact"
+            )
+        if user.role == "admin" and normalized_role != "admin":
+            remaining_admins = (
+                db.query(User)
+                .filter(User.role == "admin", User.is_active.is_(True), User.id != user_id)
+                .count()
+            )
+            if remaining_admins == 0:
+                raise ValidationException("Cannot change role of the last active administrator")
+        user.role = normalized_role
+
+    if req.contact_id is not None:
+        contact = db.query(Contact).filter(Contact.id == req.contact_id).first()
+        if not contact:
+            raise ValidationException(f"Contact with id {req.contact_id} does not exist")
+        user.contact_id = req.contact_id
+
+    if req.password is not None:
+        user.password_hash = hash_password(req.password)
+
+    if req.is_active is not None:
+        if user.id == acting_admin.id and not req.is_active:
+            raise ValidationException("You cannot deactivate your own account")
+        if user.role == "admin" and not req.is_active:
+            remaining_admins = (
+                db.query(User)
+                .filter(User.role == "admin", User.is_active.is_(True), User.id != user_id)
+                .count()
+            )
+            if remaining_admins == 0:
+                raise ValidationException("Cannot deactivate the last active administrator")
+        user.is_active = req.is_active
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    db.refresh(user)
+    return user
+
+
+def admin_deactivate_user(db: Session, user_id: int, acting_admin: User) -> User:
+    """Soft-deactivate a user account (sets is_active=False)."""
+    return admin_update_user(
+        db,
+        user_id,
+        AdminUserUpdateRequest(is_active=False),
+        acting_admin,
+    )
 
 
 def login_user(db: Session, req: LoginRequest) -> AuthResponse:

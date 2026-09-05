@@ -7,11 +7,18 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, require_roles
-from app.schemas.account import AccountListResponse
+from app.schemas.account import AccountCreate, AccountUpdate, AccountResponse, AccountListResponse
 from app.services import accounting_service
 
 # RBAC guard: only admin and invoicing_user roles can access Chart of Accounts
 router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
+
+
+@router.post("", response_model=AccountResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=AccountResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
+def create_account(req: AccountCreate, db: Session = Depends(get_db)):
+    """Create a new ledger account."""
+    return accounting_service.create_account(db, req)
 
 
 @router.get("", response_model=AccountListResponse, status_code=status.HTTP_200_OK)
@@ -28,7 +35,7 @@ def list_accounts(
 ):
     """
     Retrieve Chart of Accounts.
-    
+
     Automatically seeds default account types (Asset, Liability, Capital, Income, Expense) on fresh databases.
     """
     accounts, total, page, limit, pages = accounting_service.get_accounts(
@@ -36,3 +43,21 @@ def list_accounts(
     )
     return AccountListResponse(data=accounts, total=total, page=page, limit=limit, pages=pages)
 
+
+@router.get("/{account_id}", response_model=AccountResponse, status_code=status.HTTP_200_OK)
+def get_account(account_id: int, db: Session = Depends(get_db)):
+    """Get ledger account details by ID."""
+    return accounting_service.get_account_by_id(db, account_id)
+
+
+@router.put("/{account_id}", response_model=AccountResponse, status_code=status.HTTP_200_OK)
+def update_account(account_id: int, req: AccountUpdate, db: Session = Depends(get_db)):
+    """Update ledger account metadata or active status."""
+    return accounting_service.update_account(db, account_id, req)
+
+
+@router.delete("/{account_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_account(account_id: int, db: Session = Depends(get_db)):
+    """Soft delete a ledger account (sets is_active=False)."""
+    accounting_service.delete_account(db, account_id)
+    return None

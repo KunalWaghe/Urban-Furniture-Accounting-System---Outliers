@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { AppModal, FormModalFooter, ModalError } from "@/components/app-modal";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatINR, todayDate } from "@/lib/format";
 
@@ -320,21 +321,28 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
 
       {/* Register Payment Modal */}
       {paymentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div className="flex items-center gap-2">
-                <div className="rounded-xl bg-emerald-100 p-2 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                  <CreditCard className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-text">Register Bill Payment</h3>
-                  <p className="text-xs text-text-muted">Disburse funds for {bill.bill_number}</p>
-                </div>
-              </div>
+        <AppModal
+          open
+          onClose={() => setPaymentModalOpen(false)}
+          title="Register Bill Payment"
+          subtitle={`Disburse funds for ${bill.bill_number}`}
+          maxWidth="sm"
+          disableClose={payMutation.isPending}
+          leading={
+            <div className="rounded-xl bg-emerald-100 p-2 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+              <CreditCard className="h-5 w-5" />
             </div>
-
-            <form onSubmit={handleRegisterPayment} className="space-y-4 text-xs">
+          }
+          footer={
+            <FormModalFooter
+              formId="vendor-bill-payment-form"
+              onCancel={() => setPaymentModalOpen(false)}
+              submitLabel={payMutation.isPending ? "Posting Payment…" : "Post Payment"}
+              pending={payMutation.isPending}
+            />
+          }
+        >
+          <form id="vendor-bill-payment-form" onSubmit={handleRegisterPayment} className="space-y-4 text-xs">
               <div>
                 <label className="block font-semibold text-text mb-1">Payment Method</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -397,30 +405,9 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
                 />
               </div>
 
-              {paymentError && (
-                <p className="text-xs font-semibold text-rose-600">{paymentError}</p>
-              )}
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-border">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setPaymentModalOpen(false)}
-                  disabled={payMutation.isPending}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={payMutation.isPending}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  {payMutation.isPending ? "Posting Payment…" : "Post Payment"}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
+              {paymentError && <ModalError>{paymentError}</ModalError>}
+          </form>
+        </AppModal>
       )}
     </div>
   );

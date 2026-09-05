@@ -10,9 +10,9 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { AuthUser } from "@/lib/types";
+import type { AdminUpdateUserRequest, AuthUser } from "@/lib/types";
 
-import { createUser, fetchUsers } from "./users-api";
+import { createUser, deactivateUser, fetchUsers, updateUser } from "./users-api";
 
 /**
  * Load the full user list for the admin users page.
@@ -44,6 +44,41 @@ export function useCreateUser() {
         createdUser,
         ...(prev ?? []),
       ]);
+      void queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+
+/**
+ * Mutation hook for updating an existing user.
+ */
+export function useUpdateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, payload }: { userId: number; payload: AdminUpdateUserRequest }) =>
+      updateUser(userId, payload),
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData<AuthUser[]>(["users"], (prev) =>
+        (prev ?? []).map((u) => (u.id === updatedUser.id ? updatedUser : u))
+      );
+      void queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+
+/**
+ * Mutation hook for deactivating a user account.
+ */
+export function useDeactivateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deactivateUser,
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData<AuthUser[]>(["users"], (prev) =>
+        (prev ?? []).map((u) => (u.id === updatedUser.id ? updatedUser : u))
+      );
       void queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });

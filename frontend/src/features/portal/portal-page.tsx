@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AppModal, ModalError } from "@/components/app-modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatINR, todayDate } from "@/lib/format";
 import { fetchPortalInvoices, payPortalInvoice, type PortalInvoice } from "./portal-api";
@@ -147,63 +148,17 @@ export function PortalPage() {
       )}
 
       {selected && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="portal-modal-title"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeModal();
-          }}
-        >
-          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 id="portal-modal-title" className="text-lg font-semibold text-text">
-                  Pay {selected.invoice_number}
-                </h2>
-                <p className="mt-1 text-sm text-text-muted">
-                  Register the full outstanding amount of {formatINR(selected.amount_due)}.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text transition-colors"
-                aria-label="Close modal"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <label className="mt-5 block text-xs font-semibold text-text">
-              Payment via
-              <select
-                value={method}
-                onChange={(event) => setMethod(event.target.value as "bank" | "cash")}
-                className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-normal text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-              >
-                <option value="bank">Bank</option>
-                <option value="cash">Cash</option>
-              </select>
-            </label>
-
-            {error && (
-              <div className="mt-4 flex items-start justify-between gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">
-                <span>{error}</span>
-                <button
-                  type="button"
-                  onClick={() => setError(null)}
-                  className="text-xs font-semibold text-red-600 hover:text-red-800 dark:text-red-400"
-                  aria-label="Dismiss error"
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
-
-            <div className="mt-6 flex justify-end gap-3">
-              <Button variant="outline" onClick={closeModal}>
+        <AppModal
+          open
+          onClose={closeModal}
+          title={`Pay ${selected.invoice_number}`}
+          subtitle={`Register the full outstanding amount of ${formatINR(selected.amount_due)}.`}
+          titleId="portal-modal-title"
+          maxWidth="sm"
+          disableClose={payMutation.isPending}
+          footer={
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={closeModal} disabled={payMutation.isPending}>
                 Cancel
               </Button>
               <Button
@@ -213,8 +168,33 @@ export function PortalPage() {
                 {payMutation.isPending ? "Processing…" : "Confirm payment"}
               </Button>
             </div>
-          </div>
-        </div>
+          }
+        >
+          <label className="block text-xs font-semibold text-text">
+            Payment via
+            <select
+              value={method}
+              onChange={(event) => setMethod(event.target.value as "bank" | "cash")}
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-normal text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+            >
+              <option value="bank">Bank</option>
+              <option value="cash">Cash</option>
+            </select>
+          </label>
+          {error && (
+            <div className="mt-4 flex items-start justify-between gap-2">
+              <ModalError>{error}</ModalError>
+              <button
+                type="button"
+                onClick={() => setError(null)}
+                className="text-xs font-semibold text-red-600 hover:text-red-800 dark:text-red-400"
+                aria-label="Dismiss error"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+        </AppModal>
       )}
     </div>
   );

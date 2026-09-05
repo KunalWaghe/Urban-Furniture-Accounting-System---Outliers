@@ -5,6 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Scale, XCircle } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/loading-spinner";
+import {
+  FinancialYearField,
+  PageToolbar,
+  PageToolbarActions,
+} from "@/components/page-toolbar";
 import { ReportExportMenu } from "@/components/report-export-menu";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,25 +78,17 @@ export function BalanceSheetPage() {
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-text sm:text-3xl">Balance Sheet</h1>
           <p className="mt-1 max-w-2xl text-sm text-text-muted">Assets, liabilities, and capital based on posted journal entries.</p>
         </div>
-        <div className="flex items-end gap-2">
-          <label className="text-xs font-medium text-text-muted">
-            Financial year
-            <input
-              type="number"
-              min="2000"
-              max="2100"
-              value={year}
-              onChange={(event) => setYear(Number(event.target.value))}
-              className="mt-1 block w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text"
+        <PageToolbar>
+          <FinancialYearField value={year} onChange={setYear} id="balance-sheet-year" />
+          <PageToolbarActions>
+            <ReportExportMenu
+              onPrint={() => window.print()}
+              onExportPdf={handleExportPdf}
+              disabled={reportQuery.isLoading || reportQuery.isError || !report}
+              exporting={exporting}
             />
-          </label>
-          <ReportExportMenu
-            onPrint={() => window.print()}
-            onExportPdf={handleExportPdf}
-            disabled={reportQuery.isLoading || reportQuery.isError || !report}
-            exporting={exporting}
-          />
-        </div>
+          </PageToolbarActions>
+        </PageToolbar>
       </div>
 
       {reportQuery.isLoading ? (

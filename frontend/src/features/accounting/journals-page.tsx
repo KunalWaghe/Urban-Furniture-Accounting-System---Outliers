@@ -6,15 +6,23 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DetailField,
+  DetailFieldGrid,
+  DetailSection,
+  RecordDetailModal,
+} from "@/components/record-detail-modal";
 import { SkeletonCard } from "@/components/skeleton-card";
 import { SkeletonTable } from "@/components/skeleton-table";
 import { fetchJournalsPage } from "./journals-api";
+import type { Journal } from "@/lib/types";
 
 const journalTypes = ["all", "sale", "purchase", "bank", "cash"];
 
 export function JournalsPage() {
   const [search, setSearch] = useState("");
   const [type, setType] = useState("all");
+  const [viewingJournal, setViewingJournal] = useState<Journal | null>(null);
   const journalsQuery = useQuery({
     queryKey: ["journals", search, type],
     queryFn: () => fetchJournalsPage({ search, type, limit: 100, is_active: true }),
@@ -113,7 +121,19 @@ export function JournalsPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {journals.map((journal) => (
-                    <tr key={journal.id} className="hover:bg-surface-muted/40">
+                    <tr
+                      key={journal.id}
+                      className="cursor-pointer hover:bg-surface-muted/40 focus-visible:bg-surface-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500/40"
+                      onClick={() => setViewingJournal(journal)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setViewingJournal(journal);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                    >
                       <td className="px-5 py-3 font-mono text-xs font-semibold text-primary-600">{journal.code}</td>
                       <td className="px-5 py-3 font-medium text-text">{journal.name}</td>
                       <td className="px-5 py-3 capitalize text-text-muted">{journal.type}</td>
@@ -131,6 +151,34 @@ export function JournalsPage() {
           )}
         </CardContent>
       </Card>
+
+      {viewingJournal && (
+        <RecordDetailModal
+          open
+          onClose={() => setViewingJournal(null)}
+          title={viewingJournal.name}
+          subtitle={`Journal code ${viewingJournal.code}`}
+          titleId="journal-detail-title"
+          badge={
+            <Badge variant={viewingJournal.is_active ? "secondary" : "outline"}>
+              {viewingJournal.is_active ? "Active" : "Inactive"}
+            </Badge>
+          }
+          maxWidth="sm"
+        >
+          <DetailSection title="Journal setup">
+            <DetailFieldGrid>
+              <DetailField label="Code" value={viewingJournal.code} mono />
+              <DetailField label="Type" value={<span className="capitalize">{viewingJournal.type}</span>} />
+              <DetailField
+                label="Default account"
+                value={viewingJournal.default_account_name ?? "—"}
+                className="sm:col-span-2"
+              />
+            </DetailFieldGrid>
+          </DetailSection>
+        </RecordDetailModal>
+      )}
     </div>
   );
 }

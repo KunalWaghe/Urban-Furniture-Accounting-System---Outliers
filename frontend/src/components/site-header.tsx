@@ -30,6 +30,7 @@ import { useTheme } from "@/components/theme-provider";
 import { ActionTooltip } from "@/components/ui/tooltip";
 import { useMounted } from "@/hooks/use-mounted";
 import { cn } from "@/lib/utils";
+import type { UserRole } from "@/lib/types";
 
 /** One link inside a navigation category dropdown. */
 interface SubNavItem {
@@ -135,6 +136,7 @@ export function SiteHeader() {
   const { user, logout, bootstrapping } = useAuth();
 
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -144,8 +146,34 @@ export function SiteHeader() {
 
   /** Clear auth and redirect to login page. */
   function handleLogout() {
+    setUserMenuOpen(false);
     logout();
     router.replace("/login");
+  }
+
+  function roleBadge(role: UserRole) {
+    if (role === "admin") {
+      return (
+        <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+          Admin
+        </span>
+      );
+    }
+    if (role === "invoicing_user") {
+      return (
+        <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+          Accountant
+        </span>
+      );
+    }
+    if (role === "contact") {
+      return (
+        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+          Portal
+        </span>
+      );
+    }
+    return null;
   }
 
   // Defer auth-dependent nav until client mount + session bootstrap to avoid SSR hydration mismatch.
@@ -208,6 +236,7 @@ export function SiteHeader() {
       ) {
         setActiveDropdown(null);
         setIsSearchFocused(false);
+        setUserMenuOpen(false);
       }
     }
 
@@ -221,6 +250,7 @@ export function SiteHeader() {
       if (e.key === "Escape") {
         setActiveDropdown(null);
         setIsSearchFocused(false);
+        setUserMenuOpen(false);
         searchInputRef.current?.blur();
       }
     }
@@ -283,6 +313,7 @@ export function SiteHeader() {
                     type="button"
                     onClick={() => {
                       setActiveDropdown(isOpen ? null : cat.id);
+                      setUserMenuOpen(false);
                     }}
                     className={cn(
                       "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
@@ -344,6 +375,7 @@ export function SiteHeader() {
               onFocus={() => {
                 setIsSearchFocused(true);
                 setActiveDropdown(null);
+                setUserMenuOpen(false);
               }}
               placeholder="Search orders, bills, accounts..."
               className="w-full rounded-2xl border border-border/80 bg-surface-muted/60 py-1.5 pl-8 pr-3 text-xs text-text placeholder:text-text-muted transition-all focus:border-primary-500 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary-500/20 shadow-xs"
@@ -394,62 +426,107 @@ export function SiteHeader() {
           </div>
         </div>
 
-        {/* Right: User Pill + Dark Mode + Sign Out */}
+        {/* Right: User menu (profile + theme + sign out) or guest actions */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {showAuthenticatedNav && user && (
-            <div className="hidden lg:flex items-center gap-2 rounded-xl border border-border/70 bg-surface-muted/40 px-2.5 py-1.5 text-xs">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
-                <User className="h-3.5 w-3.5" />
-              </div>
-              <div className="max-w-[120px] truncate font-medium text-text">
-                {user.name}
-              </div>
-              {user.role === "admin" && (
-                <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
-                  Admin
+          {showAuthenticatedNav && user ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setUserMenuOpen((open) => !open);
+                  setActiveDropdown(null);
+                  setIsSearchFocused(false);
+                }}
+                className={cn(
+                  "flex h-9 items-center gap-2 rounded-xl border border-border bg-surface-muted/40 px-2 text-xs shadow-xs transition-colors hover:bg-surface-muted sm:px-2.5",
+                  userMenuOpen && "border-primary-500/40 bg-surface-muted"
+                )}
+                aria-expanded={userMenuOpen}
+                aria-haspopup="menu"
+                aria-label="Open account menu"
+              >
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
+                  <User className="h-3.5 w-3.5" />
+                </div>
+                <span className="hidden max-w-[120px] truncate font-medium text-text sm:inline">
+                  {user.name}
                 </span>
-              )}
-              {user.role === "invoicing_user" && (
-                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                  Accountant
-                </span>
-              )}
-              {user.role === "contact" && (
-                <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-                  Portal
-                </span>
+                <span className="hidden sm:inline">{roleBadge(user.role)}</span>
+                <ChevronDown
+                  className={cn(
+                    "h-3.5 w-3.5 text-text-muted transition-transform",
+                    userMenuOpen && "rotate-180 text-primary-600"
+                  )}
+                />
+              </button>
+
+              {userMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-border bg-surface p-2 shadow-xl animate-in fade-in slide-in-from-top-1 duration-150"
+                >
+                  <div className="rounded-xl bg-surface-muted/50 px-3 py-2.5">
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
+                        <User className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-semibold text-text">{user.name}</div>
+                        <div className="truncate text-[11px] text-text-muted">
+                          {user.login_id ? `@${user.login_id}` : user.email}
+                        </div>
+                        <div className="mt-1.5">{roleBadge(user.role)}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="my-1.5 h-px bg-border" />
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={toggleTheme}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-medium text-text transition-colors hover:bg-surface-muted"
+                  >
+                    <span className="flex items-center gap-2">
+                      {darkMode ? <Sun className="h-4 w-4 text-text-muted" /> : <Moon className="h-4 w-4 text-text-muted" />}
+                      {darkMode ? "Light mode" : "Dark mode"}
+                    </span>
+                  </button>
+
+                  <div className="my-1.5 h-px bg-border" />
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </button>
+                </div>
               )}
             </div>
-          )}
-
-          <ActionTooltip label={darkMode ? "Switch to light mode" : "Switch to dark mode"}>
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-text transition-colors hover:bg-surface-muted shadow-xs"
-            >
-              {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-          </ActionTooltip>
-
-          {showAuthenticatedNav && user ? (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="hidden sm:flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text shadow-xs"
-              aria-label="Sign out"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              <span>Sign out</span>
-            </button>
           ) : !showAuthenticatedNav ? (
-            <Link
-              href="/login"
-              className="hidden sm:flex h-9 items-center gap-1.5 rounded-xl bg-primary hover:bg-primary-700 text-white px-3.5 text-xs font-semibold shadow-xs transition-all"
-            >
-              <LogIn className="h-3.5 w-3.5" />
-              <span>Sign in</span>
-            </Link>
+            <>
+              <ActionTooltip label={darkMode ? "Switch to light mode" : "Switch to dark mode"}>
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-text transition-colors hover:bg-surface-muted shadow-xs"
+                >
+                  {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </button>
+              </ActionTooltip>
+              <Link
+                href="/login"
+                className="hidden sm:flex h-9 items-center gap-1.5 rounded-xl bg-primary hover:bg-primary-700 text-white px-3.5 text-xs font-semibold shadow-xs transition-all"
+              >
+                <LogIn className="h-3.5 w-3.5" />
+                <span>Sign in</span>
+              </Link>
+            </>
           ) : null}
 
           {/* Mobile menu hamburger toggle */}
@@ -484,18 +561,20 @@ export function SiteHeader() {
                   </div>
                 </div>
               </div>
-              {user.role === "admin" && (
-                <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
-                  Admin
-                </span>
-              )}
-              {user.role === "invoicing_user" && (
-                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                  Accountant
-                </span>
-              )}
+              {roleBadge(user.role)}
             </div>
           )}
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex w-full items-center justify-between rounded-xl border border-border px-3 py-2 text-xs font-medium text-text hover:bg-surface-muted"
+          >
+            <span className="flex items-center gap-2">
+              {darkMode ? <Sun className="h-4 w-4 text-text-muted" /> : <Moon className="h-4 w-4 text-text-muted" />}
+              {darkMode ? "Light mode" : "Dark mode"}
+            </span>
+          </button>
 
           {/* Mobile search bar — shares searchQuery state with desktop input */}
           <div className="relative">

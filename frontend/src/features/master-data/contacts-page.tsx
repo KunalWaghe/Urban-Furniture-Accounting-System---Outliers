@@ -23,6 +23,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Edit3, Grid2X2, List, Mail, MapPin, Phone, Plus, Trash2, Users } from "lucide-react";
 
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { AppModal, FormModalFooter, ModalError } from "@/components/app-modal";
 import { DataTable, type DataTableColumn } from "@/components/data-table";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Badge } from "@/components/ui/badge";
@@ -253,7 +254,7 @@ export function ContactsPage() {
       key: "actions",
       label: "",
       render: (contact) => (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1" onClick={(event) => event.stopPropagation()}>
           <Button type="button" variant="ghost" size="sm" onClick={() => openEdit(contact)}>
             <Edit3 className="h-3.5 w-3.5" />
             Edit
@@ -404,6 +405,7 @@ export function ContactsPage() {
               sortBy={sortBy}
               sortOrder={sortOrder}
               onSort={handleSort}
+              onRowClick={openEdit}
               emptyTitle="No contacts found"
               emptyDescription="Add a contact or adjust your search and type filter."
             />
@@ -422,48 +424,37 @@ export function ContactsPage() {
       </Card>
 
       {/* Create / edit modal — form state lives in `form`; submit triggers saveMutation */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="contact-dialog-title"
+      <AppModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editing ? "Edit contact" : "New contact"}
+        subtitle="Use this contact in sales and purchase workflows."
+        titleId="contact-dialog-title"
+        maxWidth="lg"
+        footer={
+          <FormModalFooter
+            formId="contact-form"
+            onCancel={() => setIsModalOpen(false)}
+            submitLabel={
+              saveMutation.isPending ? <LoadingSpinner /> : editing ? "Save changes" : "Create contact"
+            }
+            pending={saveMutation.isPending}
+          />
+        }
+      >
+        {error && <ModalError>{error}</ModalError>}
+        <form
+          id="contact-form"
+          className="grid gap-4 sm:grid-cols-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!form.name.trim()) {
+              setError("Name is required.");
+              return;
+            }
+            saveMutation.mutate();
+          }}
         >
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-2xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 id="contact-dialog-title" className="text-lg font-semibold text-text">
-                  {editing ? "Edit contact" : "New contact"}
-                </h2>
-                <p className="mt-1 text-sm text-text-muted">
-                  Use this contact in sales and purchase workflows.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="text-sm text-text-muted hover:text-text"
-                aria-label="Close dialog"
-              >
-                ✕
-              </button>
-            </div>
-            {error && (
-              <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">
-                {error}
-              </p>
-            )}
-            <form
-              className="mt-5 grid gap-4 sm:grid-cols-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (!form.name.trim()) {
-                  setError("Name is required.");
-                  return;
-                }
-                saveMutation.mutate();
-              }}
-            >
               <label className="sm:col-span-2 text-sm font-medium text-text">
                 Name *
                 <input
@@ -537,24 +528,8 @@ export function ContactsPage() {
                   placeholder="400001"
                 />
               </label>
-              <div className="mt-2 flex justify-end gap-3 sm:col-span-2">
-                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={saveMutation.isPending}>
-                  {saveMutation.isPending ? (
-                    <LoadingSpinner />
-                  ) : editing ? (
-                    "Save changes"
-                  ) : (
-                    "Create contact"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        </form>
+      </AppModal>
 
       {/* Deactivate confirmation — deleteMutation runs on confirm */}
       <ConfirmDialog

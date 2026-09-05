@@ -53,6 +53,46 @@ class RegisterRequest(BaseModel):
         return v
 
 
+class AdminUserUpdateRequest(BaseModel):
+    """Schema for Admin updating an existing user account."""
+    login_id: Optional[str] = Field(default=None, min_length=6, max_length=12, description="Unique login ID (6 to 12 characters)")
+    email: Optional[EmailStr] = Field(default=None, description="User email address")
+    password: Optional[str] = Field(default=None, description="New password (optional; omit to keep current)")
+    name: Optional[str] = Field(default=None, description="User full name")
+    role: Optional[str] = Field(default=None, description="Role: admin, invoicing_user, or contact")
+    contact_id: Optional[int] = Field(default=None, description="Optional contact ID link for portal contact role")
+    is_active: Optional[bool] = Field(default=None, description="Whether the account is active")
+
+    @field_validator("login_id")
+    @classmethod
+    def validate_login_id(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        v = v.strip()
+        if not (6 <= len(v) <= 12):
+            raise ValueError("Login Id must be between 6 and 12 characters long")
+        if not re.match(r'^[A-Za-z0-9_]+$', v):
+            raise ValueError("Login Id must contain only letters, numbers, and underscores")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if len(v) > 128:
+            raise ValueError("Password must not exceed 128 characters")
+        if len(v) <= 8:
+            raise ValueError("Password must have more than 8 characters")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r"[^a-zA-Z0-9]", v):
+            raise ValueError("Password must contain at least one special character")
+        return v
+
+
 class AdminUserCreateRequest(BaseModel):
     """Schema for Admin-created user with role selection (Admin only)."""
     login_id: str = Field(..., min_length=6, max_length=12, description="Unique login ID (6 to 12 characters)")

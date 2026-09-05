@@ -8,7 +8,7 @@
  */
 
 import { apiFetch } from "@/lib/api";
-import type { AdminCreateUserRequest, AuthUser } from "@/lib/types";
+import type { AdminCreateUserRequest, AdminUpdateUserRequest, AuthUser } from "@/lib/types";
 
 /**
  * Fetch all users visible to the current admin.
@@ -31,6 +31,30 @@ export async function createUser(
   return apiFetch<AuthUser>("/api/v1/users", {
     method: "POST",
     body: payload,
+    auth: true,
+  });
+}
+
+/**
+ * Update an existing user account (admin action).
+ */
+export async function updateUser(
+  userId: number,
+  payload: AdminUpdateUserRequest
+): Promise<AuthUser> {
+  return apiFetch<AuthUser>(`/api/v1/users/${userId}`, {
+    method: "PUT",
+    body: payload,
+    auth: true,
+  });
+}
+
+/**
+ * Deactivate a user account (admin action — soft delete).
+ */
+export async function deactivateUser(userId: number): Promise<AuthUser> {
+  return apiFetch<AuthUser>(`/api/v1/users/${userId}`, {
+    method: "DELETE",
     auth: true,
   });
 }

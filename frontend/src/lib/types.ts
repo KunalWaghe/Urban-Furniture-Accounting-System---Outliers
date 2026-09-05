@@ -19,6 +19,7 @@ export interface AuthUser {
   name: string;
   role: UserRole;
   contact_id?: number | null;
+  is_active?: boolean;
 }
 
 /** Login/register response — user fields plus a JWT token. */
@@ -34,6 +35,17 @@ export interface AdminCreateUserRequest {
   name: string;
   role: UserRole;
   contact_id?: number | null;
+}
+
+/** Payload for admin-only "update user" API calls. All fields optional. */
+export interface AdminUpdateUserRequest {
+  login_id?: string;
+  email?: string;
+  password?: string;
+  name?: string;
+  role?: UserRole;
+  contact_id?: number | null;
+  is_active?: boolean;
 }
 
 /** Payload sent to the login endpoint. */

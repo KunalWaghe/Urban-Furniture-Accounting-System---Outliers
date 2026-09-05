@@ -244,6 +244,94 @@ def test_create_user_endpoint_strictly_restricted_to_admin():
         assert list_res_contact.status_code == 403
 
 
+def test_admin_update_and_deactivate_user():
+    """Admin can update user profile/role and deactivate accounts with safety guards."""
+    with TestClient(app) as client:
+        unique_suffix = uuid.uuid4().hex[:4]
+        adm_login = f"adm_{unique_suffix}"
+        target_login = f"tgt_{unique_suffix}"
+
+        with SessionLocal() as db:
+            adm_user = User(
+                login_id=adm_login,
+                email=f"{adm_login}@urbanfurniture.com",
+                password_hash=hash_password("SecureP@ssword123!"),
+                name="System Admin",
+                role="admin",
+                is_active=True,
+            )
+            target_user = User(
+                login_id=target_login,
+                email=f"{target_login}@urbanfurniture.com",
+                password_hash=hash_password("SecureP@ssword123!"),
+                name="Target User",
+                role="invoicing_user",
+                is_active=True,
+            )
+            db.add(adm_user)
+            db.add(target_user)
+            db.commit()
+            db.refresh(adm_user)
+            db.refresh(target_user)
+            adm_id = adm_user.id
+            target_id = target_user.id
+
+        admin_token = create_access_token({
+            "sub": adm_login,
+            "id": adm_id,
+            "login_id": adm_login,
+            "email": f"{adm_login}@urbanfurniture.com",
+            "role": "admin",
+            "name": "System Admin",
+        })
+
+        # Non-admin cannot update
+        contact_login = f"cnt_{unique_suffix}"
+        reg_contact = client.post(
+            "/api/v1/auth/register",
+            json={
+                "login_id": contact_login,
+                "email": f"{contact_login}@urbanfurniture.com",
+                "password": "SecureP@ssword123!",
+                "name": "Contact User",
+            },
+        )
+        contact_token = reg_contact.json()["token"]
+        forbidden = client.put(
+            f"/api/v1/users/{target_id}",
+            json={"name": "Hacked"},
+            headers={"Authorization": f"Bearer {contact_token}"},
+        )
+        assert forbidden.status_code == 403
+
+        # Admin updates name and role
+        update_res = client.put(
+            f"/api/v1/users/{target_id}",
+            json={"name": "Updated Accountant", "role": "admin"},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert update_res.status_code == 200, update_res.text
+        updated = update_res.json()
+        assert updated["name"] == "Updated Accountant"
+        assert updated["role"] == "admin"
+
+        # Admin cannot deactivate themselves
+        self_deactivate = client.delete(
+            f"/api/v1/users/{adm_id}",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert self_deactivate.status_code == 422
+
+        # Admin deactivates another user
+        deactivate_res = client.delete(
+            f"/api/v1/users/{target_id}",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert deactivate_res.status_code == 200, deactivate_res.text
+        deactivated = deactivate_res.json()
+        assert deactivated["is_active"] is False
+
+
 def test_auth_login_and_validations():
     """Verify login authentication and input validations."""
     with TestClient(app) as client:

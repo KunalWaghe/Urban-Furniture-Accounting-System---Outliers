@@ -4,10 +4,14 @@ Service logic for Chart of Accounts and Journals, including auto-seeding (P0-BE-
 
 from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import select, func
 from app.models.account import Account
 from app.models.journal import Journal
-from app.schemas.account import AccountCreate
-from app.schemas.journal import JournalCreate, JournalResponse
+from app.schemas.account import AccountCreate, AccountUpdate
+from app.schemas.journal import JournalResponse
+from app.core.exceptions import NotFoundException, ConflictException, ValidationException
+
+VALID_ACCOUNT_TYPES = {"asset", "liability", "capital", "income", "expense", "other_expense"}
 
 # Default seeded Chart of Accounts covering all 5 account types
 DEFAULT_ACCOUNTS = [
@@ -134,6 +138,99 @@ def get_accounts(
     accounts = query.offset(offset).limit(limit).all()
     pages = math.ceil(total / limit) if limit > 0 and total > 0 else 1
     return accounts, total, page, limit, pages
+
+
+def get_account_by_id(db: Session, account_id: int) -> Account:
+    """Fetch a single ledger account by primary key."""
+    seed_accounting_defaults(db)
+    account = db.get(Account, account_id)
+    if not account:
+        raise NotFoundException("Account", account_id)
+    return account
+
+
+def create_account(db: Session, req: AccountCreate) -> Account:
+    """Create a new ledger account with a unique code."""
+    seed_accounting_defaults(db)
+
+    account_type = req.type.lower()
+    if account_type not in VALID_ACCOUNT_TYPES:
+        raise ValidationException(
+            f"Invalid account type '{req.type}'. Must be one of: {', '.join(sorted(VALID_ACCOUNT_TYPES))}"
+        )
+
+    clean_code = req.code.strip()
+    existing = db.scalar(select(Account).where(func.upper(Account.code) == clean_code.upper()))
+    if existing:
+        raise ConflictException(code="DUPLICATE_ACCOUNT_CODE", message=f"Account code '{clean_code}' already exists")
+
+    account = Account(
+        code=clean_code,
+        name=req.name.strip(),
+        type=account_type,
+        description=req.description.strip() if req.description else None,
+        is_active=True,
+    )
+    db.add(account)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    db.refresh(account)
+    return account
+
+
+def update_account(db: Session, account_id: int, req: AccountUpdate) -> Account:
+    """Update ledger account metadata or active status."""
+    account = get_account_by_id(db, account_id)
+
+    if req.type is not None:
+        account_type = req.type.lower()
+        if account_type not in VALID_ACCOUNT_TYPES:
+            raise ValidationException(
+                f"Invalid account type '{req.type}'. Must be one of: {', '.join(sorted(VALID_ACCOUNT_TYPES))}"
+            )
+        account.type = account_type
+
+    if req.code is not None:
+        clean_code = req.code.strip()
+        if clean_code.upper() != account.code.upper():
+            existing = db.scalar(
+                select(Account).where(
+                    func.upper(Account.code) == clean_code.upper(),
+                    Account.id != account_id,
+                )
+            )
+            if existing:
+                raise ConflictException(code="DUPLICATE_ACCOUNT_CODE", message=f"Account code '{clean_code}' already exists")
+            account.code = clean_code
+
+    if req.name is not None:
+        account.name = req.name.strip()
+    if req.description is not None:
+        account.description = req.description.strip() if req.description else None
+    if req.is_active is not None:
+        account.is_active = req.is_active
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    db.refresh(account)
+    return account
+
+
+def delete_account(db: Session, account_id: int) -> None:
+    """Soft-delete a ledger account by setting is_active=False."""
+    account = get_account_by_id(db, account_id)
+    try:
+        account.is_active = False
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
 
 
 def get_journals(

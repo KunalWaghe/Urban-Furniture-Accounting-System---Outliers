@@ -50,6 +50,7 @@ export function ReportExportMenu({
       <Button
         type="button"
         variant="outline"
+        size="lg"
         disabled={disabled || exporting}
         aria-expanded={open}
         aria-haspopup="menu"

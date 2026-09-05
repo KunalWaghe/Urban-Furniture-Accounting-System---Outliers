@@ -65,6 +65,8 @@ interface DataTableProps<T extends { id?: string | number }> {
   onSort?: (key: string) => void
   /** Optional custom filter controls rendered beside the search bar */
   toolbarExtra?: ReactNode
+  /** When set, clicking a row invokes this handler (e.g. open edit form). */
+  onRowClick?: (row: T) => void
 }
 
 /**
@@ -107,6 +109,7 @@ export function DataTable<T extends { id?: string | number }>({
   sortOrder,
   onSort,
   toolbarExtra,
+  onRowClick,
 }: DataTableProps<T>) {
   // Local search text — only used when parent does not pass searchValue
   const [internalSearch, setInternalSearch] = useState("")
@@ -244,7 +247,27 @@ export function DataTable<T extends { id?: string | number }>({
               </thead>
               <tbody className="divide-y divide-border">
                 {visibleData.map((row, index) => (
-                  <tr key={row.id ?? index} className="hover:bg-surface-muted/60">
+                  <tr
+                    key={row.id ?? index}
+                    className={
+                      onRowClick
+                        ? "cursor-pointer hover:bg-surface-muted/60 focus-visible:bg-surface-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500/40"
+                        : "hover:bg-surface-muted/60"
+                    }
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                    onKeyDown={
+                      onRowClick
+                        ? (event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault()
+                              onRowClick(row)
+                            }
+                          }
+                        : undefined
+                    }
+                    tabIndex={onRowClick ? 0 : undefined}
+                    role={onRowClick ? "button" : undefined}
+                  >
                     {columns.map((col) => (
                       <td key={col.key} className="px-3 py-3 text-text sm:px-4">
                         {col.render

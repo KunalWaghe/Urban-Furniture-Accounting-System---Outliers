@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { AppModal } from "@/components/app-modal";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { formatINR } from "@/lib/format";
 import { usePaginatedPurchaseOrders, useSalesOrders } from "./queries";
@@ -526,29 +527,25 @@ function OrderDetails({
   const date = salesOrder ? order.order_date : order.po_date;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-6"
-      onMouseDown={onClose}
-    >
-      <div
-        className="max-h-[90vh] w-full overflow-y-auto rounded-t-2xl border border-border bg-surface shadow-2xl sm:max-w-2xl sm:rounded-2xl"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-start justify-between border-b border-border px-5 py-4">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">{title}</p>
-            <h2 className="mt-1 font-mono text-xl font-bold text-primary-600">{reference}</h2>
-          </div>
+    <AppModal
+      open
+      onClose={onClose}
+      title={reference}
+      subtitle={title}
+      maxWidth="lg"
+      bodyClassName="space-y-5 p-0 px-6 py-5"
+      footer={
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-text-muted hover:bg-surface-muted hover:text-text"
-            aria-label="Close order details"
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text hover:bg-surface-muted"
           >
-            <X className="h-4 w-4" />
+            Close
           </button>
         </div>
-        <div className="space-y-5 p-5">
+      }
+    >
           <div className="grid gap-4 sm:grid-cols-3">
             <Detail label={salesOrder ? "Customer" : "Vendor"} value={partner} />
             <Detail label="Order date" value={date} icon={<CalendarDays className="h-3.5 w-3.5" />} />
@@ -587,9 +584,7 @@ function OrderDetails({
               <span className="font-mono">{formatINR(order.total_amount)}</span>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+    </AppModal>
   );
 }
 
