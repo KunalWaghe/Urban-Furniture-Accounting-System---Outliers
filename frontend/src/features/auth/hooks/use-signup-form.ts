@@ -165,6 +165,15 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
         return;
       }
 
+      if (error.status === 403) {
+        setNotice({
+          kind: "error",
+          title: "Access Denied",
+          message: error.message || "Only users with the Admin role can perform this action.",
+        });
+        return;
+      }
+
       if (error.status === 409) {
         if (error.code === "LOGIN_ID_ALREADY_EXISTS") {
           setErrors((prev) => ({

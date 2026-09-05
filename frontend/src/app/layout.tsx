@@ -10,14 +10,9 @@ export const metadata: Metadata = {
     "Manage purchase orders, bills, payments, and reports for urban furniture operations.",
 };
 
-const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}})();`;
-
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
       <body className="min-h-full">
         <ThemeProvider>
           <AppProviders>{children}</AppProviders>

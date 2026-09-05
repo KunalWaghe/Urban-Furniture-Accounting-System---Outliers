@@ -5,9 +5,9 @@ Business logic service for user authentication and registration with Login ID su
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from app.models.user import User
-from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse
+from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, AdminUserCreateRequest
 from app.core.security import hash_password, verify_password, create_access_token
-from app.core.exceptions import ConflictException, UnauthorizedException, ValidationException
+from app.core.exceptions import ConflictException, UnauthorizedException, ValidationException, ForbiddenException
 
 
 ROLE_MAP = {
@@ -21,11 +21,15 @@ ROLE_MAP = {
 
 
 def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
-    """Register a new user with unique Login ID and Email."""
-    raw_role = req.role.lower().strip() if req.role else "invoicing_user"
-    normalized_role = ROLE_MAP.get(raw_role)
-    if not normalized_role:
-        raise ValidationException(f"Invalid role '{req.role}'. Allowed roles: admin, administrator, accountant, invoicing_user, user, contact")
+    """Register a new user with unique Login ID and Email (Public signup creates user/contact role)."""
+    # Safeguard against admin role escalation
+    if req.role:
+        check_role = req.role.strip().lower()
+        if check_role in ("admin", "administrator"):
+            raise ForbiddenException(message="Registration with admin role is forbidden", code="ROLE_NOT_ALLOWED")
+
+    # Public registration strictly creates standard user role (contact)
+    assigned_role = "contact"
 
     # 1. Check if Login ID is already taken
     existing_login = db.query(User).filter(User.login_id == req.login_id).first()
@@ -45,7 +49,7 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
         email=req.email,
         password_hash=hashed_pw,
         name=name,
-        role=normalized_role,
+        role=assigned_role,
         contact_id=req.contact_id,
         is_active=True,
     )
@@ -72,6 +76,54 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
         role=user.role,
         token=token,
     )
+
+
+def admin_create_user(db: Session, req: AdminUserCreateRequest) -> User:
+    """
+    Create a new user account internally.
+    Only authorized Admin users may invoke this.
+    Supports assigning Admin ('admin') or Accountant ('invoicing_user') roles.
+    """
+    raw_role = req.role.strip().lower() if req.role else "invoicing_user"
+    normalized_role = ROLE_MAP.get(raw_role)
+    if not normalized_role or normalized_role not in ("admin", "invoicing_user", "contact"):
+        raise ValidationException(
+            f"Invalid role '{req.role}'. Allowed internal roles: admin, invoicing_user, contact"
+        )
+
+    # 1. Check if Login ID is already taken
+    existing_login = db.query(User).filter(User.login_id == req.login_id).first()
+    if existing_login:
+        raise ConflictException(
+            code="LOGIN_ID_ALREADY_EXISTS",
+            message=f"User with Login ID '{req.login_id}' already exists",
+        )
+
+    # 2. Check if Email is already taken
+    existing_email = db.query(User).filter(User.email == req.email).first()
+    if existing_email:
+        raise ConflictException(
+            code="EMAIL_ALREADY_EXISTS",
+            message=f"User with email '{req.email}' already exists",
+        )
+
+    # 3. Create user record
+    name = req.name.strip() if req.name and req.name.strip() else req.login_id
+    hashed_pw = hash_password(req.password)
+    user = User(
+        login_id=req.login_id,
+        email=req.email,
+        password_hash=hashed_pw,
+        name=name,
+        role=normalized_role,
+        contact_id=req.contact_id,
+        is_active=True,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return user
 
 
 def login_user(db: Session, req: LoginRequest) -> AuthResponse:

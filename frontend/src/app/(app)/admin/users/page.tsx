@@ -1,14 +1,46 @@
 "use client";
 
-import { useState } from "react";
-import { Shield, UserPlus, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Shield, UserPlus, Users, RefreshCw } from "lucide-react";
 
 import { RequireRole } from "@/components/require-role";
 import { SignupForm } from "@/features/auth/components/signup-form";
+import { apiFetch } from "@/lib/api";
 import type { AuthUser } from "@/lib/types";
 
 export default function AdminUsersPage() {
-  const [recentUsers, setRecentUsers] = useState<AuthUser[]>([]);
+  const [users, setUsers] = useState<AuthUser[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function loadUsers() {
+    setLoading(true);
+    try {
+      const data = await apiFetch<AuthUser[]>("/api/v1/users", { auth: true });
+      setUsers(data);
+    } catch (err) {
+      console.error("Failed to load users:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    let ignore = false;
+    async function fetchUsers() {
+      try {
+        const data = await apiFetch<AuthUser[]>("/api/v1/users", { auth: true });
+        if (!ignore) setUsers(data);
+      } catch (err) {
+        console.error("Failed to load users:", err);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+    void fetchUsers();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   return (
     <RequireRole allowedRoles={["admin"]}>
@@ -38,12 +70,12 @@ export default function AdminUsersPage() {
             </div>
             <SignupForm
               mode="admin-create"
-              onSuccess={(user) => setRecentUsers((prev) => [user, ...prev])}
+              onSuccess={(user) => setUsers((prev) => [user, ...prev])}
               cancelHref="/"
             />
           </div>
 
-          {/* Sidebar Info & Recent Activity */}
+          {/* Sidebar Info & System Users List */}
           <div className="space-y-6 lg:col-span-5 lg:mt-6">
             <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
               <div className="flex items-center gap-2 border-b border-border pb-3">
@@ -62,27 +94,53 @@ export default function AdminUsersPage() {
               </ul>
             </div>
 
-            {recentUsers.length > 0 && (
-              <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-                <div className="flex items-center gap-2 border-b border-border pb-3">
+            <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary-600" />
-                  <h3 className="text-sm font-semibold text-text">Recently Created Users</h3>
+                  <h3 className="text-sm font-semibold text-text">System Users ({users.length})</h3>
                 </div>
-                <div className="mt-3 divide-y divide-border">
-                  {recentUsers.map((u) => (
+                <button
+                  type="button"
+                  onClick={loadUsers}
+                  disabled={loading}
+                  className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text disabled:opacity-50"
+                  title="Refresh users"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                </button>
+              </div>
+
+              {loading && users.length === 0 ? (
+                <div className="py-6 text-center text-xs text-text-muted">Loading users…</div>
+              ) : users.length === 0 ? (
+                <div className="py-6 text-center text-xs text-text-muted">No users found.</div>
+              ) : (
+                <div className="mt-3 max-h-[380px] divide-y divide-border overflow-y-auto pr-1">
+                  {users.map((u) => (
                     <div key={u.id} className="py-2.5 text-xs">
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-text">{u.name}</span>
-                        <span className="rounded bg-surface-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-text-muted">
-                          {u.role}
+                        <span
+                          className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                            u.role === "admin"
+                              ? "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
+                              : u.role === "invoicing_user"
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                              : "bg-surface-muted text-text-muted"
+                          }`}
+                        >
+                          {u.role === "invoicing_user" ? "Accountant" : u.role}
                         </span>
                       </div>
-                      <p className="text-text-muted">ID: {u.login_id} · {u.email}</p>
+                      <p className="mt-0.5 text-text-muted">
+                        {u.login_id ? `@${u.login_id}` : "No ID"} · {u.email}
+                      </p>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

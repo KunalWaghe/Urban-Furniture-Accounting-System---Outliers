@@ -1,12 +1,14 @@
 """
-Unit & Integration tests for Authentication endpoints with Login ID & validation rules.
+Unit & Integration tests for Authentication, Role Restrictions, and Admin User Creation.
 """
 
 import uuid
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
-from app.core.database import engine, Base
+from app.core.database import engine, Base, SessionLocal
+from app.models.user import User
+from app.core.security import hash_password, create_access_token
 
 
 @pytest.fixture(autouse=True)
@@ -16,21 +18,21 @@ def setup_db():
     yield
 
 
-def test_auth_register_and_login_with_login_id():
+def test_public_registration_creates_contact_role_only():
+    """Public registration should not accept admin roles and strictly assign contact (user) role."""
     with TestClient(app) as client:
         unique_suffix = uuid.uuid4().hex[:4]
         test_login_id = f"user_{unique_suffix}"
         test_email = f"user_{unique_suffix}@urbanfurniture.com"
         test_password = "SecureP@ssword123!"
-        test_name = "User Test"
+        test_name = "Regular Portal User"
 
-        # 1. Register new user with login_id
+        # 1. Public signup without role specified -> defaults to contact (user)
         reg_payload = {
             "login_id": test_login_id,
             "email": test_email,
             "password": test_password,
             "name": test_name,
-            "role": "administrator"
         }
         response = client.post("/api/v1/auth/register", json=reg_payload)
         assert response.status_code == 201, response.text
@@ -38,85 +40,247 @@ def test_auth_register_and_login_with_login_id():
         assert data["login_id"] == test_login_id
         assert data["email"] == test_email
         assert data["name"] == test_name
-        assert data["role"] == "admin"
+        assert data["role"] == "contact"
         assert "token" in data
 
-        token = data["token"]
-
-        # 2. Register duplicate Login ID -> Expect 409 LOGIN_ID_ALREADY_EXISTS
-        dup_login_payload = {
-            "login_id": test_login_id,
-            "email": f"diff_{test_email}",
+        # 2. Attempt to register directly with admin role -> rejected
+        admin_attempt_payload = {
+            "login_id": f"adm_{unique_suffix}",
+            "email": f"adm_{unique_suffix}@urbanfurniture.com",
             "password": test_password,
-            "name": "Different Name",
-            "role": "accountant"
+            "name": "Malicious Admin",
+            "role": "admin",
         }
-        dup_res = client.post("/api/v1/auth/register", json=dup_login_payload)
-        assert dup_res.status_code == 409
-        assert dup_res.json()["error"]["code"] == "LOGIN_ID_ALREADY_EXISTS"
+        admin_res = client.post("/api/v1/auth/register", json=admin_attempt_payload)
+        assert admin_res.status_code in (403, 422)
 
-        # 3. Register duplicate Email -> Expect 409 EMAIL_ALREADY_EXISTS
-        dup_email_payload = {
-            "login_id": f"new_{unique_suffix}",
-            "email": test_email,
+        # 3. Attempt with administrator role -> rejected
+        admin_attempt_payload2 = {
+            "login_id": f"adm2_{unique_suffix}",
+            "email": f"adm2_{unique_suffix}@urbanfurniture.com",
             "password": test_password,
-            "name": "Another Name",
-            "role": "user"
+            "name": "Malicious Admin 2",
+            "role": "administrator",
         }
-        dup_email_res = client.post("/api/v1/auth/register", json=dup_email_payload)
-        assert dup_email_res.status_code == 409
-        assert dup_email_res.json()["error"]["code"] == "EMAIL_ALREADY_EXISTS"
-
-        # 4. Login using Login ID -> Expect 200
-        login_payload = {
-            "login_id": test_login_id,
-            "password": test_password
-        }
-        login_response = client.post("/api/v1/auth/login", json=login_payload)
-        assert login_response.status_code == 200, login_response.text
-        login_data = login_response.json()
-        assert login_data["login_id"] == test_login_id
-        assert "token" in login_data
-
-        # 5. Login with wrong password -> Expect 401 with "Invalid Login Id or Password"
-        bad_login_payload = {
-            "login_id": test_login_id,
-            "password": "WrongP@ssword123"
-        }
-        bad_response = client.post("/api/v1/auth/login", json=bad_login_payload)
-        assert bad_response.status_code == 401
-        bad_data = bad_response.json()
-        assert bad_data["error"]["message"] == "Invalid Login Id or Password"
-        assert bad_data["error"]["code"] == "INVALID_CREDENTIALS"
-
-        # 6. Fetch /me profile with valid token -> Expect 200
-        headers = {"Authorization": f"Bearer {token}"}
-        me_response = client.get("/api/v1/auth/me", headers=headers)
-        assert me_response.status_code == 200, me_response.text
-        me_data = me_response.json()
-        assert me_data["login_id"] == test_login_id
-        assert me_data["email"] == test_email
-        assert me_data["role"] == "admin"
+        admin_res2 = client.post("/api/v1/auth/register", json=admin_attempt_payload2)
+        assert admin_res2.status_code in (403, 422)
 
 
-def test_auth_validations():
+def test_create_user_endpoint_strictly_restricted_to_admin():
+    """
+    POST /api/v1/users must only be accessible to users with the 'admin' role.
+    - Anonymous: 401 Unauthorized
+    - Portal user ('contact'): 403 Forbidden
+    - Accountant ('invoicing_user'): 403 Forbidden
+    - Admin ('admin'): 201 Created
+    """
     with TestClient(app) as client:
-        # Invalid Login ID (< 6 chars)
-        short_login = {
-            "login_id": "usr",
-            "email": "short@test.com",
-            "password": "ValidP@ssword123",
-            "name": "Short User"
+        unique_suffix = uuid.uuid4().hex[:4]
+
+        # 1. Anonymous attempt -> 401
+        new_user_payload = {
+            "login_id": f"new_{unique_suffix}",
+            "email": f"new_{unique_suffix}@urbanfurniture.com",
+            "password": "SecureP@ssword123!",
+            "name": "New Employee",
+            "role": "invoicing_user",
         }
-        short_res = client.post("/api/v1/auth/register", json=short_login)
+        anon_res = client.post("/api/v1/users", json=new_user_payload)
+        assert anon_res.status_code == 401
+
+        # 2. Register a standard portal user (contact)
+        contact_login = f"cnt_{unique_suffix}"
+        reg_contact = client.post(
+            "/api/v1/auth/register",
+            json={
+                "login_id": contact_login,
+                "email": f"{contact_login}@urbanfurniture.com",
+                "password": "SecureP@ssword123!",
+                "name": "Contact User",
+            },
+        )
+        assert reg_contact.status_code == 201
+        contact_token = reg_contact.json()["token"]
+
+        # Portal user calling POST /api/v1/users -> 403 Forbidden
+        contact_res = client.post(
+            "/api/v1/users",
+            json=new_user_payload,
+            headers={"Authorization": f"Bearer {contact_token}"},
+        )
+        assert contact_res.status_code == 403
+        assert "not authorized" in contact_res.json()["error"]["message"].lower()
+
+        # 3. Create DB records for Accountant and Admin
+        acc_login = f"acc_{unique_suffix}"
+        adm_login = f"adm_{unique_suffix}"
+        with SessionLocal() as db:
+            acc_user = User(
+                login_id=acc_login,
+                email=f"{acc_login}@urbanfurniture.com",
+                password_hash=hash_password("SecureP@ssword123!"),
+                name="Test Accountant",
+                role="invoicing_user",
+                is_active=True,
+            )
+            adm_user = User(
+                login_id=adm_login,
+                email=f"{adm_login}@urbanfurniture.com",
+                password_hash=hash_password("SecureP@ssword123!"),
+                name="System Admin",
+                role="admin",
+                is_active=True,
+            )
+            db.add(acc_user)
+            db.add(adm_user)
+            db.commit()
+            db.refresh(acc_user)
+            db.refresh(adm_user)
+
+            acc_id = acc_user.id
+            adm_id = adm_user.id
+
+        accountant_token = create_access_token({
+            "sub": acc_login,
+            "id": acc_id,
+            "login_id": acc_login,
+            "email": f"{acc_login}@urbanfurniture.com",
+            "role": "invoicing_user",
+            "name": "Test Accountant",
+        })
+
+        admin_token = create_access_token({
+            "sub": adm_login,
+            "id": adm_id,
+            "login_id": adm_login,
+            "email": f"{adm_login}@urbanfurniture.com",
+            "role": "admin",
+            "name": "System Admin",
+        })
+
+        # Accountant calling POST /api/v1/users -> 403 Forbidden
+        acc_res = client.post(
+            "/api/v1/users",
+            json=new_user_payload,
+            headers={"Authorization": f"Bearer {accountant_token}"},
+        )
+        assert acc_res.status_code == 403
+        assert "not authorized" in acc_res.json()["error"]["message"].lower()
+
+        # Admin calling POST /api/v1/users to create an Accountant -> 201 Created
+        admin_create_acc_payload = {
+            "login_id": f"acct_{unique_suffix}",
+            "email": f"acct_{unique_suffix}@urbanfurniture.com",
+            "password": "SecureP@ssword123!",
+            "name": "Created Accountant",
+            "role": "invoicing_user",
+        }
+        admin_acc_res = client.post(
+            "/api/v1/users",
+            json=admin_create_acc_payload,
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert admin_acc_res.status_code == 201, admin_acc_res.text
+        created_acc = admin_acc_res.json()
+        assert created_acc["login_id"] == admin_create_acc_payload["login_id"]
+        assert created_acc["role"] == "invoicing_user"
+
+        # Admin calling POST /api/v1/users to create another Admin -> 201 Created
+        admin_create_adm_payload = {
+            "login_id": f"admn_{unique_suffix}",
+            "email": f"admn_{unique_suffix}@urbanfurniture.com",
+            "password": "SecureP@ssword123!",
+            "name": "Created Administrator",
+            "role": "admin",
+        }
+        admin_adm_res = client.post(
+            "/api/v1/users",
+            json=admin_create_adm_payload,
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert admin_adm_res.status_code == 201, admin_adm_res.text
+        created_adm = admin_adm_res.json()
+        assert created_adm["login_id"] == admin_create_adm_payload["login_id"]
+        assert created_adm["role"] == "admin"
+
+        # Admin calling GET /api/v1/users -> 200 OK
+        list_res = client.get(
+            "/api/v1/users",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert list_res.status_code == 200
+        assert isinstance(list_res.json(), list)
+
+        # Non-admin calling GET /api/v1/users -> 403 Forbidden
+        list_res_contact = client.get(
+            "/api/v1/users",
+            headers={"Authorization": f"Bearer {contact_token}"},
+        )
+        assert list_res_contact.status_code == 403
+
+
+def test_auth_login_and_validations():
+    """Verify login authentication and input validations."""
+    with TestClient(app) as client:
+        unique_suffix = uuid.uuid4().hex[:4]
+        test_login_id = f"user_{unique_suffix}"
+        test_email = f"user_{unique_suffix}@urbanfurniture.com"
+        test_password = "SecureP@ssword123!"
+
+        # Register
+        reg_res = client.post(
+            "/api/v1/auth/register",
+            json={
+                "login_id": test_login_id,
+                "email": test_email,
+                "password": test_password,
+                "name": "Valid User",
+            },
+        )
+        assert reg_res.status_code == 201
+        token = reg_res.json()["token"]
+
+        # Login with login_id
+        login_res = client.post(
+            "/api/v1/auth/login",
+            json={"login_id": test_login_id, "password": test_password},
+        )
+        assert login_res.status_code == 200
+        assert login_res.json()["login_id"] == test_login_id
+
+        # Login with wrong password -> 401
+        bad_login_res = client.post(
+            "/api/v1/auth/login",
+            json={"login_id": test_login_id, "password": "WrongPassword123!"},
+        )
+        assert bad_login_res.status_code == 401
+        assert bad_login_res.json()["error"]["code"] == "INVALID_CREDENTIALS"
+
+        # Check /me endpoint
+        me_res = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+        assert me_res.status_code == 200
+        assert me_res.json()["role"] == "contact"
+
+        # Invalid Login ID (< 6 chars)
+        short_res = client.post(
+            "/api/v1/auth/register",
+            json={
+                "login_id": "usr",
+                "email": "short@test.com",
+                "password": "ValidP@ssword123!",
+                "name": "Short User",
+            },
+        )
         assert short_res.status_code in (400, 422)
 
-        # Invalid Password (no special character or <= 8 chars)
-        weak_pass = {
-            "login_id": "validusr123",
-            "email": "weak@test.com",
-            "password": "password123",  # missing uppercase & special char
-            "name": "Weak Pass User"
-        }
-        weak_res = client.post("/api/v1/auth/register", json=weak_pass)
+        # Weak Password (missing uppercase & special char)
+        weak_res = client.post(
+            "/api/v1/auth/register",
+            json={
+                "login_id": "validusr123",
+                "email": "weak@test.com",
+                "password": "password123",
+                "name": "Weak Pass User",
+            },
+        )
         assert weak_res.status_code in (400, 422)

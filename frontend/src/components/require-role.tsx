@@ -8,6 +8,7 @@ import { ArrowLeft, LogOut, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/features/auth/auth-context";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
+import { useMounted } from "@/hooks/use-mounted";
 
 interface RequireRoleProps {
   allowedRoles: string[];
@@ -30,14 +31,15 @@ export function RequireRole({
 }: RequireRoleProps) {
   const { user, isAuthenticated, bootstrapping, logout } = useAuth();
   const router = useRouter();
+  const mounted = useMounted();
 
   useEffect(() => {
-    if (!bootstrapping && !isAuthenticated) {
+    if (mounted && !bootstrapping && !isAuthenticated) {
       router.replace("/login");
     }
-  }, [bootstrapping, isAuthenticated, router]);
+  }, [mounted, bootstrapping, isAuthenticated, router]);
 
-  if (bootstrapping) {
+  if (!mounted || bootstrapping) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <LoadingSpinner size="lg" label="Verifying permissions…" />

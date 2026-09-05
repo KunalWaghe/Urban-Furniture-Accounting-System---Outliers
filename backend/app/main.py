@@ -25,6 +25,7 @@ from app.core.exceptions import (
 from app.models import Base
 from app.routers import (
     auth_router,
+    user_router,
     contact_router,
     product_router,
     account_router,
@@ -118,6 +119,7 @@ def root():
 
 # --- Router includes ---
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
+app.include_router(user_router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(contact_router, prefix="/api/v1/contacts", tags=["Contacts"])
 app.include_router(product_router, prefix="/api/v1/products", tags=["Products"])
 app.include_router(account_router, prefix="/api/v1/accounts", tags=["Chart of Accounts"])
