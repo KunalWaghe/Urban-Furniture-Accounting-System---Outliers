@@ -1,0 +1,96 @@
+"use client";
+
+import Link from "next/link";
+import { ArrowRight, Mail } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+
+import { useLoginForm } from "../hooks/use-login-form";
+import { AuthAlert } from "./auth-alert";
+import { PasswordInput } from "./password-input";
+import { TextField } from "./text-field";
+
+export function LoginForm() {
+  const form = useLoginForm();
+
+  return (
+    <div className="mt-8 w-full">
+      <div className="rounded-2xl border border-border bg-surface px-6 py-8 shadow-sm sm:px-8">
+        {form.notice && (
+          <AuthAlert {...form.notice} onDismiss={form.dismissNotice} />
+        )}
+
+        <form className="space-y-4" onSubmit={form.handleSubmit} noValidate>
+          <TextField
+            id="email"
+            label="Email"
+            icon={Mail}
+            type="email"
+            autoComplete="email"
+            placeholder="admin@urbanfurniture.com"
+            value={form.fields.email}
+            onChange={(value) => form.setField("email", value)}
+            error={form.errors.email}
+            required
+          />
+
+          <PasswordInput
+            id="password"
+            label="Password"
+            autoComplete="current-password"
+            placeholder="Enter your password"
+            value={form.fields.password}
+            onChange={(value) => form.setField("password", value)}
+            error={form.errors.password}
+            show={form.showPassword}
+            onToggleShow={form.toggleShowPassword}
+            required
+            labelAddon={
+              <Link
+                href="#"
+                className="text-xs font-medium text-primary-600 hover:text-primary-700 hover:underline"
+              >
+                Forgot password?
+              </Link>
+            }
+          />
+
+          <div className="flex items-center pt-1">
+            <input
+              id="remember-device"
+              type="checkbox"
+              checked={form.rememberDevice}
+              onChange={(event) => form.setRememberDevice(event.target.checked)}
+              className="h-4 w-4 rounded border-border accent-primary-600"
+            />
+            <label
+              htmlFor="remember-device"
+              className="ml-2 block text-xs text-text-muted"
+            >
+              Remember me on this device
+            </label>
+          </div>
+
+          <div className="pt-2">
+            <Button type="submit" className="h-10 w-full gap-2 font-semibold">
+              Sign in
+              <ArrowRight />
+            </Button>
+          </div>
+        </form>
+
+        <div className="mt-6 border-t border-border/60 pt-5 text-center">
+          <p className="text-sm text-text-muted">
+            Don&apos;t have an account?
+            <Link
+              href="/signup"
+              className="ml-1 font-semibold text-primary-600 hover:text-primary-700 hover:underline"
+            >
+              Sign up here
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
