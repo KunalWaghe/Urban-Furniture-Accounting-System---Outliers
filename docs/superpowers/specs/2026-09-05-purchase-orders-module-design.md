@@ -116,29 +116,34 @@ New feature folder `frontend/src/features/purchase-orders/`:
 
 ### 4.3 List screen (`/purchase-orders`)
 
-- Title "Purchase Orders" + subtitle; primary **New Purchase Order** button → `/purchase-orders/new`.
-- Search input (300 ms debounce) and status filter: All, Draft, Confirmed, Cancelled — both server-side.
-- 4 summary cards: **Total Orders, Draft Orders, Confirmed Orders, Total Purchase Value** — computed from one unfiltered `limit=100` fetch (demo-scale assumption, documented).
-- Table: PO Number · Vendor Name · PO Date · Status badge · Total Amount · Actions (View). Keeps existing server-side sort (reference/date/total) and Previous/Next pagination.
+Layout follows `transitops_vendor_bills_list_clean_top_nav`:
+
+- Page header row: title "Purchase Orders" + subtitle left; primary **New Purchase Order** button right → `/purchase-orders/new`.
+- Row of 4 **`DashboardMetricCard`s**: **Total Orders** (neutral), **Draft Orders** (amber), **Confirmed Orders** (emerald), **Total Purchase Value** (blue) — computed from one unfiltered `limit=100` fetch (demo-scale assumption, documented).
+- Filters row: search input (300 ms debounce) + status select (All, Draft, Confirmed, Cancelled) — both server-side.
+- **`DashboardTableCard`** "All Purchase Orders" with "Showing X of Y" count: PO Number · Vendor Name · PO Date · Status badge · Total Amount · Actions (View). Keeps existing server-side sort (reference/date/total) and Previous/Next pagination footer.
 - Row click navigates to `/purchase-orders/[id]` (replaces the modal).
 - States: loading spinner / empty / error / success.
 
 ### 4.4 New / Edit form (`/purchase-orders/new`, `/purchase-orders/[id]/edit`)
 
-- Read-only PO number preview (new mode); fixed **Draft** status badge.
-- Vendor: searchable dropdown (type-ahead over fetched vendors). PO Date: `date` input defaulting to today.
-- Line-items table: Sr. No. · Product (dropdown shows name + cost; selecting auto-fills Unit Price from cost) · Purchase Account (dropdown of expense accounts, default "Purchase Expense") · Budget Analytics (dropdown of analytic accounts) · Quantity · Unit Price · Total (live) · Remove.
-- **Add Line** button; Subtotal and Total Amount (equal — no tax); "Currency: INR ₹" label.
-- **Budget warning:** group line subtotals by analytic; where a group exceeds that analytic's `remaining_amount`, show an amber "Exceeds Approved Budget" warning below the table naming the analytic(s) and remaining amount. Warning only — never blocks saving.
-- Footer: **Cancel** (discards the form and navigates back — pure navigation, no status change) · **Save as Draft** (POST → detail) · **Confirm** (POST then PATCH confirm → confirmed detail). Edit mode: **Save Changes** (PUT) instead of the two create actions.
+Layout follows `transitops_new_vendor_bill_form_clean_top_nav` — breadcrumb back link, title + subtitle, then a two-column grid (left `lg:col-span-2`, right rail):
+
+- **Left column:** "Order Details" `DashboardPanel` — read-only PO number preview (new mode), fixed **Draft** status badge, searchable vendor dropdown (type-ahead over fetched vendors), PO Date `date` input defaulting to today. Below it, "Line Items" `DashboardPanel` with **Add Line** button and table: Sr. No. · Product (dropdown shows name + cost; selecting auto-fills Unit Price from cost) · Purchase Account (dropdown of expense accounts, default "Purchase Expense") · Budget Analytics (dropdown of analytic accounts) · Quantity · Unit Price · Total (live) · Remove.
+- **Right rail:** "Summary" `DashboardPanel` — Subtotal and Total Amount (equal — no tax), "Currency: INR ₹" label, and the action buttons: **Confirm** (primary) · **Save as Draft** (outline) · **Cancel** (ghost — discards the form and navigates back; pure navigation, no status change). Edit mode shows **Save Changes** (PUT) instead of the two create actions.
+- **Budget warning:** group line subtotals by analytic; where a group exceeds that analytic's `remaining_amount`, show an amber "Exceeds Approved Budget" banner between the line table and the summary, naming the analytic(s) and remaining amount. Warning only — never blocks saving.
+- Confirm in new mode = POST then PATCH confirm → confirmed detail. Save as Draft = POST → detail.
 - Edit route is draft-only: confirmed/cancelled IDs redirect to the detail screen.
 
 ### 4.5 Detail screen (`/purchase-orders/[id]`)
 
-- Header: PO number + status badge; meta grid: Vendor, PO Date, Status, and (confirmed only) **Confirmation timestamp** ("05 Sep 2026, 4:15 PM").
-- Lines table: Sr · Product · Purchase Account · Budget Analytics (name resolved from analytics query, fallback "—") · Qty · Unit Price · Total; totals footer.
-- Actions by status:
-  - **Draft:** Confirm (primary, via existing `confirm-dialog`) · Edit · Cancel (destructive-outline, via confirm dialog) · Back.
+Layout follows `transitops_3_way_matching_verification_clean_top_nav` — breadcrumb "← Back to Purchase Orders", title row (PO number + status badge) with action buttons top-right, status banner, then a two-column grid:
+
+- **Status banner:** confirmed → emerald info banner with **Confirmation timestamp** ("05 Sep 2026, 4:15 PM"); cancelled → slate/red banner; draft → none.
+- **Left column:** "Line Items" `DashboardTableCard`: Sr · Product · Purchase Account · Budget Analytics (name resolved from analytics query, fallback "—") · Qty · Unit Price · Total.
+- **Right rail:** "Summary" `DashboardPanel` — Vendor, PO Date, Status, Subtotal, Total Amount (₹).
+- **Actions by status (top-right):**
+  - **Draft:** Confirm (primary, via existing `confirm-dialog`) · Edit (outline → `/purchase-orders/[id]/edit`) · Cancel (destructive-outline, via confirm dialog) · Back.
   - **Confirmed:** Create Bill (disabled, caption "Next step: Vendor Bill") · Back.
   - **Cancelled:** Back only.
 - States: loading / error / not-found ("Purchase order not found" + back link) / success.
@@ -152,11 +157,13 @@ Vendor required · PO date required · ≥ 1 line · product required per line �
 - `formatINR(value)`: `Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" })`, trailing `.00` stripped → `₹5,000`, `₹12,500`.
 - `formatDate` → `05 Sep 2026`; `formatDateTime` → `05 Sep 2026, 4:15 PM`.
 
-## 5. Theme & navigation
+## 5. Theme, layout & navigation
 
-- Light-first finance theme: soft gray page background, white cards, subtle borders, rounded corners, blue primary actions, compact readable tables — existing design language, tightened where needed. Dark mode keeps working.
-- Sidebar restyled **dark navy** (light text, blue active item) in both modes.
-- Nav order per brief: **Dashboard, Sales, Purchase Orders, Master Data, Journals, Reports**. "Sales" points to the existing `/sales-orders` route. Master Data / Journals / Reports are `#` placeholders (same convention as today's Bills/Payments, which are removed as dead links). Role filtering preserved; admin-only User Management and contact-only Portal Invoices remain.
+**Updated direction (user, 5:53 PM):** adopt the Stitch "clean top nav" reference layouts (`transitops_vendor_bills_list_clean_top_nav`, `transitops_new_vendor_bill_form_clean_top_nav`, `transitops_3_way_matching_verification_clean_top_nav`). This **supersedes the brief's dark-navy sidebar** — the Stitch header is a white sticky top bar (`bg-white/90 backdrop-blur-md`), which our existing `SiteHeader` already matches structurally.
+
+- Light-first finance theme: soft gray page background (`#F8FAFC`), white cards, subtle borders, rounded corners, blue primary actions, compact readable tables — the existing token set already matches the Stitch design system 1:1. Dark mode keeps working.
+- **Top nav simplification:** `SiteHeader` becomes flat nav pills per the Stitch pattern — inactive: `text-slate-600 hover:bg-slate-100`; active: `bg-primary-50 text-primary-600 font-semibold`. Items: **Dashboard, Sales, Purchase Orders, Master Data, Journals, Reports** ("Sales" → `/sales-orders`; Master Data / Journals / Reports are `#` placeholders). The dropdown categories, mega menu, and global search (all placeholder chrome) are removed; theme toggle, user pill, and sign out stay on the right; mobile keeps a drawer. Role filtering preserved; admin-only User Management and contact-only Portal Invoices remain.
+- **Component reuse (user requirement):** PO screens are built with the existing dashboard primitives from `frontend/src/features/dashboard/components/dashboard-card.tsx` — `DashboardPanel`, `DashboardPanelHeader`, `DashboardMetricCard` (tones: neutral/blue/amber/emerald), and `DashboardTableCard` — so the module looks identical in quality to the refactored `/` dashboard page.
 
 ## 6. Error handling
 
