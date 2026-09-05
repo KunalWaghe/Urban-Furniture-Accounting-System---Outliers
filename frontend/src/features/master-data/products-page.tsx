@@ -11,7 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Product } from "@/lib/types";
-import { createProduct, deleteProduct, fetchProducts, updateProduct, type ProductInput } from "./master-data-api";
+import {
+  createProduct,
+  deleteProduct,
+  fetchProductsPage,
+  updateProduct,
+  type ProductInput,
+} from "./master-data-api";
 import { formatINR } from "@/lib/format";
 
 const inputClass = "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20";

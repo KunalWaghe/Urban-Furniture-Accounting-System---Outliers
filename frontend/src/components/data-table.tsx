@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react"
 
 import { EmptyState } from "@/components/empty-state"
@@ -74,7 +74,6 @@ export function DataTable<T extends { id?: string | number }>({
   const currentSearch = isControlledSearch ? searchValue : internalSearch
 
   const isServerPagination = typeof onPageChange === "function" && serverTotalPages !== undefined
-  const activePage = isServerPagination ? (currentPage ?? 1) : clientPage
 
   const filteredData = useMemo(() => {
     if (onSearch || !currentSearch.trim()) return data

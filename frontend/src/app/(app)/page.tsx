@@ -1696,43 +1696,25 @@ function CreatePurchaseOrderModal({
   onClose: () => void;
   onCreate: (po: PurchaseOrder) => void;
 }) {
-  const [selectedVendorId, setSelectedVendorId] = useState<number>(
-    vendors[0]?.id || 0
-  );
-  const [selectedProductId, setSelectedProductId] = useState<number>(
-    products[0]?.id || 0
-  );
+  const [selectedVendorId, setSelectedVendorId] = useState<number | undefined>();
+  const [selectedProductId, setSelectedProductId] = useState<number | undefined>();
   const [quantity, setQuantity] = useState<number>(10);
-  const [unitCost, setUnitCost] = useState<number>(
-    products[0]?.cost ?? products[0]?.price ?? 2400
-  );
+  const [customUnitCost, setCustomUnitCost] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Sync if vendors or products populate after initial render
-  useEffect(() => {
-    if (!selectedVendorId && vendors.length > 0) {
-      setSelectedVendorId(vendors[0].id);
-    }
-  }, [vendors, selectedVendorId]);
+  const effectiveVendorId = selectedVendorId ?? vendors[0]?.id;
+  const effectiveProductId = selectedProductId ?? products[0]?.id;
 
-  useEffect(() => {
-    if (!selectedProductId && products.length > 0) {
-      setSelectedProductId(products[0].id);
-      setUnitCost(products[0].cost ?? products[0].price ?? 2400);
-    }
-  }, [products, selectedProductId]);
-
-  const vendor = vendors.find((v) => v.id === selectedVendorId) || vendors[0];
-  const product = products.find((p) => p.id === selectedProductId) || products[0];
+  const vendor = vendors.find((v) => v.id === effectiveVendorId) || vendors[0];
+  const product = products.find((p) => p.id === effectiveProductId) || products[0];
+  const unitCost = customUnitCost ?? (product?.cost ?? product?.price ?? 2400);
   const totalAmount = quantity * unitCost;
 
   const handleProductChange = (productId: number) => {
     setSelectedProductId(productId);
     const prod = products.find((p) => p.id === productId);
-    if (prod) {
-      setUnitCost(prod.cost ?? prod.price ?? 0);
-    }
+    setCustomUnitCost(prod ? (prod.cost ?? prod.price ?? 0) : null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1830,7 +1812,7 @@ function CreatePurchaseOrderModal({
             <label className="block font-semibold text-text mb-1">Vendor (from Backend DB)</label>
             {vendors.length > 0 ? (
               <select
-                value={selectedVendorId}
+                value={effectiveVendorId ?? 0}
                 onChange={(e) => setSelectedVendorId(Number(e.target.value))}
                 disabled={submitting}
                 className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
@@ -1850,7 +1832,7 @@ function CreatePurchaseOrderModal({
             <label className="block font-semibold text-text mb-1">Raw Material / Product</label>
             {products.length > 0 ? (
               <select
-                value={selectedProductId}
+                value={effectiveProductId ?? 0}
                 onChange={(e) => handleProductChange(Number(e.target.value))}
                 disabled={submitting}
                 className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
@@ -1885,7 +1867,7 @@ function CreatePurchaseOrderModal({
                 min="0"
                 step="any"
                 value={unitCost}
-                onChange={(e) => setUnitCost(Math.max(0, Number(e.target.value)))}
+                onChange={(e) => setCustomUnitCost(Math.max(0, Number(e.target.value)))}
                 disabled={submitting}
                 className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
               />

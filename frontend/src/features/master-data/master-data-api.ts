@@ -1,6 +1,7 @@
 import { apiFetch } from "@/lib/api";
 import type {
   Account,
+  AccountListResponse,
   Contact,
   ContactListResponse,
   Product,
