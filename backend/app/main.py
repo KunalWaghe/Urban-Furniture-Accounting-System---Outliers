@@ -29,6 +29,7 @@ from app.routers import (
     product_router,
     account_router,
     journal_router,
+    user_router,
 )
 
 
@@ -122,3 +123,4 @@ app.include_router(contact_router, prefix="/api/v1/contacts", tags=["Contacts"])
 app.include_router(product_router, prefix="/api/v1/products", tags=["Products"])
 app.include_router(account_router, prefix="/api/v1/accounts", tags=["Chart of Accounts"])
 app.include_router(journal_router, prefix="/api/v1/journals", tags=["Journals"])
+app.include_router(user_router, prefix="/api/v1/users", tags=["Users"])

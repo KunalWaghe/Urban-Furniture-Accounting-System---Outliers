@@ -66,8 +66,8 @@ class UnauthorizedException(AppException):
 
 
 class ForbiddenException(AppException):
-    def __init__(self, message: str = "Access denied"):
-        super().__init__(status_code=403, code="FORBIDDEN", message=message)
+    def __init__(self, message: str = "Access denied", code: str = "FORBIDDEN"):
+        super().__init__(status_code=403, code=code, message=message)
 
 
 # --- Error handlers (registered in main.py) ---
