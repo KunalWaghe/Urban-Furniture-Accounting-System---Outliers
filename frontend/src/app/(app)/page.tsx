@@ -21,7 +21,6 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 
-import { useAuth } from "@/features/auth/auth-context";
 import type {
   Contact,
   Product,
@@ -37,9 +36,6 @@ import {
 } from "@/features/dashboard/dashboard-api";
 
 export default function AppDashboardPage() {
-  const { user } = useAuth();
-  const role = user?.role || "invoicing_user";
-
   // Backend Data State
   const [loading, setLoading] = useState(true);
   const [contacts, setContacts] = useState<Contact[]>([]);

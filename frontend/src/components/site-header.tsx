@@ -5,23 +5,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Armchair,
-  BarChart3,
   ChevronDown,
-  CreditCard,
-  FileSpreadsheet,
-  FileText,
   LayoutGrid,
-  LineChart,
   LogOut,
   Menu,
   Moon,
-  Package,
-  Receipt,
   Search,
-  ShoppingCart,
   Sun,
   User,
-  Users,
   X,
 } from "lucide-react";
 
