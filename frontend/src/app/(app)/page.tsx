@@ -31,8 +31,14 @@ import type {
 } from "@/lib/types";
 import { buildDashboardDataFromBackend } from "@/features/dashboard/dashboard-api";
 import { useContacts, useProducts } from "@/features/dashboard/queries";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  createPurchaseOrder,
+  confirmPurchaseOrder,
+} from "@/features/purchase-orders/purchase-orders-api";
 
 export default function AppDashboardPage() {
+  const queryClient = useQueryClient();
   // Backend master data from the TanStack Query server cache
   const {
     data: contactsData,
@@ -1488,6 +1494,8 @@ export default function AppDashboardPage() {
           onClose={() => setIsCreatePOModalOpen(false)}
           onCreate={(newPO) => {
             setCreatedPOs((prev) => [newPO, ...prev]);
+            queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+            queryClient.invalidateQueries({ queryKey: ["purchase-orders-paged"] });
             setIsCreatePOModalOpen(false);
             showToast(`Purchase Order ${newPO.po_number} created successfully for ${newPO.vendor_name}!`);
           }}
@@ -1689,49 +1697,103 @@ function CreatePurchaseOrderModal({
   onCreate: (po: PurchaseOrder) => void;
 }) {
   const [selectedVendorId, setSelectedVendorId] = useState<number>(
-    vendors[0]?.id || 1
+    vendors[0]?.id || 0
   );
-  const [materialDescription, setMaterialDescription] = useState<string>(
-    "Kiln-Dried Teak Wood Planks"
+  const [selectedProductId, setSelectedProductId] = useState<number>(
+    products[0]?.id || 0
   );
   const [quantity, setQuantity] = useState<number>(10);
-  const [unitCost, setUnitCost] = useState<number>(2400);
+  const [unitCost, setUnitCost] = useState<number>(
+    products[0]?.cost ?? products[0]?.price ?? 2400
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Sync if vendors or products populate after initial render
+  useEffect(() => {
+    if (!selectedVendorId && vendors.length > 0) {
+      setSelectedVendorId(vendors[0].id);
+    }
+  }, [vendors, selectedVendorId]);
+
+  useEffect(() => {
+    if (!selectedProductId && products.length > 0) {
+      setSelectedProductId(products[0].id);
+      setUnitCost(products[0].cost ?? products[0].price ?? 2400);
+    }
+  }, [products, selectedProductId]);
 
   const vendor = vendors.find((v) => v.id === selectedVendorId) || vendors[0];
+  const product = products.find((p) => p.id === selectedProductId) || products[0];
   const totalAmount = quantity * unitCost;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleProductChange = (productId: number) => {
+    setSelectedProductId(productId);
+    const prod = products.find((p) => p.id === productId);
+    if (prod) {
+      setUnitCost(prod.cost ?? prod.price ?? 0);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!vendor) return;
+    if (!vendor) {
+      setError("Please select a vendor.");
+      return;
+    }
+    if (!product) {
+      setError("Please select a product.");
+      return;
+    }
+    if (quantity <= 0) {
+      setError("Quantity must be at least 1.");
+      return;
+    }
+    if (unitCost < 0) {
+      setError("Unit cost cannot be negative.");
+      return;
+    }
 
-    const locationStr = [vendor.city, vendor.state].filter(Boolean).join(", ") || "India Supply Depot";
+    setSubmitting(true);
+    setError(null);
 
-    const newPO: PurchaseOrder = {
-      id: `po-${Date.now()}`,
-      po_number: `PO-2025-0${Math.floor(90 + Math.random() * 50)}`,
-      vendor_id: vendor.id,
-      vendor_name: vendor.name,
-      vendor_location: locationStr,
-      vendor_email: vendor.email || "supply@vendor.com",
-      po_date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      status: "Confirmed",
-      total_amount: totalAmount,
-      items: [
-        {
-          product_name: materialDescription,
-          category: "Lumber & Hardware",
-          quantity,
-          unit_cost: unitCost,
-          total: totalAmount,
-        },
-      ],
-    };
+    try {
+      const created = await createPurchaseOrder({
+        vendor_id: vendor.id,
+        lines: [
+          {
+            product_id: product.id,
+            quantity,
+            unit_price: unitCost,
+          },
+        ],
+      });
 
-    onCreate(newPO);
+      // Confirm the PO so it is in Confirmed status, matching issued state
+      let finalPO = created;
+      try {
+        finalPO = await confirmPurchaseOrder(Number(created.id));
+      } catch (confirmErr) {
+        console.warn("Could not confirm PO, saved as draft:", confirmErr);
+      }
+
+      // Enrich vendor contact details for dashboard UI display
+      const locationStr =
+        [vendor.city, vendor.state].filter(Boolean).join(", ") || "India Supply Depot";
+      finalPO = {
+        ...finalPO,
+        vendor_location: locationStr,
+        vendor_email: vendor.email || "supply@vendor.com",
+      };
+
+      onCreate(finalPO);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to create purchase order on server."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -1750,58 +1812,58 @@ function CreatePurchaseOrderModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text"
+            disabled={submitting}
+            className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text disabled:opacity-50"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
+        {error && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-xs">
           <div>
             <label className="block font-semibold text-text mb-1">Vendor (from Backend DB)</label>
-            <select
-              value={selectedVendorId}
-              onChange={(e) => setSelectedVendorId(Number(e.target.value))}
-              className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-            >
-              {vendors.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.name} {v.city ? `(${v.city}, ${v.state || ""})` : ""}
-                </option>
-              ))}
-            </select>
+            {vendors.length > 0 ? (
+              <select
+                value={selectedVendorId}
+                onChange={(e) => setSelectedVendorId(Number(e.target.value))}
+                disabled={submitting}
+                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
+              >
+                {vendors.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} {v.city ? `(${v.city}, ${v.state || ""})` : ""}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-xs text-amber-600">No active vendors found in database.</p>
+            )}
           </div>
 
           <div>
-            <label className="block font-semibold text-text mb-1">Raw Material / Component</label>
-            <select
-              value={materialDescription}
-              onChange={(e) => {
-                const val = e.target.value;
-                setMaterialDescription(val);
-                const matched = products.find((p) => p.name === val);
-                if (matched) {
-                  setUnitCost(matched.cost ?? matched.price);
-                }
-              }}
-              className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-            >
-              {products.length > 0 ? (
-                products.map((p) => (
-                  <option key={p.id} value={p.name}>
-                    {p.name} {p.category ? `(${p.category})` : ""} - ₹{p.cost ?? p.price}
+            <label className="block font-semibold text-text mb-1">Raw Material / Product</label>
+            {products.length > 0 ? (
+              <select
+                value={selectedProductId}
+                onChange={(e) => handleProductChange(Number(e.target.value))}
+                disabled={submitting}
+                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
+              >
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} {p.category ? `(${p.category})` : ""} - ₹{(p.cost ?? p.price).toLocaleString("en-IN")}
                   </option>
-                ))
-              ) : (
-                <>
-                  <option value="Kiln-Dried Teak Wood Planks">Kiln-Dried Teak Wood Planks (Timber)</option>
-                  <option value="Oak Veneer Sheets (Grade A)">Oak Veneer Sheets (Grade A)</option>
-                  <option value="Heavy-Duty Ergonomic Casters & Gas Lifts">Heavy-Duty Ergonomic Casters &amp; Gas Lifts</option>
-                  <option value="High-Density Polyurethane Foam Cushions">High-Density Polyurethane Foam Cushions</option>
-                  <option value="Stainless Steel Assembly Fasteners">Stainless Steel Assembly Fasteners</option>
-                </>
-              )}
-            </select>
+                ))}
+              </select>
+            ) : (
+              <p className="text-xs text-amber-600">No active products found in database.</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -1812,39 +1874,53 @@ function CreatePurchaseOrderModal({
                 min="1"
                 value={quantity}
                 onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                disabled={submitting}
+                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block font-semibold text-text mb-1">Unit Cost ($)</label>
+              <label className="block font-semibold text-text mb-1">Unit Cost (₹)</label>
               <input
                 type="number"
-                min="1"
+                min="0"
+                step="any"
                 value={unitCost}
-                onChange={(e) => setUnitCost(Math.max(1, Number(e.target.value)))}
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                onChange={(e) => setUnitCost(Math.max(0, Number(e.target.value)))}
+                disabled={submitting}
+                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
               />
             </div>
           </div>
 
           <div className="rounded-xl bg-surface-muted p-3 flex justify-between font-bold text-text">
             <span>Total Committed PO Cost:</span>
-            <span className="font-mono text-indigo-600">${totalAmount.toFixed(2)}</span>
+            <span className="font-mono text-indigo-600">
+              ₹{totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+            </span>
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-border px-4 py-2 text-text-muted hover:bg-surface-muted hover:text-text transition-colors"
+              disabled={submitting}
+              className="rounded-xl border border-border px-4 py-2 text-text-muted hover:bg-surface-muted hover:text-text transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700 transition-colors shadow-sm"
+              disabled={submitting || vendors.length === 0 || products.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Issue Purchase Order
+              {submitting ? (
+                <>
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                  <span>Issuing PO...</span>
+                </>
+              ) : (
+                <span>Issue Purchase Order</span>
+              )}
             </button>
           </div>
         </form>
