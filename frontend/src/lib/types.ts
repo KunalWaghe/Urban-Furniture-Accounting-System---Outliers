@@ -9,13 +9,15 @@
  * changes, update the matching interface here.
  */
 
+export type UserRole = "admin" | "invoicing_user" | "contact";
+
 /** Logged-in user profile returned by `/auth/me` and stored in AuthContext. */
 export interface AuthUser {
   id: number;
   login_id?: string | null;
   email: string;
   name: string;
-  role: string;
+  role: UserRole;
   contact_id?: number | null;
 }
 
@@ -30,7 +32,7 @@ export interface AdminCreateUserRequest {
   email: string;
   password: string;
   name: string;
-  role: string;
+  role: UserRole;
   contact_id?: number | null;
 }
 
@@ -46,7 +48,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
-  role?: string;
+  role?: UserRole;
   contact_id?: number | null;
 }
 

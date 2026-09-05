@@ -10,11 +10,23 @@
  * instead of using raw `fetch` against the backend.
  */
 
-import { HTTP_STATUS, STORAGE_KEYS } from "./constants";
+import { API_CONSTANTS, HTTP_STATUS, STORAGE_KEYS } from "./constants";
 import type { ApiErrorEnvelope } from "./types";
 
 /** localStorage/sessionStorage key used to persist the JWT after login. */
 const TOKEN_STORAGE_KEY = STORAGE_KEYS.AUTH_TOKEN;
+
+/** Subscribers are notified when an authenticated request proves the session invalid. */
+const unauthorizedListeners = new Set<() => void>();
+
+export function subscribeToUnauthorized(handler: () => void): () => void {
+  unauthorizedListeners.add(handler);
+  return () => unauthorizedListeners.delete(handler);
+}
+
+function notifyUnauthorized(): void {
+  unauthorizedListeners.forEach((listener) => listener());
+}
 
 /**
  * Structured error thrown when the API returns a non-2xx response.
@@ -69,12 +81,18 @@ export function getAuthStorage(): Storage | null {
     return null;
   }
 
-  if (localStorage.getItem(TOKEN_STORAGE_KEY)) {
-    return localStorage;
-  }
+  try {
+    if (window.localStorage.getItem(TOKEN_STORAGE_KEY)) {
+      return window.localStorage;
+    }
 
-  if (sessionStorage.getItem(TOKEN_STORAGE_KEY)) {
-    return sessionStorage;
+    if (window.sessionStorage.getItem(TOKEN_STORAGE_KEY)) {
+      return window.sessionStorage;
+    }
+  } catch {
+    // Storage can be disabled by browser privacy settings. Authentication must
+    // fail safely instead of crashing the application shell.
+    return null;
   }
 
   return null;
@@ -112,9 +130,14 @@ export function setStoredToken(token: string, rememberDevice = true): void {
     return;
   }
 
-  clearStoredToken();
-  const storage = rememberDevice ? localStorage : sessionStorage;
-  storage.setItem(TOKEN_STORAGE_KEY, token);
+  try {
+    clearStoredToken();
+    const storage = rememberDevice ? window.localStorage : window.sessionStorage;
+    storage.setItem(TOKEN_STORAGE_KEY, token);
+  } catch {
+    // The in-memory auth state remains usable for this page session. A future
+    // reload will require login again when browser storage is unavailable.
+  }
 }
 
 /**
@@ -127,8 +150,12 @@ export function clearStoredToken(): void {
     return;
   }
 
-  localStorage.removeItem(TOKEN_STORAGE_KEY);
-  sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+  try {
+    window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+    window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+  } catch {
+    // Nothing else is required when storage is unavailable.
+  }
 }
 
 /** Options passed to `apiFetch`, extending the standard fetch RequestInit. */
@@ -137,6 +164,31 @@ interface ApiFetchOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
   /** When `true`, attaches `Authorization: Bearer <token>` if a token exists. */
   auth?: boolean;
+}
+
+function withTimeout(signal: AbortSignal | null | undefined): {
+  signal: AbortSignal;
+  cleanup: () => void;
+  didTimeout: () => boolean;
+} {
+  const controller = new AbortController();
+  let timedOut = false;
+  const timeoutId = window.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, API_CONSTANTS.REQUEST_TIMEOUT);
+
+  const abortFromCaller = () => controller.abort();
+  signal?.addEventListener("abort", abortFromCaller, { once: true });
+
+  return {
+    signal: controller.signal,
+    didTimeout: () => timedOut,
+    cleanup: () => {
+      window.clearTimeout(timeoutId);
+      signal?.removeEventListener("abort", abortFromCaller);
+    },
+  };
 }
 
 /**
@@ -160,7 +212,7 @@ export async function apiFetch<T>(
   path: string,
   options: ApiFetchOptions = {}
 ): Promise<T> {
-  const { body, auth = false, headers, ...rest } = options;
+  const { body, auth = false, headers, signal, ...rest } = options;
 
   const requestHeaders = new Headers(headers);
 
@@ -175,11 +227,24 @@ export async function apiFetch<T>(
     }
   }
 
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    ...rest,
-    headers: requestHeaders,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  const timeout = withTimeout(signal);
+  let response: Response;
+
+  try {
+    response = await fetch(`${getApiBaseUrl()}${path}`, {
+      ...rest,
+      headers: requestHeaders,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: timeout.signal,
+    });
+  } catch (error) {
+    if (timeout.didTimeout()) {
+      throw new ApiError(408, "REQUEST_TIMEOUT", "The request timed out. Please try again.");
+    }
+    throw error;
+  } finally {
+    timeout.cleanup();
+  }
 
   if (response.ok) {
     if (response.status === HTTP_STATUS.NO_CONTENT) {
@@ -198,18 +263,22 @@ export async function apiFetch<T>(
   }
 
   if (envelope?.error) {
-    throw new ApiError(
+    const error = new ApiError(
       response.status,
       envelope.error.code,
       envelope.error.message,
       envelope.error.fields,
       envelope.error.request_id
     );
+    if (auth && response.status === HTTP_STATUS.UNAUTHORIZED) notifyUnauthorized();
+    throw error;
   }
 
-  throw new ApiError(
+  const error = new ApiError(
     response.status,
     "UNKNOWN_ERROR",
     `Request failed with status ${response.status}`
   );
+  if (auth && response.status === HTTP_STATUS.UNAUTHORIZED) notifyUnauthorized();
+  throw error;
 }

@@ -33,6 +33,7 @@ interface TextFieldProps {
   success?: boolean;
   hint?: string;
   required?: boolean;
+  disabled?: boolean;
   labelAddon?: ReactNode;
   rightAddon?: ReactNode;
 }
@@ -60,6 +61,7 @@ export function TextField({
   success = false,
   hint,
   required = false,
+  disabled = false,
   labelAddon,
   rightAddon,
 }: TextFieldProps) {
@@ -84,6 +86,7 @@ export function TextField({
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           autoComplete={autoComplete}
+          disabled={disabled}
           aria-invalid={error ? true : undefined}
           className={cn(
             "h-10 pl-9",

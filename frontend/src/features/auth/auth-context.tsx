@@ -26,6 +26,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import {
   ApiError,
@@ -33,9 +34,10 @@ import {
   getAuthStorage,
   getStoredToken,
   setStoredToken,
+  subscribeToUnauthorized,
 } from "@/lib/api";
 import { HTTP_STATUS, STORAGE_KEYS } from "@/lib/constants";
-import type { AuthUser, LoginRequest, RegisterRequest } from "@/lib/types";
+import type { AuthUser, LoginRequest, RegisterRequest, UserRole } from "@/lib/types";
 
 import { fetchCurrentUser, loginRequest, registerRequest } from "./api";
 
@@ -94,8 +96,12 @@ function clearStoredUser(): void {
     return;
   }
 
-  localStorage.removeItem(USER_STORAGE_KEY);
-  sessionStorage.removeItem(USER_STORAGE_KEY);
+  try {
+    window.localStorage.removeItem(USER_STORAGE_KEY);
+    window.sessionStorage.removeItem(USER_STORAGE_KEY);
+  } catch {
+    // Storage can be disabled; the in-memory session is still cleared below.
+  }
 }
 
 /**
@@ -112,8 +118,12 @@ function persistSession(
 ): void {
   clearStoredUser();
   setStoredToken(token, rememberDevice);
-  const storage = rememberDevice ? localStorage : sessionStorage;
-  storage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  try {
+    const storage = rememberDevice ? window.localStorage : window.sessionStorage;
+    storage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  } catch {
+    // Falling back to in-memory auth is safer than throwing during login.
+  }
 }
 
 /** Removes token and user from both storage locations. Called on logout or invalid token. */
@@ -134,6 +144,10 @@ function toAuthUser(response: {
   role: string;
   contact_id?: number | null;
 }): AuthUser {
+  if (!isUserRole(response.role)) {
+    throw new Error("The server returned an unsupported account role.");
+  }
+
   return {
     id: response.id,
     login_id: response.login_id ?? null,
@@ -142,6 +156,10 @@ function toAuthUser(response: {
     role: response.role,
     contact_id: response.contact_id ?? null,
   };
+}
+
+function isUserRole(role: string): role is UserRole {
+  return role === "admin" || role === "invoicing_user" || role === "contact";
 }
 
 /**
@@ -181,6 +199,7 @@ function getInitialSession(): { user: AuthUser | null; token: string | null } {
  * @param children - App content that can call `useAuth()`
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [session, setSession] = useState(getInitialSession);
   const { user, token } = session;
 
@@ -192,33 +211,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return Boolean(getStoredToken());
   });
 
+  const clearSessionAndCache = useCallback(() => {
+    clearSession();
+    // React Query may otherwise show the previous account's data while the
+    // next account's requests are in flight.
+    void queryClient.cancelQueries();
+    queryClient.clear();
+    setSession({ user: null, token: null });
+  }, [queryClient]);
+
   const login = useCallback(
     async (payload: LoginRequest, rememberDevice = true) => {
       const response = await loginRequest(payload);
       const nextUser = toAuthUser(response);
 
+      void queryClient.cancelQueries();
+      queryClient.clear();
       persistSession(nextUser, response.token, rememberDevice);
       setSession({ user: nextUser, token: response.token });
 
       return nextUser;
     },
-    []
+    [queryClient]
   );
 
   const register = useCallback(async (payload: RegisterRequest) => {
     const response = await registerRequest(payload);
     const nextUser = toAuthUser(response);
 
+    void queryClient.cancelQueries();
+    queryClient.clear();
     persistSession(nextUser, response.token, true);
     setSession({ user: nextUser, token: response.token });
 
     return nextUser;
-  }, []);
+  }, [queryClient]);
 
   const logout = useCallback(() => {
-    clearSession();
-    setSession({ user: null, token: null });
-  }, []);
+    clearSessionAndCache();
+  }, [clearSessionAndCache]);
+
+  useEffect(() => subscribeToUnauthorized(clearSessionAndCache), [clearSessionAndCache]);
 
   // On mount: re-validate the stored token against /auth/me.
   // If the token is expired or invalid the backend returns 401 → we log out.
@@ -237,8 +270,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .catch((error: unknown) => {
         if (error instanceof ApiError && error.status === HTTP_STATUS.UNAUTHORIZED) {
-          clearSession();
-          setSession({ user: null, token: null });
+          clearSessionAndCache();
         }
         // Any other error (network down, etc.) — keep the cached session so
         // the user isn't logged out on a temporary server hiccup.
@@ -246,7 +278,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => {
         setBootstrapping(false);
       });
-  }, []); // run once on mount
+  }, [clearSessionAndCache]); // run once on mount and when the cache client changes
 
   const value = useMemo<AuthContextValue>(
     () => ({

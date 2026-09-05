@@ -14,6 +14,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 
+import { ApiError } from "@/lib/api";
+import { HTTP_STATUS } from "@/lib/constants";
+
 /**
  * Creates a QueryClient with app-wide defaults.
  *
@@ -26,8 +29,23 @@ function makeQueryClient() {
       queries: {
         // Data stays fresh for 30 s; stale data is still shown while refetching.
         staleTime: 30_000,
-        // Retry once on failure before surfacing an error to the UI.
-        retry: 1,
+        // Only transient failures merit a retry. Retrying authorization,
+        // validation, and not-found errors delays an actionable UI state.
+        retry: (failureCount, error) => {
+          if (
+            error instanceof ApiError &&
+            [
+              HTTP_STATUS.UNAUTHORIZED,
+              HTTP_STATUS.FORBIDDEN,
+              HTTP_STATUS.NOT_FOUND,
+              HTTP_STATUS.UNPROCESSABLE_ENTITY,
+            ].includes(error.status)
+          ) {
+            return false;
+          }
+          return failureCount < 2;
+        },
+        retryDelay: (attempt) => Math.min(1_000 * 2 ** attempt, 8_000),
         // Don't refetch on window focus for accounting data (avoids jarring
         // table refreshes mid-input).
         refetchOnWindowFocus: false,

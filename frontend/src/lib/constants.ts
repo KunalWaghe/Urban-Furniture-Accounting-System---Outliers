@@ -447,9 +447,8 @@ export const QUERY_KEYS = {
  */
 export const USER_ROLES = {
   ADMIN: "admin",
-  ACCOUNTANT: "accountant",
-  MANAGER: "manager",
-  STAFF: "staff",
+  INVOICING_USER: "invoicing_user",
+  CONTACT: "contact",
 } as const;
 
 // ============================================================================
