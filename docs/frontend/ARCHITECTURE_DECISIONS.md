@@ -1,80 +1,72 @@
 # Frontend Architecture Decisions — Sourabh
 
-Record decisions as they are made. Keep rejected options because reviewers care about trade-offs, not just the final library list.
+> **Reviewer Pitch (30 seconds):**  
+> *"We chose Next.js 14 with TypeScript and shadcn/ui so we could build a dense, reliable accounting UI fast. We strictly separate state into 4 simple buckets (URL, Server Cache, Forms, Auth), route all calls through a single typed API client with automatic error handling, and guarantee that every screen handles loading, empty, and error states gracefully."*
 
-## Current architecture
+---
 
-**Framework/rendering:** TBD  
-**Styling/component system:** TBD  
-**Server-state approach:** TBD  
-**Client-state approach:** TBD  
-**Forms/validation:** TBD  
-**Auth/session handling:** TBD  
-**Deployment target:** TBD
+## 1. Tech Stack (What & Why)
 
-## Intended module boundaries
+| Choice | What We Use | Why We Chose It (Simple Words) |
+|---|---|---|
+| **Framework** | **Next.js 14 (App Router)** | Fast file-based routing and nested layouts for dashboard & tables. |
+| **UI & Styling** | **Tailwind CSS + shadcn/ui** | Pre-built accessible components (Dialogs, Tables, Dropdowns) that look like enterprise software out of the box. Saves 3–4 hours of styling. |
+| **Server Data** | **TanStack Query** | Fetches and caches backend data automatically. Refetches fresh data whenever an order, bill, or payment is created. |
+| **Forms & Math** | **React Hook Form + Zod** | Handles dynamic line items and instant tax/subtotal calculation without laggy re-renders. |
+| **Auth** | **JWT Bearer Token + Context** | Simple token stored in `localStorage`, sent automatically in every API header. |
+
+---
+
+## 2. Clean Folder Boundaries
 
 ```text
 src/
-  app-or-routes/       route composition
-  features/            problem-domain UI and feature logic
-  components/          reusable presentational primitives
-  lib/api/              typed API client and error normalization
-  lib/validation/       shared client validation schemas
-  hooks/                reusable UI/server-state hooks
-  types/                contract-facing types
+├── app/          # Pages & Routes (/login, /dashboard, /purchase-orders, /reports)
+├── components/   # Reusable UI pieces (tables, modals, forms, sidebar shell)
+├── lib/
+│   ├── api.ts    # Single typed fetch client (handles JWT, baseURL, errors)
+│   ├── types.ts  # Shared TypeScript models matching the backend
+│   └── utils.ts  # Currency (₹ INR) and date formatting helpers
+└── hooks/        # useAuth (session) & useQuery (data fetching)
 ```
 
-Avoid importing feature internals across features. Pages compose features; the API client owns transport details; components do not call raw URLs directly.
+**Rule:** UI components never call raw `fetch()` URLs directly. They always talk through `lib/api.ts`.
 
-## ADR-FE-001 — Framework and rendering strategy
+---
 
-**Status:** Proposed  
-**Context:** A two-person team needs fast UI delivery, predictable deployment, and a clear API boundary.  
-**Options considered:** TBD  
-**Decision:** TBD  
-**Why:** TBD  
-**Consequences:** TBD  
-**Revisit if:** TBD
+## 3. The 4 Key Decisions (ADRs) in Plain English
 
-## ADR-FE-002 — State ownership
+### ADR-01: Next.js 14 + shadcn/ui for Speed & Polish
+- **Decision:** Use Next.js 14 App Router with shadcn/ui components.
+- **Why to Reviewer:** *"In a 24-hour hackathon, we cannot spend hours writing custom table styles or modal dialogs. shadcn gives us accessible, production-ready enterprise widgets instantly."*
 
-**Status:** Proposed  
-**Decision rule:** URL owns navigable/filter state; server-state tooling owns remote data; form library/local state owns temporary input; global state is reserved for truly cross-cutting UI/session concerns.  
-**Why:** Prevents a single global store from mixing server cache, drafts, and navigation.  
-**Actual decision after statement:** TBD
+### ADR-02: Strict State Separation (No Messy Global Store)
+- **Decision:** We split state into 4 simple layers:
+  1. **URL:** Owns filters, search terms, and active tabs (`?status=draft`).
+  2. **TanStack Query:** Owns server data and cache (Contacts, Orders, Reports).
+  3. **React Hook Form:** Owns live user typing and line items.
+  4. **Auth Context:** Only owns the logged-in user and JWT token.
+- **Why to Reviewer:** *"We avoided a giant, messy Redux store. Server data stays in the server cache, form inputs stay in the form, and filter links remain bookmarkable."*
 
-## ADR-FE-003 — API isolation
+### ADR-03: Single Typed API Client with Standard Error Envelope
+- **Decision:** All requests pass through `lib/api.ts`, which injects the JWT token and unwraps backend error responses (`VALIDATION_ERROR`, `CONFLICT`, etc.).
+- **Why to Reviewer:** *"If backend routes or error formats change, we only fix one file (`api.ts`), not 15 different screens."*
 
-**Status:** Proposed  
-**Decision:** All network calls go through one typed client that normalizes the shared error envelope.  
-**Why:** Backend URLs/auth/error details can change without rewriting every component.  
-**Consequences:** Small upfront wrapper; faster integration and consistent recovery UI.
+### ADR-04: Resilient UI States (Zero Broken Demo Screens)
+- **Decision:** Every table and page must handle 5 states: **Loading Skeleton**, **Empty State with CTA**, **Error with Retry Button**, **Background Refresh**, and **Success**.
+- **Why to Reviewer:** *"Nothing looks worse in an accounting demo than a blank screen or a crash on an empty list. Our tables always show helpful guidance."*
 
-## ADR-FE-004 — Resilient UI states
+### ADR-05: Real-Time Live Math, Backend Authoritative
+- **Decision:** Line items calculate Subtotal, GST, and Total live on keystroke for instant feedback, but the backend double-checks and validates the numbers upon submit.
+- **Why to Reviewer:** *"The user gets instantaneous UI responsiveness, but the backend remains the strict authority for accounting accuracy."*
 
-**Status:** Proposed  
-**Decision:** Every P0 remote view explicitly handles initial loading, background refresh, empty, validation error, authorization error, generic error, and success.  
-**Why:** Demo stability and product credibility are more valuable than additional half-built screens.
+---
 
-## New decision template
+## 4. Reviewer Cheat Sheet (How to Answer Questions)
 
-### ADR-FE-___ — Title
-
-**Status:** Proposed / Accepted / Superseded  
-**Context:**  
-**Options considered:**  
-**Decision:**  
-**Why:**  
-**Consequences:**  
-**Revisit if:**
-
-## Scalability seams
-
-- Route-level code splitting and feature boundaries.
-- Pagination/virtualization for large collections when actually needed.
-- Stable query keys and invalidation rules for server-state caching.
-- Debouncing/cancellation for expensive search, without hiding backend rate limits.
-- Centralized analytics/error hooks so observability can be added without touching every component.
-- Never store secrets or authoritative permissions in the browser.
-
+- **Q: Why not just plain Vite + React?**  
+  *A: Next.js gives us robust routing, layout persistence, and fast integration out of the box. (Vite is kept as an easy fallback if needed).*
+- **Q: How do you prevent duplicate order submissions?**  
+  *A: Buttons auto-disable with a spinner on first click, and the backend has unique constraints (e.g. one Bill per PO).*
+- **Q: Where does the double-entry accounting happen?**  
+  *A: The backend service layer handles the transactional ledger balancing, while the frontend displays the verified Debit = Credit ledger and reports.*
