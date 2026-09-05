@@ -4,18 +4,32 @@ import Link from "next/link";
 import { Check, KeyRound, Mail, ShieldCheck, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ROLES } from "../validation";
+import { ADMIN_CREATABLE_ROLES } from "../validation";
 import { useSignupForm } from "../hooks/use-signup-form";
 import { AuthAlert } from "./auth-alert";
+import type { AuthUser } from "@/lib/types";
 import { PasswordInput } from "./password-input";
 import { PasswordStrengthMeter } from "./password-strength-meter";
 import { TextField } from "./text-field";
 
-export function SignupForm() {
-  const form = useSignupForm();
+export interface SignupFormProps {
+  mode?: "signup" | "admin-create";
+  onSuccess?: (createdUser: AuthUser) => void;
+  className?: string;
+  cancelHref?: string;
+}
+
+export function SignupForm({
+  mode = "signup",
+  onSuccess,
+  className = "",
+  cancelHref,
+}: SignupFormProps) {
+  const form = useSignupForm({ mode, onSuccess });
+  const isAdminCreate = mode === "admin-create";
 
   return (
-    <div className="mt-6 w-full">
+    <div className={`mt-6 w-full ${className}`}>
       <div className="rounded-2xl border border-border bg-surface px-6 py-7 shadow-sm sm:px-8">
         {form.notice && (
           <AuthAlert {...form.notice} onDismiss={form.dismissNotice} />
@@ -28,7 +42,7 @@ export function SignupForm() {
             label="Full name"
             icon={User}
             autoComplete="name"
-            placeholder="e.g. Sourabh Sharma"
+            placeholder={isAdminCreate ? "e.g. Nimesh Pathak" : "e.g. Sourabh Sharma"}
             value={form.fields.name}
             onChange={(value) => form.setField("name", value)}
             error={form.errors.name}
@@ -42,7 +56,7 @@ export function SignupForm() {
             icon={KeyRound}
             type="text"
             autoComplete="username"
-            placeholder="e.g. sourabh01"
+            placeholder={isAdminCreate ? "e.g. nimesh01" : "e.g. sourabh01"}
             value={form.fields.login_id}
             onChange={(value) => form.setField("login_id", value)}
             error={form.errors.login_id}
@@ -64,41 +78,41 @@ export function SignupForm() {
             required
           />
 
-          {/* Role selector */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-text">
-              Role <span className="ml-0.5 text-destructive">*</span>
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {ROLES.map((role) => {
-                const isSelected = form.fields.role === role.value;
-                return (
-                  <button
-                    key={role.value}
-                    type="button"
-                    onClick={() => form.setRole(role.value)}
-                    className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${isSelected
-                        ? "border-primary-600 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                        : "border-border bg-surface text-text-muted hover:bg-surface-muted hover:text-text"
+          {/* Role selector - only displayed on Create User page for Admin */}
+          {isAdminCreate && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-text">
+                Assigned Role <span className="ml-0.5 text-destructive">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {ADMIN_CREATABLE_ROLES.map((r) => {
+                  const isSelected = form.fields.role === r.value;
+                  return (
+                    <button
+                      key={r.value}
+                      type="button"
+                      onClick={() => form.setRole(r.value)}
+                      className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
+                        isSelected
+                          ? "border-primary-600 bg-primary-50 font-semibold text-primary-700 shadow-sm dark:bg-primary-900/30 dark:text-primary-300"
+                          : "border-border bg-surface text-text-muted hover:border-border/80 hover:bg-surface-muted hover:text-text"
                       }`}
-                  >
-                    {role.label}
-                  </button>
-                );
-              })}
+                    >
+                      {r.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            {form.errors.role && (
-              <p className="mt-1 text-xs text-destructive">{form.errors.role}</p>
-            )}
-          </div>
+          )}
 
           {/* Password */}
           <div>
             <PasswordInput
               id="password"
-              label="Password"
+              label={isAdminCreate ? "Initial Password" : "Password"}
               autoComplete="new-password"
-              placeholder="Create a secure password"
+              placeholder={isAdminCreate ? "Create a secure initial password" : "Create a secure password"}
               value={form.fields.password}
               onChange={(value) => form.setField("password", value)}
               error={form.errors.password}
@@ -139,31 +153,33 @@ export function SignupForm() {
             }
           />
 
-          {/* Terms */}
-          <div className="pt-1">
-            <div className="flex items-start">
-              <input
-                id="terms"
-                type="checkbox"
-                checked={form.fields.acceptedTerms}
-                onChange={(event) => form.setAcceptedTerms(event.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-border accent-primary-600"
-              />
-              <label
-                htmlFor="terms"
-                className="ml-2 block text-xs leading-normal text-text-muted"
-              >
-                I agree to the{" "}
-                <a href="#" className="text-primary-600 hover:underline">
-                  Terms of Service
-                </a>{" "}
-                and acknowledge the operational compliance guidelines.
-              </label>
+          {/* Terms - for public signup only */}
+          {!isAdminCreate && (
+            <div className="pt-1">
+              <div className="flex items-start">
+                <input
+                  id="terms"
+                  type="checkbox"
+                  checked={form.fields.acceptedTerms}
+                  onChange={(event) => form.setAcceptedTerms(event.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border accent-primary-600"
+                />
+                <label
+                  htmlFor="terms"
+                  className="ml-2 block text-xs leading-normal text-text-muted"
+                >
+                  I agree to the{" "}
+                  <a href="#" className="text-primary-600 hover:underline">
+                    Terms of Service
+                  </a>{" "}
+                  and acknowledge the operational compliance guidelines.
+                </label>
+              </div>
+              {form.errors.terms && (
+                <p className="mt-1 text-xs text-destructive">{form.errors.terms}</p>
+              )}
             </div>
-            {form.errors.terms && (
-              <p className="mt-1 text-xs text-destructive">{form.errors.terms}</p>
-            )}
-          </div>
+          )}
 
           {/* Submit */}
           <div className="flex flex-col gap-3 pt-3 sm:flex-row">
@@ -172,11 +188,17 @@ export function SignupForm() {
               className="order-1 h-10 flex-1 gap-2 font-semibold sm:order-2"
               disabled={form.isSubmitting}
             >
-              {form.isSubmitting ? "Creating account…" : "Create account"}
-              {!form.isSubmitting && <Check />}
+              {form.isSubmitting
+                ? isAdminCreate
+                  ? "Creating user…"
+                  : "Creating account…"
+                : isAdminCreate
+                ? "Create & Authorize User"
+                : "Create account"}
+              {!form.isSubmitting && <Check className="h-4 w-4" />}
             </Button>
             <Link
-              href="/login"
+              href={cancelHref || (isAdminCreate ? "/" : "/login")}
               className="order-2 inline-flex items-center justify-center rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-medium text-text transition-colors hover:bg-surface-muted sm:order-1"
             >
               Cancel
@@ -184,17 +206,20 @@ export function SignupForm() {
           </div>
         </form>
 
-        <div className="mt-6 border-t border-border/60 pt-5 text-center">
-          <p className="text-sm text-text-muted">
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="font-semibold text-primary-600 hover:text-primary-700 hover:underline"
-            >
-              Sign in here
-            </Link>
-          </p>
-        </div>
+        {/* Footer link for public signup */}
+        {!isAdminCreate && (
+          <div className="mt-6 border-t border-border/60 pt-5 text-center">
+            <p className="text-sm text-text-muted">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-semibold text-primary-600 hover:text-primary-700 hover:underline"
+              >
+                Sign in here
+              </Link>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

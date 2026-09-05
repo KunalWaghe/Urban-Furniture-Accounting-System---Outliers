@@ -39,11 +39,16 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ## DONE — completed (newest first within each group)
 
+### Integration
+
+- [x] **P0-INT-01** — Integrate Auth handshake and role gates · Both · 5 Sep, 4:00 PM — Evidence: Full live handshake script `test_live_handshake.py` verified; public signup strictly creates `invoicing_user` (Accountant) with privilege escalation protection (422); Admin `/admin/users` route protected with `RequireRole` (403 Access Denied UI for non-admin, badge & sidebar role filtering); logout clears session completely and redirects to `/login`; Next.js production build and FastAPI tests green · Integrated & Verified
+
 ### Backend
 
 - [x] **P0-BE-05** — Purchase Order model & create/confirm endpoints · Kunal · 5 Sep, 4:05 PM — Evidence: `tests/test_purchase_order.py` PASSED (2/2 lifecycle & validation tests passed, sequential PO-0001 generation, line items, status draft -> confirmed) · Integrated & Verified
 - [x] **P0-BE-02R** — Auth identity and role contract correction · Kunal · 5 Sep, 3:40 PM — Evidence: `tests/test_auth.py` PASSED (5/5 auth tests: login_id 6–12 chars, unique email/login_id, password policy, Invalid Login Id or Password error msg, role rules) · Integrated & Verified
 
+- [x] **P0-BE-02R** — Auth identity and role contract correction · Kunal · 5 Sep, 3:45 PM — Evidence: `tests/test_auth.py` PASSED (3/3 auth tests, 9/9 backend suite); public registration strictly creates `invoicing_user`; privilege escalation to admin rejected with 422; Admin user creation protected via `POST /api/v1/users` (403 for non-admins, 201 for admin); login uses `login_id` with 401 "Invalid Login Id or Password" · Integrated & Verified
 - [x] **P0-BE-04** — Chart of Accounts & Journals seed + endpoints · Kunal · 5 Sep, 1:25 PM — Evidence: `tests/test_accounts_and_journals.py` PASSED (5 account types & 4 journals seeded and fetchable) · Integrated & Verified
 - [x] **P0-BE-03** — Contact & Product models + CRUD endpoints · Kunal · 5 Sep, 12:45 PM — Evidence: `tests/test_contacts.py` & `test_products.py` PASSED · Integrated & Verified
 - [x] **P0-BE-02 (baseline)** — User model + JWT Auth endpoints (email-based register/login/me) · Kunal · 5 Sep, 11:35 AM — Evidence: `tests/test_auth.py` PASSED + live HTTP verified · Baseline only; superseded by Excalidraw auth contract correction below
@@ -51,6 +56,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Frontend
 
+- [x] **P0-FE-02R** — Correct auth UI and wire API · Sourabh · 5 Sep, 3:50 PM — Evidence: `loginId` implemented with 6–12 char regex validation; role selection removed from public signup; exact 401/409 error mappings (`Invalid Login Id or Password`, `LOGIN_ID_ALREADY_EXISTS`, `EMAIL_ALREADY_EXISTS`); `npm run lint` & `npm run build` clean (0 errors, 0 warnings) · Integrated & Verified
 - [x] **P0-FE-01** — Next.js 16 + Tailwind 4 + shadcn shell + QueryProvider + AuthProvider · Sourabh · 5 Sep, 1:35 PM — Evidence: `@tanstack/react-query@5.80.7` installed; `QueryProvider` + `AuthProvider` mounted via `AppProviders` in root layout (ThemeProvider › QueryProvider › AuthProvider); `npm run build` clean — TypeScript OK, 4 routes static-prerendered, 0 errors · Integrated & Verified
 - [x] **P0-FE-02 (baseline UI)** — `/login` + `/signup` built with email field and UI-only wiring · Sourabh · 5 Sep, 12:45 PM — Evidence: browser-verified validation, strength meter, match badge, demo notices, dark mode; `npm run build` + lint clean · Baseline only; must be corrected to Excalidraw `loginId` contract
 - [x] **A-05** — Auth pages design spec approved (UI-only, route groups) · Sourabh · 5 Sep, 12:00 PM — Evidence: `docs/superpowers/specs/2026-09-05-auth-pages-design.md` · Design locked
@@ -72,15 +78,19 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Frontend
 
-- [ ] **P0-FE-02R** — Correct auth UI and wire API · Sourabh · 45m · Depends: P0-FE-01 ✓, P0-BE-02R · Replace email login field with `loginId`; remove role selection from public signup; add exact password/login ID validation, auth context/API wiring, token persistence, and 401/422/409 field mapping · Done when: valid login/signup work against the corrected contract and the UI shows the Excalidraw invalid-credential message
+- [ ] **P0-FE-05** — Purchase Order UI & create/confirm flow · Sourabh · 45m · Depends: P0-BE-05 · Start purchase workflow wiring with vendor selection & backend PO models
 
 ---
 
 ## NEXT — queued in priority order
 
-### Integration
+### Backend
 
-- [ ] **P0-INT-01** — Integrate Auth handshake and role gates · Both · 20m · Depends: P0-BE-02R, P0-FE-02R — Done when: Admin/Accountant login reaches dashboard, public signup creates Accountant, Contact/User is denied admin routes, and logout clears the session
+- [ ] **P0-BE-06** — Vendor Bill creation + auto Journal Entry logic · Kunal · 60m · Depends: P0-BE-05, P0-BE-04 — Contract: `POST /api/v1/purchase-orders/:id/create-bill` · Done when: bill created; balanced Journal Entry (Debit Expense / Credit AP)
+
+### Frontend
+
+- [ ] **P0-FE-06** — Vendor Bill UI & payment status · Sourabh · 45m · Depends: P0-BE-06
 
 ---
 

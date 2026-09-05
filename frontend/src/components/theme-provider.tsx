@@ -4,9 +4,11 @@ import {
   createContext,
   useContext,
   useMemo,
+  useRef,
   useSyncExternalStore,
   type ReactNode,
 } from "react"
+import { useServerInsertedHTML } from "next/navigation"
 
 interface ThemeContextValue {
   darkMode: boolean
@@ -34,7 +36,22 @@ function getServerDarkModeSnapshot() {
   return false
 }
 
+const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}})();`
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const isInserted = useRef(false)
+
+  useServerInsertedHTML(() => {
+    if (isInserted.current) return null
+    isInserted.current = true
+    return (
+      <script
+        key="ufas-theme-init"
+        dangerouslySetInnerHTML={{ __html: themeInitScript }}
+      />
+    )
+  })
+
   const darkMode = useSyncExternalStore(
     subscribeToTheme,
     getDarkModeSnapshot,

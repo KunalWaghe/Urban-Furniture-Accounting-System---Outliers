@@ -95,13 +95,21 @@ export const ROLES = [
 
 export type RoleValue = (typeof ROLES)[number]["value"];
 
+// Roles selectable by Admin on the Create User screen
+export const ADMIN_CREATABLE_ROLES = [
+  { value: "admin", label: "Admin" },
+  { value: "invoicing_user", label: "Accountant" },
+] as const;
+
+export type AdminCreatableRole = (typeof ADMIN_CREATABLE_ROLES)[number]["value"];
+
 export interface SignupFields {
   name: string;
   login_id: string;
   email: string;
   password: string;
   confirmPassword: string;
-  role: RoleValue;
+  role?: RoleValue;
   acceptedTerms: boolean;
 }
 
@@ -112,7 +120,10 @@ export type SignupErrors = Partial<
   >
 >;
 
-export function validateSignupFields(fields: SignupFields): SignupErrors {
+export function validateSignupFields(
+  fields: SignupFields,
+  options?: { requireTerms?: boolean }
+): SignupErrors {
   const errors: SignupErrors = {};
   if (fields.name.trim().length < 2) {
     errors.name = "Enter your full name (min 2 characters).";
@@ -133,10 +144,7 @@ export function validateSignupFields(fields: SignupFields): SignupErrors {
   if (!fields.confirmPassword || fields.confirmPassword !== fields.password) {
     errors.confirmPassword = "Passwords do not match.";
   }
-  if (!fields.role) {
-    errors.role = "Please select a role.";
-  }
-  if (!fields.acceptedTerms) {
+  if (options?.requireTerms !== false && !fields.acceptedTerms) {
     errors.terms = "You must accept the terms to continue.";
   }
   return errors;
