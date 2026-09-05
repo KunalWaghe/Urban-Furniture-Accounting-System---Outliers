@@ -1,179 +1,386 @@
 """
 Deterministic Demo Seed Script for Urban Furniture Accounting System.
-Run via: .venv/bin/python seed.py
+Includes complete demo dataset for Procurement & Vendor Bills (P0-BE-06).
+
+Run via:
+    python seed.py
+    or: .\.venv\Scripts\python seed.py
 """
 
+from datetime import datetime, timezone
 from app.core.database import SessionLocal, engine, Base
-from app.models.contact import Contact
-from app.models.product import Product
+from app.models import (
+    Contact,
+    Product,
+    User,
+    PurchaseOrder,
+    PurchaseOrderLine,
+    VendorBill,
+    JournalEntry,
+    JournalItem,
+    Account,
+    Journal,
+)
 from app.services.accounting_service import seed_accounting_defaults
+from app.services.purchase_order_service import create_purchase_order, confirm_purchase_order
+from app.services.vendor_bill_service import create_bill_from_po
+from app.schemas.purchase_order import POCreate, POLineCreate
+from app.core.security import hash_password
+
+
+def seed_users(db):
+    """Seed demo admin and accountant accounts."""
+    users_data = [
+        {
+            "login_id": "admin",
+            "email": "admin@urbanfurniture.com",
+            "name": "System Administrator",
+            "role": "admin",
+            "password_hash": hash_password("Admin@123"),
+            "is_active": True,
+        },
+        {
+            "login_id": "admin001",
+            "email": "admin001@urbanfurniture.com",
+            "name": "System Administrator",
+            "role": "admin",
+            "password_hash": hash_password("Admin@123"),
+            "is_active": True,
+        },
+        {
+            "login_id": "accountant",
+            "email": "accountant@urbanfurniture.com",
+            "name": "Senior Accountant",
+            "role": "invoicing_user",
+            "password_hash": hash_password("Accountant@123"),
+            "is_active": True,
+        },
+    ]
+
+    for ud in users_data:
+        user = db.query(User).filter(User.email == ud["email"]).first()
+        if not user:
+            db.add(User(**ud))
+        else:
+            for k, v in ud.items():
+                setattr(user, k, v)
+    db.commit()
+
+
+def seed_contacts_and_products(db):
+    """Seed customer and vendor contacts, plus product catalog."""
+    contacts_data = [
+        # Customers
+        {
+            "name": "Acme Corp",
+            "type": "customer",
+            "email": "procurement@acme.com",
+            "mobile": "+91 98765 43210",
+            "city": "Navi Mumbai",
+            "state": "Maharashtra",
+            "pincode": "400703",
+            "is_active": True,
+        },
+        {
+            "name": "Nimesh Pathak",
+            "type": "customer",
+            "email": "nimesh@pathakdesigns.in",
+            "mobile": "+91 98201 23456",
+            "city": "Mumbai",
+            "state": "Maharashtra",
+            "pincode": "400050",
+            "is_active": True,
+        },
+        {
+            "name": "Deco Spaces Interiors",
+            "type": "customer",
+            "email": "contact@decospaces.com",
+            "mobile": "+91 98112 34567",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "pincode": "411001",
+            "is_active": True,
+        },
+        {
+            "name": "Urban Living Studio",
+            "type": "customer",
+            "email": "projects@urbanliving.in",
+            "mobile": "+91 98450 12345",
+            "city": "Bengaluru",
+            "state": "Karnataka",
+            "pincode": "560001",
+            "is_active": True,
+        },
+        # Vendors for Procurement (P0-BE-05, P0-BE-06)
+        {
+            "name": "Azure Furniture Supplies",
+            "type": "vendor",
+            "email": "accounts@azurefurniture.com",
+            "mobile": "+91 98800 54321",
+            "city": "Bengaluru",
+            "state": "Karnataka",
+            "pincode": "560034",
+            "is_active": True,
+        },
+        {
+            "name": "Timber Supplies Ltd",
+            "type": "vendor",
+            "email": "sales@timbersupplies.com",
+            "mobile": "+91 98451 98765",
+            "city": "Bengaluru",
+            "state": "Karnataka",
+            "pincode": "560078",
+            "is_active": True,
+        },
+        {
+            "name": "Durian Veneers & Woods",
+            "type": "vendor",
+            "email": "supply@durianveneers.com",
+            "mobile": "+91 98250 87654",
+            "city": "Ahmedabad",
+            "state": "Gujarat",
+            "pincode": "380001",
+            "is_active": True,
+        },
+        {
+            "name": "SteelCraft Fittings",
+            "type": "vendor",
+            "email": "sales@steelcraft.in",
+            "mobile": "+91 98240 11223",
+            "city": "Rajkot",
+            "state": "Gujarat",
+            "pincode": "360002",
+            "is_active": True,
+        },
+    ]
+
+    for cd in contacts_data:
+        contact = db.query(Contact).filter(Contact.name == cd["name"]).first()
+        if not contact:
+            db.add(Contact(**cd))
+        else:
+            contact.is_active = True
+            for k, v in cd.items():
+                setattr(contact, k, v)
+
+    products_data = [
+        {
+            "name": "Executive Ergonomic Chair",
+            "product_type": "goods",
+            "category": "Office Furniture",
+            "price": 14500.0,
+            "cost": 9200.0,
+            "tax_percent": 18.0,
+            "description": "High-back ergonomic mesh office chair with lumbar support",
+            "is_active": True,
+        },
+        {
+            "name": "Solid Teak Wood Dining Table",
+            "product_type": "goods",
+            "category": "Dining Furniture",
+            "price": 38000.0,
+            "cost": 24500.0,
+            "tax_percent": 18.0,
+            "description": "Handcrafted solid teak 6-seater dining table",
+            "is_active": True,
+        },
+        {
+            "name": "Modular Office Workstation Desk",
+            "product_type": "goods",
+            "category": "Office Furniture",
+            "price": 22500.0,
+            "cost": 14000.0,
+            "tax_percent": 18.0,
+            "description": "Dual workstation desk with cable management",
+            "is_active": True,
+        },
+        {
+            "name": "Wooden Chair - Minimalist Oak",
+            "product_type": "goods",
+            "category": "Seating",
+            "price": 6800.0,
+            "cost": 4100.0,
+            "tax_percent": 12.0,
+            "description": "Minimalist natural oak wood dining chair",
+            "is_active": True,
+        },
+        {
+            "name": "Fabric Accent Lounge Armchair",
+            "product_type": "goods",
+            "category": "Living Furniture",
+            "price": 19200.0,
+            "cost": 12000.0,
+            "tax_percent": 18.0,
+            "description": "Velvet upholstery lounge chair with brass legs",
+            "is_active": True,
+        },
+    ]
+
+    for pd in products_data:
+        product = db.query(Product).filter(Product.name == pd["name"]).first()
+        if not product:
+            db.add(Product(**pd))
+        else:
+            product.is_active = True
+            for k, v in pd.items():
+                setattr(product, k, v)
+
+    db.commit()
+
+
+def seed_p0_be_06_data(db):
+    """
+    Seed deterministic dummy data specifically for P0-BE-06:
+    1. Billed POs with auto-generated Vendor Bills & double-entry Journal Entries (Debit 5010 / Credit 2010)
+    2. Confirmed POs ready for manual or UI testing of 'Auto-Generate Vendor Bill'
+    3. Draft POs ready for draft -> confirm -> bill workflow testing
+    """
+    # Look up vendors
+    timber_vendor = db.query(Contact).filter(Contact.name == "Timber Supplies Ltd").first()
+    steel_vendor = db.query(Contact).filter(Contact.name == "SteelCraft Fittings").first()
+    durian_vendor = db.query(Contact).filter(Contact.name == "Durian Veneers & Woods").first()
+    azure_vendor = db.query(Contact).filter(Contact.name == "Azure Furniture Supplies").first()
+
+    # Look up products
+    chair_ergo = db.query(Product).filter(Product.name == "Executive Ergonomic Chair").first()
+    table_teak = db.query(Product).filter(Product.name == "Solid Teak Wood Dining Table").first()
+    desk_work = db.query(Product).filter(Product.name == "Modular Office Workstation Desk").first()
+    chair_oak = db.query(Product).filter(Product.name == "Wooden Chair - Minimalist Oak").first()
+    armchair_velvet = db.query(Product).filter(Product.name == "Fabric Accent Lounge Armchair").first()
+
+    if not all([timber_vendor, steel_vendor, durian_vendor, azure_vendor, chair_ergo, table_teak, desk_work, chair_oak, armchair_velvet]):
+        print("[WARNING] Missing master vendors or products. Skipping PO/Vendor Bill seeding.")
+        return
+
+    # Check if we already have seeded bills for these main vendors
+    existing_vendor_bills = (
+        db.query(VendorBill)
+        .filter(VendorBill.vendor_id.in_([timber_vendor.id, steel_vendor.id, durian_vendor.id]))
+        .count()
+    )
+
+    if existing_vendor_bills >= 3:
+        print(f"[INFO] P0-BE-06 dummy data already exists ({existing_vendor_bills} vendor bills found). Skipping re-creation.")
+        return
+
+    print("\n--- Seeding P0-BE-06 Procurement & Vendor Bill dummy data ---")
+
+    # --- 1. BILLED POs WITH VENDOR BILLS & POSTED JOURNAL ENTRIES ---
+    billed_scenarios = [
+        {
+            "vendor_id": timber_vendor.id,
+            "vendor_name": timber_vendor.name,
+            "lines": [
+                {"product_id": table_teak.id, "quantity": 4.0, "unit_price": table_teak.cost},   # 4 * 24500 = 98000
+                {"product_id": chair_oak.id, "quantity": 10.0, "unit_price": chair_oak.cost},    # 10 * 4100 = 41000
+            ],
+            "note": "Timber & Oak woodwork shipment",
+        },
+        {
+            "vendor_id": steel_vendor.id,
+            "vendor_name": steel_vendor.name,
+            "lines": [
+                {"product_id": chair_ergo.id, "quantity": 8.0, "unit_price": chair_ergo.cost},   # 8 * 9200 = 73600
+                {"product_id": desk_work.id, "quantity": 3.0, "unit_price": desk_work.cost},     # 3 * 14000 = 42000
+            ],
+            "note": "Office workstations and ergonomic frames",
+        },
+        {
+            "vendor_id": durian_vendor.id,
+            "vendor_name": durian_vendor.name,
+            "lines": [
+                {"product_id": armchair_velvet.id, "quantity": 5.0, "unit_price": armchair_velvet.cost},  # 5 * 12000 = 60000
+            ],
+            "note": "Velvet lounge armchairs and veneers",
+        },
+    ]
+
+    for sc in billed_scenarios:
+        po_in = POCreate(
+            vendor_id=sc["vendor_id"],
+            order_date=datetime.now(timezone.utc),
+            lines=[POLineCreate(**ln) for ln in sc["lines"]],
+        )
+        po_resp = create_purchase_order(db, po_in)
+        confirm_purchase_order(db, po_resp.id)
+        bill_resp = create_bill_from_po(db, po_resp.id)
+        print(f"  [BILLED] PO {po_resp.po_number} -> Bill {bill_resp.bill.bill_number} (INR {bill_resp.bill.total:,.2f}) -> JE {bill_resp.journal_entry.entry_number} [{sc['vendor_name']}]")
+
+    # --- 2. CONFIRMED POs (Ready for manual test of POST /create-bill) ---
+    confirmed_scenarios = [
+        {
+            "vendor_id": azure_vendor.id,
+            "vendor_name": azure_vendor.name,
+            "lines": [
+                {"product_id": table_teak.id, "quantity": 2.0, "unit_price": table_teak.cost},   # 2 * 24500 = 49000
+                {"product_id": chair_ergo.id, "quantity": 4.0, "unit_price": chair_ergo.cost},   # 4 * 9200 = 36800
+            ],
+        },
+        {
+            "vendor_id": timber_vendor.id,
+            "vendor_name": timber_vendor.name,
+            "lines": [
+                {"product_id": chair_oak.id, "quantity": 15.0, "unit_price": chair_oak.cost},    # 15 * 4100 = 61500
+            ],
+        },
+    ]
+
+    for sc in confirmed_scenarios:
+        po_in = POCreate(
+            vendor_id=sc["vendor_id"],
+            order_date=datetime.now(timezone.utc),
+            lines=[POLineCreate(**ln) for ln in sc["lines"]],
+        )
+        po_resp = create_purchase_order(db, po_in)
+        confirm_purchase_order(db, po_resp.id)
+        print(f"  [CONFIRMED] PO {po_resp.po_number} (INR {po_resp.total:,.2f}) - Ready for /create-bill [{sc['vendor_name']}]")
+
+    # --- 3. DRAFT POs (Ready for full lifecycle testing) ---
+    draft_scenarios = [
+        {
+            "vendor_id": steel_vendor.id,
+            "vendor_name": steel_vendor.name,
+            "lines": [
+                {"product_id": desk_work.id, "quantity": 5.0, "unit_price": desk_work.cost},     # 5 * 14000 = 70000
+            ],
+        },
+        {
+            "vendor_id": durian_vendor.id,
+            "vendor_name": durian_vendor.name,
+            "lines": [
+                {"product_id": armchair_velvet.id, "quantity": 2.0, "unit_price": armchair_velvet.cost},  # 2 * 12000 = 24000
+            ],
+        },
+    ]
+
+    for sc in draft_scenarios:
+        po_in = POCreate(
+            vendor_id=sc["vendor_id"],
+            order_date=datetime.now(timezone.utc),
+            lines=[POLineCreate(**ln) for ln in sc["lines"]],
+        )
+        po_resp = create_purchase_order(db, po_in)
+        print(f"  [DRAFT] PO {po_resp.po_number} (INR {po_resp.total:,.2f}) - Ready to confirm [{sc['vendor_name']}]")
 
 
 def run_seed():
+    """Main seed orchestrator."""
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        # 1. Seed Chart of Accounts and Journals
+        # 1. Chart of Accounts and Journals
         seed_accounting_defaults(db)
 
-        # 2. Seed Contacts
-        contacts_data = [
-            {
-                "name": "Acme Corp",
-                "type": "customer",
-                "email": "procurement@acme.com",
-                "mobile": "+91 98765 43210",
-                "city": "Navi Mumbai",
-                "state": "Maharashtra",
-                "pincode": "400703",
-                "is_active": True,
-            },
-            {
-                "name": "Nimesh Pathak",
-                "type": "customer",
-                "email": "nimesh@pathakdesigns.in",
-                "mobile": "+91 98201 23456",
-                "city": "Mumbai",
-                "state": "Maharashtra",
-                "pincode": "400050",
-                "is_active": True,
-            },
-            {
-                "name": "Deco Spaces Interiors",
-                "type": "customer",
-                "email": "contact@decospaces.com",
-                "mobile": "+91 98112 34567",
-                "city": "Pune",
-                "state": "Maharashtra",
-                "pincode": "411001",
-                "is_active": True,
-            },
-            {
-                "name": "Urban Living Studio",
-                "type": "customer",
-                "email": "projects@urbanliving.in",
-                "mobile": "+91 98450 12345",
-                "city": "Bengaluru",
-                "state": "Karnataka",
-                "pincode": "560001",
-                "is_active": True,
-            },
-            {
-                "name": "Azure Furniture Supplies",
-                "type": "vendor",
-                "email": "accounts@azurefurniture.com",
-                "mobile": "+91 98800 54321",
-                "city": "Bengaluru",
-                "state": "Karnataka",
-                "pincode": "560034",
-                "is_active": True,
-            },
-            {
-                "name": "Timber Supplies Ltd",
-                "type": "vendor",
-                "email": "sales@timbersupplies.com",
-                "mobile": "+91 98451 98765",
-                "city": "Bengaluru",
-                "state": "Karnataka",
-                "pincode": "560078",
-                "is_active": True,
-            },
-            {
-                "name": "Durian Veneers & Woods",
-                "type": "vendor",
-                "email": "supply@durianveneers.com",
-                "mobile": "+91 98250 87654",
-                "city": "Ahmedabad",
-                "state": "Gujarat",
-                "pincode": "380001",
-                "is_active": True,
-            },
-            {
-                "name": "SteelCraft Fittings",
-                "type": "vendor",
-                "email": "sales@steelcraft.in",
-                "mobile": "+91 98240 11223",
-                "city": "Rajkot",
-                "state": "Gujarat",
-                "pincode": "360002",
-                "is_active": True,
-            },
-        ]
+        # 2. Demo Users
+        seed_users(db)
 
-        for cd in contacts_data:
-            contact = db.query(Contact).filter(Contact.name == cd["name"]).first()
-            if not contact:
-                db.add(Contact(**cd))
-            else:
-                contact.is_active = True
-                for k, v in cd.items():
-                    setattr(contact, k, v)
+        # 3. Contacts and Products
+        seed_contacts_and_products(db)
 
-        # 3. Seed Products
-        products_data = [
-            {
-                "name": "Executive Ergonomic Chair",
-                "product_type": "goods",
-                "category": "Office Furniture",
-                "price": 14500.0,
-                "cost": 9200.0,
-                "tax_percent": 18.0,
-                "description": "High-back ergonomic mesh office chair with lumbar support",
-                "is_active": True,
-            },
-            {
-                "name": "Solid Teak Wood Dining Table",
-                "product_type": "goods",
-                "category": "Dining Furniture",
-                "price": 38000.0,
-                "cost": 24500.0,
-                "tax_percent": 18.0,
-                "description": "Handcrafted solid teak 6-seater dining table",
-                "is_active": True,
-            },
-            {
-                "name": "Modular Office Workstation Desk",
-                "product_type": "goods",
-                "category": "Office Furniture",
-                "price": 22500.0,
-                "cost": 14000.0,
-                "tax_percent": 18.0,
-                "description": "Dual workstation desk with cable management",
-                "is_active": True,
-            },
-            {
-                "name": "Wooden Chair - Minimalist Oak",
-                "product_type": "goods",
-                "category": "Seating",
-                "price": 6800.0,
-                "cost": 4100.0,
-                "tax_percent": 12.0,
-                "description": "Minimalist natural oak wood dining chair",
-                "is_active": True,
-            },
-            {
-                "name": "Fabric Accent Lounge Armchair",
-                "product_type": "goods",
-                "category": "Living Furniture",
-                "price": 19200.0,
-                "cost": 12000.0,
-                "tax_percent": 18.0,
-                "description": "Velvet upholstery lounge chair with brass legs",
-                "is_active": True,
-            },
-        ]
+        # 4. P0-BE-06 Procurement, Vendor Bills, and Auto Journal Entries
+        seed_p0_be_06_data(db)
 
-        for pd in products_data:
-            product = db.query(Product).filter(Product.name == pd["name"]).first()
-            if not product:
-                db.add(Product(**pd))
-            else:
-                product.is_active = True
-                for k, v in pd.items():
-                    setattr(product, k, v)
-
-        db.commit()
-        print("[SUCCESS] Master data seeded: Accounts, Journals, Contacts, Products.")
+        print("\n[SUCCESS] Master & Dummy data seeded successfully!")
     finally:
         db.close()
 
