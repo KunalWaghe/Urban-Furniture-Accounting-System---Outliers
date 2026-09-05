@@ -244,7 +244,7 @@ export interface PurchaseOrder {
   vendor_location?: string;
   vendor_email?: string;
   po_date: string;
-  status: "Confirmed" | "Partially Billed" | "Draft" | "Cancelled";
+  status: "Confirmed" | "Partially Billed" | "Billed" | "Draft" | "Cancelled";
   total_amount: number;
   items: PurchaseOrderItem[];
 }
@@ -256,7 +256,8 @@ export interface VendorBill {
   vendor_name: string;
   due_date: string;
   amount: number;
-  payment_status: "Unpaid" | "Scheduled" | "Paid";
+  amount_paid?: number;
+  payment_status: "Unpaid" | "Scheduled" | "Paid" | "Partially Paid";
 }
 
 /** Budget vs actual metrics for a single cost center. */

@@ -78,6 +78,8 @@ function mapPoStatus(status: string): PurchaseOrder["status"] {
   switch (status) {
     case "confirmed":
       return "Confirmed";
+    case "billed":
+      return "Billed";
     case "cancelled":
       return "Cancelled";
     default:
@@ -190,10 +192,13 @@ export async function confirmPurchaseOrder(id: number): Promise<PurchaseOrder> {
   return mapPurchaseOrder(po);
 }
 
-/**
- * GET /api/v1/contacts — active vendors for the PO form vendor picker.
- * Filters to contacts with type "vendor" or "both".
- */
+export async function createBillFromPo(id: number): Promise<any> {
+  return apiFetch(`/api/v1/purchase-orders/${id}/create-bill`, {
+    method: "POST",
+    auth: true,
+  });
+}
+
 export async function fetchVendors(): Promise<Contact[]> {
   const res = await apiFetch<ContactListResponse>("/api/v1/contacts?is_active=true&limit=100", { auth: true });
   return (res.data ?? []).filter((c) => c.type === "vendor" || c.type === "both");

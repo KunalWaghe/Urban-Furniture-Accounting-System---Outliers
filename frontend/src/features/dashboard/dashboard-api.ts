@@ -81,6 +81,29 @@ export async function fetchDashboardJournals(): Promise<Journal[]> {
   }
 }
 
+export async function fetchDashboardVendorBills(): Promise<VendorBill[]> {
+  try {
+    const res = await apiFetch<{ data: any[]; total: number }>("/api/v1/vendor-bills?limit=100", {
+      auth: true,
+    });
+    return (res.data || []).map((b) => ({
+      id: String(b.id),
+      bill_number: b.bill_number,
+      vendor_name: b.vendor_name || "Vendor",
+      due_date: b.bill_date
+        ? new Date(b.bill_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+        : "Due on receipt",
+      amount: Number(b.total),
+      amount_paid: Number(b.amount_paid || 0),
+      payment_status:
+        b.status === "paid" ? "Paid" : b.status === "partially_paid" ? "Partially Paid" : "Unpaid",
+    }));
+  } catch (err) {
+    console.error("Error fetching vendor bills for dashboard:", err);
+    return [];
+  }
+}
+
 /** Fetch recent sales orders from the sales-orders API (backend or resilient store). */
 export async function fetchDashboardSalesOrders(): Promise<SalesOrder[]> {
   try {

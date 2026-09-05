@@ -16,6 +16,8 @@ from app.models import (
     PurchaseOrder,
     PurchaseOrderLine,
     VendorBill,
+    SalesOrder,
+    CustomerInvoice,
     JournalEntry,
     JournalItem,
     Account,
@@ -24,7 +26,10 @@ from app.models import (
 from app.services.accounting_service import seed_accounting_defaults
 from app.services.purchase_order_service import create_purchase_order, confirm_purchase_order
 from app.services.vendor_bill_service import create_bill_from_po
+from app.services.sales_order_service import create_sales_order, confirm_sales_order
+from app.services.customer_invoice_service import create_invoice_from_so
 from app.schemas.purchase_order import POCreate, POLineCreate
+from app.schemas.sales_order import SOCreate, SOLineCreate
 from app.core.security import hash_password
 
 
@@ -363,6 +368,104 @@ def seed_p0_be_06_data(db):
         print(f"  [DRAFT] PO {po_resp.po_number} (INR {po_resp.total:,.2f}) - Ready to confirm [{sc['vendor_name']}]")
 
 
+def seed_phase3_sales_data(db):
+    """
+    Seed deterministic dummy data for Sales Orders & Customer Invoices (Phase 3):
+    1. Invoiced SOs with Customer Invoices & posted double-entry Journal Entries (Debit 1030 Debtors / Credit 4010 Sales Income)
+    2. Confirmed SOs ready for testing /create-invoice
+    3. Draft SOs ready for draft -> confirm -> invoice workflow
+    """
+    acme_cust = db.query(Contact).filter(Contact.name == "Acme Corp").first()
+    nimesh_cust = db.query(Contact).filter(Contact.name == "Nimesh Pathak").first()
+    deco_cust = db.query(Contact).filter(Contact.name == "Deco Spaces Interiors").first()
+
+    chair_ergo = db.query(Product).filter(Product.name == "Executive Ergonomic Chair").first()
+    table_teak = db.query(Product).filter(Product.name == "Solid Teak Wood Dining Table").first()
+    desk_work = db.query(Product).filter(Product.name == "Modular Office Workstation Desk").first()
+
+    if not all([acme_cust, nimesh_cust, deco_cust, chair_ergo, table_teak, desk_work]):
+        print("[WARNING] Missing master customers or products. Skipping Sales/Invoice seeding.")
+        return
+
+    existing_invoices = db.query(CustomerInvoice).count()
+    if existing_invoices >= 2:
+        print(f"[INFO] Phase 3 sales dummy data already exists ({existing_invoices} customer invoices found). Skipping.")
+        return
+
+    print("\n--- Seeding Phase 3 Sales Orders & Customer Invoices ---")
+
+    # 1. Invoiced SOs with Customer Invoices & SLS Journal Entries
+    invoiced_scenarios = [
+        {
+            "customer_id": acme_cust.id,
+            "customer_name": acme_cust.name,
+            "lines": [
+                {"product_id": desk_work.id, "quantity": 4.0, "unit_price": desk_work.price},   # 4 * 22500 = 90000
+                {"product_id": chair_ergo.id, "quantity": 4.0, "unit_price": chair_ergo.price}, # 4 * 14500 = 58000
+            ],
+        },
+        {
+            "customer_id": nimesh_cust.id,
+            "customer_name": nimesh_cust.name,
+            "lines": [
+                {"product_id": table_teak.id, "quantity": 1.0, "unit_price": table_teak.price}, # 1 * 38000 = 38000
+            ],
+        },
+    ]
+
+    for sc in invoiced_scenarios:
+        so_in = SOCreate(
+            customer_id=sc["customer_id"],
+            order_date=datetime.now(timezone.utc),
+            lines=[SOLineCreate(**ln) for ln in sc["lines"]],
+        )
+        so_resp = create_sales_order(db, so_in)
+        confirm_sales_order(db, so_resp.id)
+        inv_resp = create_invoice_from_so(db, so_resp.id)
+        print(f"  [INVOICED] SO {so_resp.so_number} -> Invoice {inv_resp.invoice.invoice_number} (INR {inv_resp.invoice.total:,.2f}) -> JE {inv_resp.journal_entry.entry_number} [{sc['customer_name']}]")
+
+    # 2. Confirmed SOs (Ready for manual test of /create-invoice)
+    confirmed_scenarios = [
+        {
+            "customer_id": deco_cust.id,
+            "customer_name": deco_cust.name,
+            "lines": [
+                {"product_id": chair_ergo.id, "quantity": 6.0, "unit_price": chair_ergo.price}, # 6 * 14500 = 87000
+            ],
+        },
+    ]
+
+    for sc in confirmed_scenarios:
+        so_in = SOCreate(
+            customer_id=sc["customer_id"],
+            order_date=datetime.now(timezone.utc),
+            lines=[SOLineCreate(**ln) for ln in sc["lines"]],
+        )
+        so_resp = create_sales_order(db, so_in)
+        confirm_sales_order(db, so_resp.id)
+        print(f"  [CONFIRMED] SO {so_resp.so_number} (INR {so_resp.total:,.2f}) - Ready for /create-invoice [{sc['customer_name']}]")
+
+    # 3. Draft SOs (Ready for lifecycle test)
+    draft_scenarios = [
+        {
+            "customer_id": acme_cust.id,
+            "customer_name": acme_cust.name,
+            "lines": [
+                {"product_id": desk_work.id, "quantity": 2.0, "unit_price": desk_work.price},   # 2 * 22500 = 45000
+            ],
+        },
+    ]
+
+    for sc in draft_scenarios:
+        so_in = SOCreate(
+            customer_id=sc["customer_id"],
+            order_date=datetime.now(timezone.utc),
+            lines=[SOLineCreate(**ln) for ln in sc["lines"]],
+        )
+        so_resp = create_sales_order(db, so_in)
+        print(f"  [DRAFT] SO {so_resp.so_number} (INR {so_resp.total:,.2f}) - Ready to confirm [{sc['customer_name']}]")
+
+
 def run_seed():
     """Main seed orchestrator."""
     Base.metadata.create_all(bind=engine)
@@ -379,6 +482,9 @@ def run_seed():
 
         # 4. P0-BE-06 Procurement, Vendor Bills, and Auto Journal Entries
         seed_p0_be_06_data(db)
+
+        # 5. Phase 3 Sales Orders, Customer Invoices, and Auto Journal Entries
+        seed_phase3_sales_data(db)
 
         print("\n[SUCCESS] Master & Dummy data seeded successfully!")
     finally:

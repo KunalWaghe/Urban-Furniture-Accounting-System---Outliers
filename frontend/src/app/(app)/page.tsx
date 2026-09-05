@@ -185,11 +185,11 @@ export default function AppDashboardPage() {
 
   // Customers and Vendors derived from backend data
   const backendCustomers = useMemo(() => {
-    return contacts.filter((c) => c.type === "customer" || c.type === "both");
+    return contacts.filter((c: Contact) => c.type === "customer" || c.type === "both");
   }, [contacts]);
 
   const backendVendors = useMemo(() => {
-    return contacts.filter((c) => c.type === "vendor" || c.type === "both");
+    return contacts.filter((c: Contact) => c.type === "vendor" || c.type === "both");
   }, [contacts]);
 
   // Filtered Sales Orders
@@ -458,33 +458,30 @@ export default function AppDashboardPage() {
               <button
                 type="button"
                 onClick={() => setSalesFilterStatus("all")}
-                className={`rounded-lg px-3 py-1 transition-all ${
-                  salesFilterStatus === "all"
+                className={`rounded-lg px-3 py-1 transition-all ${salesFilterStatus === "all"
                     ? "bg-surface text-primary-600 font-semibold shadow-xs"
                     : "hover:text-text"
-                }`}
+                  }`}
               >
                 All ({salesStats.totalCount})
               </button>
               <button
                 type="button"
                 onClick={() => setSalesFilterStatus("Confirmed")}
-                className={`rounded-lg px-3 py-1 transition-all ${
-                  salesFilterStatus === "Confirmed"
+                className={`rounded-lg px-3 py-1 transition-all ${salesFilterStatus === "Confirmed"
                     ? "bg-surface text-primary-600 font-semibold shadow-xs"
                     : "hover:text-text"
-                }`}
+                  }`}
               >
                 Confirmed ({salesStats.confirmedCount})
               </button>
               <button
                 type="button"
                 onClick={() => setSalesFilterStatus("Draft")}
-                className={`rounded-lg px-3 py-1 transition-all ${
-                  salesFilterStatus === "Draft"
+                className={`rounded-lg px-3 py-1 transition-all ${salesFilterStatus === "Draft"
                     ? "bg-surface text-primary-600 font-semibold shadow-xs"
                     : "hover:text-text"
-                }`}
+                  }`}
               >
                 Draft ({salesStats.draftCount})
               </button>
@@ -765,11 +762,10 @@ export default function AppDashboardPage() {
               type="button"
               id="tab-btn-po"
               onClick={() => setPurchaseActiveTab("po")}
-              className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 transition-all ${
-                purchaseActiveTab === "po"
+              className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 transition-all ${purchaseActiveTab === "po"
                   ? "bg-surface text-indigo-600 font-semibold shadow-xs dark:text-indigo-400"
                   : "text-text-muted hover:text-text"
-              }`}
+                }`}
             >
               <FileText className="h-3.5 w-3.5" />
               <span>Recent Purchase Orders ({purchaseOrders.length})</span>
@@ -778,11 +774,10 @@ export default function AppDashboardPage() {
               type="button"
               id="tab-btn-bills"
               onClick={() => setPurchaseActiveTab("bills")}
-              className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 transition-all ${
-                purchaseActiveTab === "bills"
+              className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 transition-all ${purchaseActiveTab === "bills"
                   ? "bg-surface text-indigo-600 font-semibold shadow-xs dark:text-indigo-400"
                   : "text-text-muted hover:text-text"
-              }`}
+                }`}
             >
               <Receipt className="h-3.5 w-3.5" />
               <span>Vendor Bills ({vendorBills.length})</span>
@@ -947,7 +942,9 @@ export default function AppDashboardPage() {
                     <th className="px-4 py-3">Vendor Name</th>
                     <th className="px-4 py-3">Due Date</th>
                     <th className="px-4 py-3 text-right">Amount</th>
+                    <th className="px-4 py-3 text-right">Paid</th>
                     <th className="px-4 py-3">Payment Status</th>
+                    <th className="px-4 py-3 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border bg-surface">
@@ -964,10 +961,18 @@ export default function AppDashboardPage() {
                       <td className="px-4 py-3 text-right font-mono font-bold text-text">
                         ${bill.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                       </td>
+                      <td className="px-4 py-3 text-right font-mono font-medium text-emerald-600 dark:text-emerald-400">
+                        ${(bill.amount_paid ?? (bill.payment_status === "Paid" ? bill.amount : 0)).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      </td>
                       <td className="px-4 py-3">
                         {bill.payment_status === "Unpaid" && (
                           <span className="inline-flex items-center rounded-full border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-400">
                             Unpaid
+                          </span>
+                        )}
+                        {bill.payment_status === "Partially Paid" && (
+                          <span className="inline-flex items-center rounded-full border border-blue-200/60 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-400">
+                            Partially Paid
                           </span>
                         )}
                         {bill.payment_status === "Scheduled" && (
@@ -978,6 +983,23 @@ export default function AppDashboardPage() {
                         {bill.payment_status === "Paid" && (
                           <span className="inline-flex items-center rounded-full border border-emerald-200/60 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400">
                             Paid
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {bill.payment_status !== "Paid" ? (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedBillForPayment(bill)}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700 transition-colors shadow-xs"
+                          >
+                            <CreditCard className="h-3.5 w-3.5" />
+                            Pay
+                          </button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Settled
                           </span>
                         )}
                       </td>
@@ -1491,6 +1513,51 @@ export default function AppDashboardPage() {
             await queryClient.invalidateQueries({ queryKey: ["purchase-orders-paged"] });
             setIsCreatePOModalOpen(false);
             showToast(`Purchase Order ${newPO.po_number} created successfully for ${newPO.vendor_name}!`);
+          }}
+        />
+      )}
+
+      {selectedBillForPayment && (
+        <PaymentModal
+          isOpen={Boolean(selectedBillForPayment)}
+          onClose={() => setSelectedBillForPayment(null)}
+          billId={selectedBillForPayment.id}
+          billNumber={selectedBillForPayment.bill_number}
+          vendorName={selectedBillForPayment.vendor_name}
+          totalAmount={selectedBillForPayment.amount}
+          amountPaid={
+            selectedBillForPayment.amount_paid ??
+            (selectedBillForPayment.payment_status === "Paid" ? selectedBillForPayment.amount : 0)
+          }
+          onSuccess={(payment) => {
+            setCreatedBills((prev) => {
+              const existingIdx = prev.findIndex((b) => b.id === selectedBillForPayment.id);
+              const targetBill = existingIdx >= 0 ? prev[existingIdx] : selectedBillForPayment;
+              const prevPaid =
+                targetBill.amount_paid ?? (targetBill.payment_status === "Paid" ? targetBill.amount : 0);
+              const newPaid = prevPaid + payment.amount;
+              const newStatus: "Paid" | "Partially Paid" =
+                newPaid >= targetBill.amount - 0.001 ? "Paid" : "Partially Paid";
+
+              const updatedBill: VendorBill = {
+                ...targetBill,
+                amount_paid: newPaid,
+                payment_status: newStatus,
+              };
+
+              if (existingIdx >= 0) {
+                return prev.map((b, i) => (i === existingIdx ? updatedBill : b));
+              }
+              return [updatedBill, ...prev];
+            });
+
+            showToast(
+              `Payment ${payment.payment_number} ($${payment.amount.toFixed(
+                2
+              )}) recorded for Bill ${selectedBillForPayment.bill_number}! Journal Entry auto-posted.`
+            );
+            queryClient.invalidateQueries({ queryKey: ["vendor-bills"] });
+            setSelectedBillForPayment(null);
           }}
         />
       )}
