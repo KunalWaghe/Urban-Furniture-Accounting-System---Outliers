@@ -5,7 +5,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 **How to use:** every task is a tickbox. When a task is done, tick it (`- [x]`) and move it to the **DONE** list at the top. Completed tasks always show on top. Within every section, tasks are grouped **Backend → Frontend → Integration**.
 
-**Last updated:** 5 September 2026, 2:05 PM — Excalidraw requirements reconciled; email-based auth baseline reopened for `loginId` correction
+**Last updated:** 5 September 2026, 5:07 PM — Master data seed verified (Accounts, Journals, Contacts, Products); Task board cleaned and reconciled
 **Current phase/gate:** 10:00 AM — Foundation & First Vertical Slice  
 **Stable URL:** http://localhost:3000 (dev)  
 **Stable commit/tag:** `a03511e` on `feat/auth`  
@@ -46,10 +46,8 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 ### Backend
 
 - [x] **P0-BE-05** — Purchase Order model & create/confirm endpoints · Kunal · 5 Sep, 4:05 PM — Evidence: `tests/test_purchase_order.py` PASSED (2/2 lifecycle & validation tests passed, sequential PO-0001 generation, line items, status draft -> confirmed) · Integrated & Verified
-- [x] **P0-BE-02R** — Auth identity and role contract correction · Kunal · 5 Sep, 3:40 PM — Evidence: `tests/test_auth.py` PASSED (5/5 auth tests: login_id 6–12 chars, unique email/login_id, password policy, Invalid Login Id or Password error msg, role rules) · Integrated & Verified
-
 - [x] **P0-BE-02R** — Auth identity and role contract correction · Kunal · 5 Sep, 3:45 PM — Evidence: `tests/test_auth.py` PASSED (3/3 auth tests, 9/9 backend suite); public registration strictly creates `invoicing_user`; privilege escalation to admin rejected with 422; Admin user creation protected via `POST /api/v1/users` (403 for non-admins, 201 for admin); login uses `login_id` with 401 "Invalid Login Id or Password" · Integrated & Verified
-- [x] **P0-BE-04** — Chart of Accounts & Journals seed + endpoints · Kunal · 5 Sep, 1:25 PM — Evidence: `tests/test_accounts_and_journals.py` PASSED (5 account types & 4 journals seeded and fetchable) · Integrated & Verified
+- [x] **P0-BE-04** — Chart of Accounts & Journals seed + endpoints · Kunal · 5 Sep, 1:25 PM — Evidence: `tests/test_accounts_and_journals.py` PASSED (5 account types & 4 journals seeded and fetchable); `seed.py` deterministic master data run verified · Integrated & Verified
 - [x] **P0-BE-03** — Contact & Product models + CRUD endpoints · Kunal · 5 Sep, 12:45 PM — Evidence: `tests/test_contacts.py` & `test_products.py` PASSED · Integrated & Verified
 - [x] **P0-BE-02 (baseline)** — User model + JWT Auth endpoints (email-based register/login/me) · Kunal · 5 Sep, 11:35 AM — Evidence: `tests/test_auth.py` PASSED + live HTTP verified · Baseline only; superseded by Excalidraw auth contract correction below
 - [x] **P0-BE-01** — FastAPI scaffold + PostgreSQL setup · Kunal · 5 Sep, 11:25 AM — Evidence: `GET /health` returns 200 `connected` · Integrated & Verified
@@ -74,7 +72,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Backend
 
-- [ ] **P0-BE-05** — Purchase Order model & create/confirm endpoints · Kunal · 45m · Depends: P0-BE-03 · Started 1:25 PM — Contract: `POST/GET /api/v1/purchase-orders`, `PATCH /confirm` · Done when: PO created in draft, confirmed changes status
+- [ ] **P0-BE-06** — Vendor Bill creation + auto Journal Entry logic · Kunal · 60m · Depends: P0-BE-05, P0-BE-04 — Contract: `POST /api/v1/purchase-orders/:id/create-bill` · Done when: bill created; balanced Journal Entry (Debit Expense / Credit AP)
 
 ### Frontend
 
@@ -86,7 +84,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Backend
 
-- [ ] **P0-BE-06** — Vendor Bill creation + auto Journal Entry logic · Kunal · 60m · Depends: P0-BE-05, P0-BE-04 — Contract: `POST /api/v1/purchase-orders/:id/create-bill` · Done when: bill created; balanced Journal Entry (Debit Expense / Credit AP)
+- [ ] **P0-BE-07** — Payment endpoint + auto Journal Entry (Outbound) · Kunal · 45m · Depends: P0-BE-06 — Contract: `POST /api/v1/payments` · Done when: bill status updated to paid; Debit AP / Credit Bank or Cash
 
 ### Frontend
 
@@ -99,8 +97,6 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 ### Backend
 
 - [ ] **P0-BE-03R** — Contact/Product Excalidraw fields + category support · Kunal · 45m · Depends: P0-BE-03 · Add contact profile image/phone parity and product type (`goods|service|combo`), category, sales price, cost price, and optional image; support inline category creation · Done when: corrected schemas/tests expose the fields without breaking baseline CRUD
-- [ ] **P0-BE-04** — Chart of Accounts, Journals & Analytic Account seed/list endpoints · Kunal · 45m · Depends: P0-BE-01 · Contract: `GET /api/v1/accounts`, `GET /api/v1/journals`, `GET /api/v1/analytic-accounts` · Done when: fixed account types, 4 journals, and Income/Expense analytics are seeded and fetchable
-- [ ] **P0-BE-05** — Purchase Order model & create/confirm endpoints · Kunal · 45m · Depends: P0-BE-03R, P0-BE-04 — Contract: `POST /api/v1/purchase-orders` · Done when: PO created in draft, confirmed changes status, and lines retain account/expense-analytic references
 - [ ] **P0-BE-06** — Vendor Bill creation + auto Journal Entry logic · Kunal · 60m · Depends: P0-BE-05, P0-BE-04 — Contract: `POST /api/v1/purchase-orders/:id/create-bill` · Done when: bill created; balanced Journal Entry (Debit Expense / Credit AP)
 - [ ] **P0-BE-07** — Payment endpoint + auto Journal Entry (Outbound) · Kunal · 45m · Depends: P0-BE-06 — Contract: `POST /api/v1/payments` · Done when: bill status updated to paid; Debit AP / Credit Bank or Cash
 - [ ] **P0-BE-08** — Sales Order model & create/confirm endpoints · Kunal · 45m · Depends: P0-BE-03R, P0-BE-04 — Contract: `POST /api/v1/sales-orders` · Done when: SO created in draft, confirmed changes status, and lines retain account/income-analytic references

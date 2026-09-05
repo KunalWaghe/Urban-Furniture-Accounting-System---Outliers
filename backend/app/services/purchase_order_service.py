@@ -2,10 +2,10 @@
 Service logic for Purchase Orders (P0-BE-05).
 """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 
 from app.models.purchase_order import PurchaseOrder, PurchaseOrderLine
 from app.models.contact import Contact
