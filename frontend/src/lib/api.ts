@@ -10,10 +10,11 @@
  * instead of using raw `fetch` against the backend.
  */
 
+import { HTTP_STATUS, STORAGE_KEYS } from "./constants";
 import type { ApiErrorEnvelope } from "./types";
 
 /** localStorage/sessionStorage key used to persist the JWT after login. */
-const TOKEN_STORAGE_KEY = "uf_auth_token";
+const TOKEN_STORAGE_KEY = STORAGE_KEYS.AUTH_TOKEN;
 
 /**
  * Structured error thrown when the API returns a non-2xx response.
@@ -181,7 +182,7 @@ export async function apiFetch<T>(
   });
 
   if (response.ok) {
-    if (response.status === 204) {
+    if (response.status === HTTP_STATUS.NO_CONTENT) {
       return undefined as T;
     }
 

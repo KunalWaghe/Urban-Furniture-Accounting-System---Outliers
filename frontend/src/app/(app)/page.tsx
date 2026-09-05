@@ -39,75 +39,48 @@ import type {
   Product,
   SalesOrder,
   PurchaseOrder,
-  VendorBill,
 } from "@/lib/types";
-import { buildDashboardDataFromBackend } from "@/features/dashboard/dashboard-api";
-import { useContacts, useProducts } from "@/features/dashboard/queries";
+import {
+  useDashboardCustomerInvoiceStats,
+  useDashboardOrderData,
+  useProducts,
+} from "@/features/dashboard/queries";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   createPurchaseOrder,
   confirmPurchaseOrder,
 } from "@/features/purchase-orders/purchase-orders-api";
+import {
+  createSalesOrder,
+  confirmSalesOrder,
+} from "@/features/sales-orders/sales-orders-api";
+import { createBillFromPo } from "@/features/vendor-bills/vendor-bills-api";
 
 /**
  * Main dashboard page — sales, purchase, and budget overview in one scrollable view.
  *
  * Data sources:
- * - Server state: contacts and products from React Query (`useContacts`, `useProducts`).
- * - Local state: user-created orders/bills layered on demo data from `buildDashboardDataFromBackend`.
+ * - Server state: contacts, products, sales/purchase orders, vendor bills, and
+ *   budget metrics from React Query hooks backed by live APIs.
  *
  * This page does not import a feature page component; all UI and modals are defined here.
  */
 export default function AppDashboardPage() {
   const queryClient = useQueryClient();
-  // Backend master data from the TanStack Query server cache
   const {
-    data: contactsData,
-    isLoading: contactsLoading,
-    refetch: refetchContacts,
-  } = useContacts();
-  const {
-    data: productsData,
-    isLoading: productsLoading,
-    refetch: refetchProducts,
-  } = useProducts();
+    contacts,
+    salesOrders,
+    purchaseOrders,
+    vendorBills,
+    budgetMetric,
+    isLoading: loading,
+    refetchAll,
+  } = useDashboardOrderData();
+  const { data: productsData, isLoading: productsLoading } = useProducts();
+  const { data: invoiceStats } = useDashboardCustomerInvoiceStats();
 
-  const contacts = useMemo(() => contactsData ?? [], [contactsData]);
   const products = useMemo(() => productsData ?? [], [productsData]);
-  const loading = contactsLoading || productsLoading;
-
-  // Server-derived demo entities (no backend order endpoints yet)
-  const baseData = useMemo(
-    () => (loading ? null : buildDashboardDataFromBackend(contacts, products)),
-    [loading, contacts, products]
-  );
-
-  // Local client-side additions layered on top of the server-derived base.
-  // Creating orders/bills or converting a PO only touches these lists, so a
-  // background refetch never wipes what the user just created.
-  const [createdOrders, setCreatedOrders] = useState<SalesOrder[]>([]);
-  const [createdPOs, setCreatedPOs] = useState<PurchaseOrder[]>([]);
-  const [createdBills, setCreatedBills] = useState<VendorBill[]>([]);
-  const [billedPoIds, setBilledPoIds] = useState<Record<string, true>>({});
-
-  const salesOrders = useMemo(
-    () => [...createdOrders, ...(baseData?.salesOrders ?? [])],
-    [createdOrders, baseData]
-  );
-  const purchaseOrders = useMemo(
-    () => [
-      ...createdPOs,
-      ...(baseData?.purchaseOrders ?? []).map((po) =>
-        billedPoIds[po.id] ? { ...po, status: "Partially Billed" as const } : po
-      ),
-    ],
-    [createdPOs, baseData, billedPoIds]
-  );
-  const vendorBills = useMemo(
-    () => [...createdBills, ...(baseData?.vendorBills ?? [])],
-    [createdBills, baseData]
-  );
-  const budgetMetric = baseData?.budgetMetric ?? null;
+  const dataLoading = loading || productsLoading;
 
   // Filter & View States
   const [salesFilterStatus, setSalesFilterStatus] = useState<string>("all");
@@ -133,23 +106,18 @@ export default function AppDashboardPage() {
     }, 4000);
   }, []);
 
-  /**
-   * Re-fetches contacts and products from the backend, then clears locally
-   * created orders/POs/bills so the dashboard shows fresh server data only.
-   */
+  /** Re-fetches all dashboard data from the backend APIs. */
   const handleRefresh = useCallback(async () => {
     try {
-      await Promise.all([refetchContacts(), refetchProducts()]);
-      setCreatedOrders([]);
-      setCreatedPOs([]);
-      setCreatedBills([]);
-      setBilledPoIds({});
+      await refetchAll();
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+      await queryClient.invalidateQueries({ queryKey: ["customer-invoices", "stats"] });
       showToast("Backend data refreshed successfully.");
     } catch (err) {
       console.error("Failed to refresh dashboard data:", err);
-      showToast("Could not sync with backend. Using cached domain models.");
+      showToast("Could not sync with backend. Using cached data.");
     }
-  }, [refetchContacts, refetchProducts, showToast]);
+  }, [refetchAll, queryClient, showToast]);
 
   // Keyboard shortcut ESC to close modals
   useEffect(() => {
@@ -295,33 +263,30 @@ export default function AppDashboardPage() {
     };
   }, [purchaseOrders, vendorBills]);
 
-  /**
-   * Client-side demo: converts a PO into a vendor bill without calling the API.
-   * Updates local `createdBills` and marks the PO as "Partially Billed".
-   */
-  const handleConvertPOToBill = useCallback((po: PurchaseOrder) => {
-    const randomSuffix = Math.floor(400 + Math.random() * 90);
-    const newBillNumber = `BILL-2025-0${randomSuffix}`;
-    const newBill: VendorBill = {
-      id: `bill-${Date.now()}`,
-      bill_number: newBillNumber,
-      vendor_name: po.vendor_name,
-      due_date: "Mar 25, 2025",
-      amount: po.total_amount,
-      payment_status: "Unpaid",
-    };
-
-    setCreatedBills((prev) => [newBill, ...prev]);
-    setBilledPoIds((prev) => ({ ...prev, [po.id]: true }));
-    setSelectedPurchaseOrder(null);
-    showToast(
-      `Vendor Bill ${newBillNumber} created for ${po.vendor_name} ($${po.total_amount.toLocaleString(
-        "en-US",
-        { minimumFractionDigits: 2 }
-      )})`
-    );
-    setPurchaseActiveTab("bills");
-  }, [showToast]);
+  /** Creates a vendor bill from a confirmed PO via the backend API. */
+  const handleConvertPOToBill = useCallback(
+    async (po: PurchaseOrder) => {
+      try {
+        const newBill = await createBillFromPo(Number(po.id));
+        await queryClient.invalidateQueries({ queryKey: ["vendor-bills"] });
+        await queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+        setSelectedPurchaseOrder(null);
+        showToast(
+          `Vendor Bill ${newBill.bill_number} created for ${po.vendor_name} ($${newBill.total_amount.toLocaleString(
+            "en-US",
+            { minimumFractionDigits: 2 }
+          )})`
+        );
+        setPurchaseActiveTab("bills");
+      } catch (err) {
+        console.error("Failed to create vendor bill:", err);
+        showToast(
+          err instanceof Error ? err.message : "Could not create vendor bill from PO."
+        );
+      }
+    },
+    [queryClient, showToast]
+  );
 
   return (
     <div className="space-y-6 pb-12">
@@ -378,11 +343,11 @@ export default function AppDashboardPage() {
             <button
               type="button"
               onClick={handleRefresh}
-              disabled={loading}
+              disabled={dataLoading}
               className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-surface text-text-muted transition-colors hover:bg-surface-muted hover:text-primary-600 disabled:opacity-50"
               title="Refresh backend data"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${dataLoading ? "animate-spin" : ""}`} />
             </button>
             <button
               type="button"
@@ -548,19 +513,19 @@ export default function AppDashboardPage() {
               </span>
             </div>
             <div className="flex items-center gap-2.5 text-xs">
-              <button
-                onClick={() => showToast("Showing 8 linked Customer Invoices")}
+              <Link
+                href="/sales-invoices"
                 className="rounded-md px-2 py-0.5 font-medium text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/40 transition-colors"
               >
-                Sale Invoices (8)
-              </button>
+                Sale Invoices ({invoiceStats?.total ?? 0})
+              </Link>
               <span className="text-border">|</span>
-              <button
-                onClick={() => showToast("Showing 10 linked Payment Receipts")}
+              <Link
+                href="/sales-invoices"
                 className="rounded-md px-2 py-0.5 font-medium text-text-muted hover:bg-surface-muted hover:text-primary-600 transition-colors"
               >
-                Receipts (10)
-              </button>
+                Receipts ({invoiceStats?.paid ?? 0})
+              </Link>
             </div>
           </div>
 
@@ -1161,7 +1126,8 @@ export default function AppDashboardPage() {
                 </span>
               </span>
               <span className="font-mono text-xs font-medium text-text-muted">
-                Committed: $512.3k / Cap: $650.0k ({budgetMetric.committed_percent}%)
+                Committed: ${(budgetMetric.committed_amount / 1000).toFixed(1)}k / Cap: $
+                {(budgetMetric.budget_cap / 1000).toFixed(1)}k ({budgetMetric.committed_percent}%)
               </span>
             </div>
 
@@ -1503,11 +1469,11 @@ export default function AppDashboardPage() {
           customers={backendCustomers}
           products={products}
           onClose={() => setIsCreateOrderModalOpen(false)}
-          onCreate={(newOrder) => {
-            setCreatedOrders((prev) => [newOrder, ...prev]);
+          onCreate={async () => {
+            await queryClient.invalidateQueries({ queryKey: ["sales-orders"] });
             setIsCreateOrderModalOpen(false);
-            showToast(`Sales Order ${newOrder.order_number} created successfully for ${newOrder.customer_name}!`);
           }}
+          showToast={showToast}
         />
       )}
 
@@ -1519,10 +1485,9 @@ export default function AppDashboardPage() {
           vendors={backendVendors}
           products={products}
           onClose={() => setIsCreatePOModalOpen(false)}
-          onCreate={(newPO) => {
-            setCreatedPOs((prev) => [newPO, ...prev]);
-            queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
-            queryClient.invalidateQueries({ queryKey: ["purchase-orders-paged"] });
+          onCreate={async (newPO) => {
+            await queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+            await queryClient.invalidateQueries({ queryKey: ["purchase-orders-paged"] });
             setIsCreatePOModalOpen(false);
             showToast(`Purchase Order ${newPO.po_number} created successfully for ${newPO.vendor_name}!`);
           }}
@@ -1533,19 +1498,21 @@ export default function AppDashboardPage() {
 }
 
 /**
- * Modal form to create a new sales order from backend customers and products.
- * Used only on the dashboard — not a shared route-level feature component.
+ * Modal form to create a new sales order via the backend API.
+ * Calls `createSalesOrder` and optionally `confirmSalesOrder` on submit.
  */
 function CreateSalesOrderModal({
   customers,
   products,
   onClose,
   onCreate,
+  showToast,
 }: {
   customers: Contact[];
   products: Product[];
   onClose: () => void;
-  onCreate: (order: SalesOrder) => void;
+  onCreate: () => Promise<void>;
+  showToast: (msg: string) => void;
 }) {
   const [selectedCustomerId, setSelectedCustomerId] = useState<number>(
     customers[0]?.id || 1
@@ -1555,50 +1522,64 @@ function CreateSalesOrderModal({
   );
   const [quantity, setQuantity] = useState<number>(1);
   const [status, setStatus] = useState<"Confirmed" | "Draft">("Confirmed");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const customer = customers.find((c) => c.id === selectedCustomerId) || customers[0];
   const product = products.find((p) => p.id === selectedProductId) || products[0];
 
   const unitPrice = product ? Number(product.price) : 14500;
-  const taxPercent = product ? Number(product.tax_percent) : 18;
+  const taxPercent = product ? Number(product.tax_percent ?? 0) : 18;
   const subtotal = unitPrice * quantity;
   const totalAmount = subtotal * (1 + taxPercent / 100);
 
-  /** Builds a SalesOrder from selected customer/product and passes it to onCreate. */
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customer) return;
+    if (!customer) {
+      setError("Please select a customer.");
+      return;
+    }
+    if (!product) {
+      setError("Please select a product.");
+      return;
+    }
+    if (quantity <= 0) {
+      setError("Quantity must be at least 1.");
+      return;
+    }
 
-    const locationStr = [customer.city, customer.state].filter(Boolean).join(", ") || "India Delivery Hub";
+    setSubmitting(true);
+    setError(null);
 
-    const newOrder: SalesOrder = {
-      id: `so-${Date.now()}`,
-      order_number: `SO-2025-0${Math.floor(892 + Math.random() * 90)}`,
-      contact_id: customer.id,
-      customer_name: customer.name,
-      customer_location: locationStr,
-      customer_email: customer.email || "procurement@client.com",
-      customer_phone: customer.mobile || "+91 98000 00000",
-      order_date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      status,
-      total_amount: Math.round(totalAmount * 100) / 100,
-      items: [
-        {
-          product_name: product?.name || "Executive Ergonomic Chair",
-          category: product?.category || "Furniture",
-          quantity,
-          unit_price: unitPrice,
-          tax_percent: taxPercent,
-          total: Math.round(totalAmount * 100) / 100,
-        },
-      ],
-    };
+    try {
+      const created = await createSalesOrder({
+        customer_id: customer.id,
+        lines: [
+          {
+            product_id: product.id,
+            quantity,
+            unit_price: unitPrice,
+          },
+        ],
+      });
 
-    onCreate(newOrder);
+      if (status === "Confirmed") {
+        try {
+          await confirmSalesOrder(Number(created.id));
+        } catch (confirmErr) {
+          console.warn("Could not confirm SO, saved as draft:", confirmErr);
+        }
+      }
+
+      showToast(
+        `Sales Order ${created.order_number} created successfully for ${customer.name}!`
+      );
+      await onCreate();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create sales order on server.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -1617,11 +1598,18 @@ function CreateSalesOrderModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text"
+            disabled={submitting}
+            className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text disabled:opacity-50"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
+
+        {error && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-xs">
           <div>
@@ -1629,7 +1617,8 @@ function CreateSalesOrderModal({
             <select
               value={selectedCustomerId}
               onChange={(e) => setSelectedCustomerId(Number(e.target.value))}
-              className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+              disabled={submitting}
+              className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50"
             >
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -1644,7 +1633,8 @@ function CreateSalesOrderModal({
             <select
               value={selectedProductId}
               onChange={(e) => setSelectedProductId(Number(e.target.value))}
-              className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+              disabled={submitting}
+              className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50"
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -1663,7 +1653,8 @@ function CreateSalesOrderModal({
                 max="100"
                 value={quantity}
                 onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                disabled={submitting}
+                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50"
               />
             </div>
             <div>
@@ -1671,7 +1662,8 @@ function CreateSalesOrderModal({
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as "Confirmed" | "Draft")}
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                disabled={submitting}
+                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50"
               >
                 <option value="Confirmed">Confirmed (Ready to Bill)</option>
                 <option value="Draft">Draft (Quotation)</option>
@@ -1698,15 +1690,24 @@ function CreateSalesOrderModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-border px-4 py-2 text-text-muted hover:bg-surface-muted hover:text-text transition-colors"
+              disabled={submitting}
+              className="rounded-xl border border-border px-4 py-2 text-text-muted hover:bg-surface-muted hover:text-text transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-primary-600 px-4 py-2 font-semibold text-white hover:bg-primary-700 transition-colors shadow-sm"
+              disabled={submitting || customers.length === 0 || products.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 font-semibold text-white hover:bg-primary-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Confirm Order
+              {submitting ? (
+                <>
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                  <span>Creating...</span>
+                </>
+              ) : (
+                <span>Confirm Order</span>
+              )}
             </button>
           </div>
         </form>
@@ -1728,7 +1729,7 @@ function CreatePurchaseOrderModal({
   vendors: Contact[];
   products: Product[];
   onClose: () => void;
-  onCreate: (po: PurchaseOrder) => void;
+  onCreate: (po: PurchaseOrder) => void | Promise<void>;
 }) {
   const [selectedVendorId, setSelectedVendorId] = useState<number | undefined>();
   const [selectedProductId, setSelectedProductId] = useState<number | undefined>();
@@ -1807,7 +1808,7 @@ function CreatePurchaseOrderModal({
         vendor_email: vendor.email || "supply@vendor.com",
       };
 
-      onCreate(finalPO);
+      await onCreate(finalPO);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to create purchase order on server."

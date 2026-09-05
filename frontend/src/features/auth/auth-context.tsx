@@ -34,11 +34,12 @@ import {
   getStoredToken,
   setStoredToken,
 } from "@/lib/api";
+import { HTTP_STATUS, STORAGE_KEYS } from "@/lib/constants";
 import type { AuthUser, LoginRequest, RegisterRequest } from "@/lib/types";
 
 import { fetchCurrentUser, loginRequest, registerRequest } from "./api";
 
-const USER_STORAGE_KEY = "uf_auth_user";
+const USER_STORAGE_KEY = STORAGE_KEYS.AUTH_USER;
 
 /**
  * Shape of everything available from `useAuth()`.
@@ -235,7 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }));
       })
       .catch((error: unknown) => {
-        if (error instanceof ApiError && error.status === 401) {
+        if (error instanceof ApiError && error.status === HTTP_STATUS.UNAUTHORIZED) {
           clearSession();
           setSession({ user: null, token: null });
         }

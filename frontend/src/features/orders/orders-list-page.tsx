@@ -2,7 +2,7 @@
  * Shared orders list page for Sales Orders and Purchase Orders routes.
  *
  * Data flow:
- * - Sales: useSalesOrders → orders-api → dashboard data (client-side filter + pagination)
+ * - Sales: useSalesOrders → orders-api → sales-orders API
  * - Purchase: usePaginatedPurchaseOrders → orders-api → purchase-orders API (server-side)
  *
  * Local UI state: search query, status filter, pagination, sort (PO only), detail modal (sales).

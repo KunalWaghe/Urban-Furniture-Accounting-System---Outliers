@@ -13,6 +13,7 @@
  */
 
 import { ApiError, apiFetch } from "@/lib/api";
+import { HTTP_STATUS } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
 import type { Account, Contact, ContactListResponse, Product, ProductListResponse, SalesOrder } from "@/lib/types";
 
@@ -87,7 +88,7 @@ function isBackendUnavailable(err: unknown): boolean {
   // Network failure / connection refused
   if (err instanceof TypeError) return true;
   // Backend returned 404 for the SO route itself (route not deployed)
-  if (err instanceof ApiError && err.status === 404) return true;
+  if (err instanceof ApiError && err.status === HTTP_STATUS.NOT_FOUND) return true;
   return false;
 }
 

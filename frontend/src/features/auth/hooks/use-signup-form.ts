@@ -18,6 +18,7 @@ import type { FormEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
+import { HTTP_STATUS } from "@/lib/constants";
 import { useCreateUser } from "@/features/users/queries";
 
 import { useAuth } from "../auth-context";
@@ -195,7 +196,7 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
    */
   function handleApiError(error: unknown, actionName: string) {
     if (error instanceof ApiError) {
-      if (error.status === 422 && error.fields) {
+      if (error.status === HTTP_STATUS.UNPROCESSABLE_ENTITY && error.fields) {
         const apiErrors = mapApiFieldsToSignupErrors(error.fields);
         setErrors((prev) => ({ ...prev, ...apiErrors }));
         setNotice({
@@ -210,7 +211,7 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
         return;
       }
 
-      if (error.status === 403) {
+      if (error.status === HTTP_STATUS.FORBIDDEN) {
         setNotice({
           kind: "error",
           title: "Access Denied",
@@ -219,7 +220,7 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
         return;
       }
 
-      if (error.status === 409) {
+      if (error.status === HTTP_STATUS.CONFLICT) {
         if (error.code === "LOGIN_ID_ALREADY_EXISTS") {
           setErrors((prev) => ({
             ...prev,
