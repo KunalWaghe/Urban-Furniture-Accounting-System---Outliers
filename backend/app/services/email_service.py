@@ -36,7 +36,9 @@ def send_email(
         )
         return False
 
-    from_email = settings.EMAILS_FROM_EMAIL or settings.SMTP_USER
+    smtp_user = settings.SMTP_USER.strip()
+    smtp_pass = settings.SMTP_PASSWORD.replace(" ", "").strip()
+    from_email = (settings.EMAILS_FROM_EMAIL or smtp_user).strip()
     from_name = settings.EMAILS_FROM_NAME or "Urban Furniture Accounting"
 
     msg = MIMEMultipart("alternative")
@@ -59,7 +61,7 @@ def send_email(
             server.ehlo()
             server.starttls()
             server.ehlo()
-            server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+            server.login(smtp_user, smtp_pass)
             server.send_message(msg)
 
         logger.info(f"[EMAIL SERVICE] Email successfully sent to {to_email}: '{subject}'")
