@@ -1,3 +1,15 @@
+/**
+ * Next.js App Router — Dashboard (Home) Page
+ *
+ * Route: `/` (the app home after login)
+ *
+ * Unlike most routes in this project, the dashboard UI lives directly in this file
+ * instead of a separate feature component under `@/features/`. It is a client component
+ * (`"use client"`) because it uses hooks, local state, and browser events.
+ *
+ * Auth: protected by `(app)/layout.tsx` via `RequireAuth` (must be logged in).
+ * No extra role guard — any authenticated user sees this page.
+ */
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
@@ -37,6 +49,15 @@ import {
   confirmPurchaseOrder,
 } from "@/features/purchase-orders/purchase-orders-api";
 
+/**
+ * Main dashboard page — sales, purchase, and budget overview in one scrollable view.
+ *
+ * Data sources:
+ * - Server state: contacts and products from React Query (`useContacts`, `useProducts`).
+ * - Local state: user-created orders/bills layered on demo data from `buildDashboardDataFromBackend`.
+ *
+ * This page does not import a feature page component; all UI and modals are defined here.
+ */
 export default function AppDashboardPage() {
   const queryClient = useQueryClient();
   // Backend master data from the TanStack Query server cache
@@ -104,6 +125,7 @@ export default function AppDashboardPage() {
   // Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  /** Shows a temporary success/info banner; auto-dismisses after 4 seconds. */
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
@@ -111,8 +133,10 @@ export default function AppDashboardPage() {
     }, 4000);
   }, []);
 
-  // Refresh backend master data on demand: revalidate the server cache and
-  // clear local additions so the dashboard reflects fresh server data.
+  /**
+   * Re-fetches contacts and products from the backend, then clears locally
+   * created orders/POs/bills so the dashboard shows fresh server data only.
+   */
   const handleRefresh = useCallback(async () => {
     try {
       await Promise.all([refetchContacts(), refetchProducts()]);
@@ -211,7 +235,7 @@ export default function AppDashboardPage() {
         !query ||
         order.order_number.toLowerCase().includes(query) ||
         order.customer_name.toLowerCase().includes(query) ||
-        order.customer_location.toLowerCase().includes(query) ||
+        Boolean(order.customer_location?.toLowerCase().includes(query)) ||
         order.items.some((item) =>
           item.product_name.toLowerCase().includes(query)
         );
@@ -271,7 +295,10 @@ export default function AppDashboardPage() {
     };
   }, [purchaseOrders, vendorBills]);
 
-  // Direct Create Bill action on a PO
+  /**
+   * Client-side demo: converts a PO into a vendor bill without calling the API.
+   * Updates local `createdBills` and marks the PO as "Partially Billed".
+   */
   const handleConvertPOToBill = useCallback((po: PurchaseOrder) => {
     const randomSuffix = Math.floor(400 + Math.random() * 90);
     const newBillNumber = `BILL-2025-0${randomSuffix}`;
@@ -1505,7 +1532,10 @@ export default function AppDashboardPage() {
   );
 }
 
-// Subcomponent: Modal to create Sales Order using backend Contacts & Products
+/**
+ * Modal form to create a new sales order from backend customers and products.
+ * Used only on the dashboard — not a shared route-level feature component.
+ */
 function CreateSalesOrderModal({
   customers,
   products,
@@ -1534,6 +1564,7 @@ function CreateSalesOrderModal({
   const subtotal = unitPrice * quantity;
   const totalAmount = subtotal * (1 + taxPercent / 100);
 
+  /** Builds a SalesOrder from selected customer/product and passes it to onCreate. */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customer) return;
@@ -1684,7 +1715,10 @@ function CreateSalesOrderModal({
   );
 }
 
-// Subcomponent: Modal to create Purchase Order using backend Vendors & Products
+/**
+ * Modal form to create a new purchase order via the backend API.
+ * Calls `createPurchaseOrder` and optionally `confirmPurchaseOrder` on submit.
+ */
 function CreatePurchaseOrderModal({
   vendors,
   products,
@@ -1711,12 +1745,17 @@ function CreatePurchaseOrderModal({
   const unitCost = customUnitCost ?? (product?.cost ?? product?.price ?? 2400);
   const totalAmount = quantity * unitCost;
 
+  /** When product changes, reset unit cost to the product's default cost/price. */
   const handleProductChange = (productId: number) => {
     setSelectedProductId(productId);
     const prod = products.find((p) => p.id === productId);
     setCustomUnitCost(prod ? (prod.cost ?? prod.price ?? 0) : null);
   };
 
+  /**
+   * Creates PO via backend API, confirms it, enriches vendor details, then
+   * calls onCreate so the parent can add it to the local dashboard list.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!vendor) {

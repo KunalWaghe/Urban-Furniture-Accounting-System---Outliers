@@ -1,3 +1,14 @@
+/**
+ * Vendor Bill detail page — view bill, confirm draft, or register payment.
+ *
+ * Data flow:
+ * - Query: useQuery → fetchVendorBill → GET /vendor-bills/:id
+ * - Confirm mutation: confirmVendorBill (re-fetch for now)
+ * - Pay mutation: payVendorBill (local optimistic update until backend endpoint exists)
+ *
+ * Local UI state: confirm dialog, payment modal, payment form fields (method, date, notes).
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -9,10 +20,8 @@ import {
   CheckCircle2,
   Clock,
   CreditCard,
-  DollarSign,
   FileCheck,
   FileText,
-  ShieldAlert,
   Wallet,
 } from "lucide-react";
 
@@ -33,23 +42,31 @@ interface VendorBillDetailPageProps {
   billId: string;
 }
 
+/**
+ * Shows one vendor bill with line items, financial summary, and workflow actions.
+ *
+ * @param billId - Bill ID from the URL route param.
+ */
 export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
   const queryClient = useQueryClient();
 
+  // ── Dialog / modal visibility ─────────────────────────────────────────────
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
-  // Payment Form state
+  // ── Payment form state (local until payMutation submits) ─────────────────
   const [paymentMethod, setPaymentMethod] = useState<"bank" | "cash">("bank");
   const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [paymentNotes, setPaymentNotes] = useState("");
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
+  // ── Server state: load bill by ID ─────────────────────────────────────────
   const billQuery = useQuery({
     queryKey: ["vendor-bill", billId],
     queryFn: () => fetchVendorBill(billId),
   });
 
+  // ── Mutation: confirm draft bill (posts to ledger) ───────────────────────
   const confirmMutation = useMutation({
     mutationFn: () => confirmVendorBill(billId),
     onSuccess: () => {
@@ -59,6 +76,7 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
     },
   });
 
+  // ── Mutation: register payment (bank or cash disbursement) ───────────────
   const payMutation = useMutation({
     mutationFn: (input: PaymentInput) => payVendorBill(billId, input),
     onSuccess: () => {
@@ -96,6 +114,7 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
   const isConfirmed = bill.status === "Confirmed";
   const isPaid = bill.status === "Paid";
 
+  /** Submits the payment form via payMutation with full amount_due. */
   function handleRegisterPayment(e: React.FormEvent) {
     e.preventDefault();
     payMutation.mutate({

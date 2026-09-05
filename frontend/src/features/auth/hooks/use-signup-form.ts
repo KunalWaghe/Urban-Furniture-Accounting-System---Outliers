@@ -1,3 +1,17 @@
+/**
+ * @file use-signup-form.ts
+ *
+ * Custom hook that owns signup and admin "create user" form logic.
+ *
+ * What this file does:
+ * - Manages signup fields, validation, password strength, and notices
+ * - Supports two modes: public signup (`register`) and admin create user (`useCreateUser`)
+ * - Maps API errors (422, 403, 409) back to form fields
+ *
+ * Who consumes this:
+ * - `SignupForm` component — renders UI for both /signup and admin create-user pages
+ */
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
@@ -14,6 +28,7 @@ import {
 import { getPasswordStrength, validateSignupFields } from "../validation";
 import type { AuthNotice, RoleValue, SignupErrors, SignupFields } from "../validation";
 
+/** Order used to focus the first invalid field on validation failure. */
 const FIELD_ORDER: Array<keyof SignupErrors> = [
   "name",
   "login_id",
@@ -26,11 +41,34 @@ const FIELD_ORDER: Array<keyof SignupErrors> = [
 
 import type { AuthUser, RegisterRequest } from "@/lib/types";
 
+/** Options passed from SignupForm to control behavior. */
 export interface UseSignupFormOptions {
+  /** "signup" = public registration; "admin-create" = admin creates internal user */
   mode?: "signup" | "admin-create";
+  /** Called after admin successfully creates a user (optional callback) */
   onSuccess?: (createdUser: AuthUser) => void;
 }
 
+/**
+ * Hook for signup / create-user forms — state, validation, submit, and errors.
+ *
+ * State owned:
+ * - `fields` — all form input values (name, login_id, email, passwords, role, terms)
+ * - `errors` — per-field validation/API error messages
+ * - `showPassword` — toggles password visibility
+ * - `notice` — top-of-form banner (error or success info)
+ *
+ * Derived (not stored):
+ * - `passwordStrength` — recalculated from fields.password
+ * - `passwordsMatch` — true when confirm matches password
+ *
+ * Side effects:
+ * - signup mode: register via AuthContext, then redirect to "/"
+ * - admin-create mode: POST via useCreateUser, reset form, show success notice
+ *
+ * @param options - mode and optional onSuccess callback
+ * @returns Form state, setters, handlers, and isSubmitting flag for SignupForm
+ */
 export function useSignupForm(options: UseSignupFormOptions = {}) {
   const { mode = "signup", onSuccess } = options;
   const router = useRouter();
@@ -59,6 +97,7 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
     fields.confirmPassword.length > 0 &&
     fields.password === fields.confirmPassword;
 
+  /** Updates a text field and clears its error. */
   function setField(
     field: keyof Omit<SignupFields, "acceptedTerms">,
     value: string
@@ -67,16 +106,21 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
+  /** Updates the role selector (admin-create mode only). */
   function setRole(value: RoleValue) {
     setFields((prev) => ({ ...prev, role: value }));
     setErrors((prev) => ({ ...prev, role: undefined }));
   }
 
+  /** Updates the terms checkbox (public signup only). */
   function setAcceptedTerms(value: boolean) {
     setFields((prev) => ({ ...prev, acceptedTerms: value }));
     setErrors((prev) => ({ ...prev, terms: undefined }));
   }
 
+  /**
+   * Form submit handler — validate, then register or create user depending on mode.
+   */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors = validateSignupFields(fields, {
@@ -131,7 +175,7 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
       return;
     }
 
-    // mode === "signup": Public registration creates user role (contact)
+    // Public signup — always creates a "contact" role user via /auth/register
     registerMutation.mutate(
       {
         name: fields.name.trim(),
@@ -146,6 +190,9 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
     );
   }
 
+  /**
+   * Handles API errors — maps 422 field errors, 403 forbidden, 409 duplicates.
+   */
   function handleApiError(error: unknown, actionName: string) {
     if (error instanceof ApiError) {
       if (error.status === 422 && error.fields) {

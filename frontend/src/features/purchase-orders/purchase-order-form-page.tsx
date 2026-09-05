@@ -1,3 +1,15 @@
+/**
+ * New Purchase Order form — create draft or confirmed PO with line items.
+ *
+ * Data flow:
+ * - Master data queries: vendors, products, expense accounts (for dropdowns)
+ * - Submit: createPurchaseOrder → POST /purchase-orders
+ * - Optional confirm: confirmPurchaseOrder → PATCH /confirm (when not saving as draft)
+ *
+ * Form state (local useState): vendor, date, line rows, validation error, submitting flag.
+ * No React Query mutations — save uses direct API calls then router.push to detail page.
+ */
+
 "use client";
 
 import { useMemo, useState } from "react";
@@ -17,6 +29,7 @@ import {
 } from "@/features/purchase-orders/purchase-orders-api";
 import { formatINR } from "@/lib/format";
 
+/** One editable row in the line items table (all fields stored as strings for inputs). */
 interface LineRow {
   key: string;
   productId: string;
@@ -25,6 +38,7 @@ interface LineRow {
   unitPrice: string;
 }
 
+/** Creates a blank line row with a unique key for React list rendering. */
 function emptyLine(): LineRow {
   return {
     key: crypto.randomUUID(),
@@ -35,6 +49,7 @@ function emptyLine(): LineRow {
   };
 }
 
+/** Computes qty × unit price for one line (returns 0 if inputs are invalid). */
 function lineTotal(line: LineRow): number {
   const qty = Number(line.quantity);
   const price = Number(line.unitPrice);
@@ -42,10 +57,15 @@ function lineTotal(line: LineRow): number {
   return qty * price;
 }
 
+/**
+ * Form page for creating a new purchase order with vendor, date, and line items.
+ * Supports "Save as Draft" or "Confirm" on submit.
+ */
 export function PurchaseOrderFormPage() {
   const router = useRouter();
   const today = new Date().toISOString().slice(0, 10);
 
+  // ── Form state (local — not synced to URL or server until submit) ────────
   const [vendorSearch, setVendorSearch] = useState("");
   const [vendorId, setVendorId] = useState<number | null>(null);
   const [poDate, setPoDate] = useState(today);
@@ -53,6 +73,7 @@ export function PurchaseOrderFormPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // ── Master data for dropdowns (React Query → purchase-orders-api) ────────
   const vendorsQuery = useQuery({ queryKey: ["po-vendors"], queryFn: fetchVendors });
   const productsQuery = useQuery({ queryKey: ["po-products"], queryFn: fetchProducts });
   const accountsQuery = useQuery({ queryKey: ["po-expense-accounts"], queryFn: fetchExpenseAccounts });
@@ -77,10 +98,12 @@ export function PurchaseOrderFormPage() {
 
   const loadingMaster = vendorsQuery.isLoading || productsQuery.isLoading || accountsQuery.isLoading;
 
+  /** Updates one line row by its unique key. */
   function updateLine(key: string, patch: Partial<LineRow>) {
     setLines((prev) => prev.map((line) => (line.key === key ? { ...line, ...patch } : line)));
   }
 
+  /** When product changes, auto-fill unit price from product cost/price. */
   function onProductChange(key: string, productId: string) {
     const product = products.find((p) => p.id === Number(productId));
     updateLine(key, {
@@ -89,6 +112,7 @@ export function PurchaseOrderFormPage() {
     });
   }
 
+  /** Client-side validation before submit; returns error message or null. */
   function validate(): string | null {
     if (!vendorId) return "Vendor is required.";
     if (!poDate) return "PO date is required.";
@@ -105,6 +129,7 @@ export function PurchaseOrderFormPage() {
     return null;
   }
 
+  /** Builds the JSON body sent to POST /purchase-orders. */
   function buildPayload() {
     return {
       vendor_id: vendorId!,
@@ -118,6 +143,10 @@ export function PurchaseOrderFormPage() {
     };
   }
 
+  /**
+   * Saves the PO. If asDraft is false, also confirms it immediately after create.
+   * On success, navigates to the new PO detail page.
+   */
   async function handleSave(asDraft: boolean) {
     const validationError = validate();
     if (validationError) {

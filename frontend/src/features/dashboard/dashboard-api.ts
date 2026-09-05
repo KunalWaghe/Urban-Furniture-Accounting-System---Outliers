@@ -1,3 +1,16 @@
+/**
+ * Dashboard API
+ *
+ * Fetches master data and builds demo dashboard payloads for the home screen.
+ * Most fetch functions are defensive — they catch errors and return empty arrays
+ * so the dashboard still renders if one endpoint fails.
+ *
+ * Data flow:
+ * 1. `queries.ts` hooks call these fetch functions via React Query
+ * 2. `buildDashboardDataFromBackend` merges live contacts/products with
+ *    hard-coded sample orders and budget metrics for the UI demo
+ */
+
 import { apiFetch } from "@/lib/api";
 import type {
   Contact,
@@ -12,6 +25,10 @@ import type {
   BudgetMetric,
 } from "@/lib/types";
 
+/**
+ * Fetch active contacts for the dashboard (max 100).
+ * Returns an empty array on error so the dashboard does not crash.
+ */
 export async function fetchDashboardContacts(): Promise<Contact[]> {
   try {
     const res = await apiFetch<ContactListResponse>("/api/v1/contacts?is_active=true&limit=100", {
@@ -24,6 +41,10 @@ export async function fetchDashboardContacts(): Promise<Contact[]> {
   }
 }
 
+/**
+ * Fetch active products for the dashboard (max 100).
+ * Returns an empty array on error so the dashboard does not crash.
+ */
 export async function fetchDashboardProducts(): Promise<Product[]> {
   try {
     const res = await apiFetch<ProductListResponse>("/api/v1/products?is_active=true&limit=100", {
@@ -36,6 +57,10 @@ export async function fetchDashboardProducts(): Promise<Product[]> {
   }
 }
 
+/**
+ * Fetch active ledger accounts for the dashboard (max 100).
+ * Returns an empty array on error.
+ */
 export async function fetchDashboardAccounts(): Promise<Account[]> {
   try {
     const res = await apiFetch<{ data: Account[]; total: number }>("/api/v1/accounts?is_active=true&limit=100", {
@@ -48,6 +73,10 @@ export async function fetchDashboardAccounts(): Promise<Account[]> {
   }
 }
 
+/**
+ * Fetch active journals for the dashboard (max 100).
+ * Returns an empty array on error.
+ */
 export async function fetchDashboardJournals(): Promise<Journal[]> {
   try {
     const res = await apiFetch<{ data: Journal[]; total: number }>("/api/v1/journals?is_active=true&limit=100", {
@@ -60,6 +89,7 @@ export async function fetchDashboardJournals(): Promise<Journal[]> {
   }
 }
 
+/** Combined shape returned to dashboard UI components. */
 export interface DashboardData {
   customers: Contact[];
   vendors: Contact[];
@@ -70,10 +100,21 @@ export interface DashboardData {
   budgetMetric: BudgetMetric;
 }
 
+/**
+ * Build the full dashboard data object from live backend contacts and products.
+ *
+ * Splits contacts into customers and vendors, uses fallback demo contacts if
+ * the backend has none, and attaches sample sales orders, purchase orders,
+ * vendor bills, and budget metrics for the dashboard demo.
+ *
+ * @param contacts - Active contacts from the API
+ * @param products - Active products from the API
+ */
 export function buildDashboardDataFromBackend(
   contacts: Contact[],
   products: Product[]
 ): DashboardData {
+  // Split contacts by role — "both" appears in both lists
   const customers = contacts.filter(
     (c) => c.type === "customer" || c.type === "both"
   );

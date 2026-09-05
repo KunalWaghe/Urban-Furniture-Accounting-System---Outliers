@@ -1,3 +1,11 @@
+/**
+ * SiteHeader — top navigation bar for the ERP layout.
+ *
+ * Provides module dropdown menus (Sales, Purchase, Account, Reports),
+ * global search with ⌘K shortcut, theme toggle, user info, and mobile drawer nav.
+ *
+ * Role-based filtering hides admin-only links from non-admin users.
+ */
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
@@ -19,14 +27,18 @@ import { useAuth } from "@/features/auth/auth-context";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 
+/** One link inside a navigation category dropdown. */
 interface SubNavItem {
-  label: string;
-  href: string;
-  description?: string;
+  label: string
+  href: string
+  description?: string
+  /** Optional tab hint for dashboard hash links (e.g. switch PO vs Bills tab). */
   tab?: "po" | "bills";
+  /** When true, only visible to admin role. */
   adminOnly?: boolean;
 }
 
+/** Top-level nav group (Sales, Purchase, etc.) with nested items. */
 interface NavCategory {
   id: "sales" | "purchase" | "account" | "reports";
   label: string;
@@ -34,6 +46,10 @@ interface NavCategory {
   items: SubNavItem[];
 }
 
+/**
+ * Static navigation tree for the header dropdowns and mobile menu.
+ * Exported so other components can reuse the same route definitions.
+ */
 export const NAV_CATEGORIES: NavCategory[] = [
   {
     id: "sales",
@@ -41,8 +57,8 @@ export const NAV_CATEGORIES: NavCategory[] = [
     color: "bg-blue-500",
     items: [
       { label: "Sales Orders", href: "/sales-orders", description: "Customer orders & fulfillment status" },
-      { label: "Sales Invoices", href: "/#sales-section", description: "Commercial invoicing & customer dues" },
-      { label: "Payments / Receipts", href: "/#sales-section", description: "Customer receipts & accounts receivable" },
+      { label: "Sales Invoices", href: "/sales-invoices", description: "Commercial invoicing & customer dues" },
+      { label: "Payments / Receipts", href: "/sales-invoices", description: "Customer receipts & accounts receivable" },
     ],
   },
   {
@@ -80,6 +96,31 @@ export const NAV_CATEGORIES: NavCategory[] = [
   },
 ];
 
+/**
+ * Sticky top header with module nav, search, theme toggle, and user actions.
+ *
+ * **State OWNED (internal UI state):**
+ * - `activeDropdown` — which category dropdown is open (desktop)
+ * - `searchQuery` — text typed in the global search input
+ * - `isSearchFocused` — whether search autocomplete dropdown is visible
+ * - `mobileMenuOpen` — whether the mobile nav drawer is open
+ *
+ * **State CONSUMED (from context/hooks):**
+ * - `user`, `logout` from AuthContext
+ * - `darkMode`, `toggleTheme` from ThemeProvider
+ * - `pathname` from Next.js router (current URL)
+ *
+ * **Source of truth:**
+ * - Auth user → AuthContext (server session / login)
+ * - Theme → ThemeProvider (localStorage)
+ * - Current route → URL via usePathname()
+ * - Nav structure → NAV_CATEGORIES constant
+ *
+ * **Flow:**
+ * 1. Filter nav items by user role
+ * 2. Render desktop dropdowns + search, or mobile hamburger drawer
+ * 3. On nav click: route with router.push, or dispatch erp-navigate event on dashboard hash links
+ */
 export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
@@ -94,6 +135,7 @@ export function SiteHeader() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navContainerRef = useRef<HTMLDivElement>(null);
 
+  /** Clear auth and redirect to login page. */
   function handleLogout() {
     logout();
     router.replace("/login");
@@ -101,7 +143,7 @@ export function SiteHeader() {
 
   const userRole = user?.role || "invoicing_user";
 
-  // Filter category items based on user role
+  // Remove admin-only items for non-admin users
   const categories = useMemo(() => {
     return NAV_CATEGORIES.map((cat) => ({
       ...cat,
@@ -112,7 +154,10 @@ export function SiteHeader() {
     }));
   }, [userRole]);
 
-  // Navigate with smooth scroll and tab trigger
+  /**
+   * Handle navigation from dropdown or search results.
+   * Dashboard hash links use a custom event so the dashboard can switch tabs.
+   */
   const handleNavClick = useCallback(
     (item: SubNavItem) => {
       setActiveDropdown(null);
@@ -133,7 +178,7 @@ export function SiteHeader() {
     [pathname, router]
   );
 
-  // Close dropdowns when clicking outside
+  // Close dropdowns when clicking outside the header nav area
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -168,7 +213,7 @@ export function SiteHeader() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Quick search results
+  // Filter nav items matching the search query (max 6 results)
   const searchResults = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return [];
@@ -209,7 +254,7 @@ export function SiteHeader() {
           </div>
         </Link>
 
-        {/* Center: Module Dropdown Pills + Global Search + ERP Directory Launcher */}
+        {/* Center: Module Dropdown Pills + Global Search (desktop only) */}
         <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-1 justify-center max-w-2xl">
           {/* Module Dropdown Navigation Pill */}
           <nav className="flex items-center space-x-0.5 sm:space-x-1 rounded-2xl bg-surface-muted/80 p-1 border border-border/60 shadow-xs">
@@ -397,9 +442,7 @@ export function SiteHeader() {
 
 
 
-      {/* ========================================================================= */}
-      {/* Mobile navigation drawer */}
-      {/* ========================================================================= */}
+      {/* Mobile navigation drawer — shown when mobileMenuOpen is true */}
       {mobileMenuOpen && (
         <div className="border-t border-border bg-surface px-4 py-4 md:hidden max-h-[85vh] overflow-y-auto space-y-4">
           {/* User profile card */}
@@ -429,7 +472,7 @@ export function SiteHeader() {
             </div>
           )}
 
-          {/* Mobile search bar */}
+          {/* Mobile search bar — shares searchQuery state with desktop input */}
           <div className="relative">
             <input
               type="text"

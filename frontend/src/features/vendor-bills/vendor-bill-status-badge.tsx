@@ -1,3 +1,10 @@
+/**
+ * Visual status badge for vendor bill states.
+ *
+ * Shows an icon + label for Draft, Confirmed, Paid, or Cancelled bills.
+ * Used on the vendor bills list and detail pages.
+ */
+
 import { CheckCircle2, Clock, CreditCard, XCircle } from "lucide-react";
 import type { VendorBillStatus } from "./vendor-bills-api";
 
@@ -6,6 +13,12 @@ interface VendorBillStatusBadgeProps {
   className?: string;
 }
 
+/**
+ * Renders a colored badge with an icon for the given vendor bill status.
+ *
+ * @param status - Bill status from the API (Draft, Confirmed, Paid, Cancelled, etc.).
+ * @param className - Optional extra CSS classes to append.
+ */
 export function VendorBillStatusBadge({ status, className = "" }: VendorBillStatusBadgeProps) {
   switch (status) {
     case "Confirmed":

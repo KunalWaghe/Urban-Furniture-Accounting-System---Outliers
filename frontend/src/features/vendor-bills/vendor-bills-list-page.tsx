@@ -1,13 +1,28 @@
+/**
+ * Vendor Bills list page — paginated accounts payable directory.
+ *
+ * Data flow:
+ * - useQuery → fetchVendorBillsPage → GET /api/v1/vendor-bills
+ * - Server handles pagination, search, status filter, and column sort
+ *
+ * Local UI state: search text, status tab, page number, sort column/order.
+ * Row click navigates to /vendor-bills/:id. Refresh button invalidates query cache.
+ * No mutations on this page.
+ */
+
 "use client";
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   Building2,
   CheckCircle2,
   Clock,
-  CreditCard,
   FileText,
   Plus,
   RefreshCw,
@@ -18,26 +33,46 @@ import { LoadingSpinner } from "@/components/loading-spinner";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { formatDate, formatINR } from "@/lib/format";
 
-import { fetchVendorBills, type VendorBillStatus } from "./vendor-bills-api";
+import { fetchVendorBillsPage } from "./vendor-bills-api";
 import { VendorBillStatusBadge } from "./vendor-bill-status-badge";
 
 const PAGE_SIZE = 10;
 
+/**
+ * Lists vendor bills with KPI cards, filters, sortable table, and pagination.
+ */
 export function VendorBillsListPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
 
+  // ── Local filter / pagination / sort state ─────────────────────────────────
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState<string>("created_at");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
+  // ── Server state: paginated bill list (React Query → vendor-bills-api) ───
   const billsQuery = useQuery({
-    queryKey: ["vendor-bills"],
-    queryFn: fetchVendorBills,
+    queryKey: ["vendor-bills", { page, search, statusFilter, sortBy, sortOrder }],
+    queryFn: () =>
+      fetchVendorBillsPage({
+        page,
+        limit: PAGE_SIZE,
+        search: search.trim() || undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+      }),
   });
 
-  const bills = billsQuery.data ?? [];
+  const billsData = billsQuery.data;
+  const bills = useMemo(() => billsData?.data ?? [], [billsData]);
+  const totalCount = billsData?.total ?? 0;
+  const totalPages = Math.max(1, billsData?.pages ?? 1);
+  const safePage = Math.min(page, totalPages);
 
-  // Summary Metrics
+  // ── KPI metrics derived from current page of bills ───────────────────────
   const metrics = useMemo(() => {
     let totalValue = 0;
     let totalOutstanding = 0;
@@ -53,31 +88,31 @@ export function VendorBillsListPage() {
       }
     }
 
-    return { totalValue, totalOutstanding, totalPaid, count: bills.length };
-  }, [bills]);
+    return { totalValue, totalOutstanding, totalPaid, count: totalCount };
+  }, [bills, totalCount]);
 
-  // Filter & Search
-  const filteredBills = useMemo(() => {
-    let result = bills;
-    if (statusFilter !== "all") {
-      result = result.filter((b) => b.status.toLowerCase() === statusFilter.toLowerCase());
+  /** Toggles or sets sort column; resets to page 1 on change. */
+  function handleSort(column: string) {
+    if (sortBy === column) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(column);
+      setSortOrder("desc");
     }
-    const q = search.trim().toLowerCase();
-    if (q) {
-      result = result.filter(
-        (b) =>
-          b.bill_number.toLowerCase().includes(q) ||
-          b.vendor_name.toLowerCase().includes(q) ||
-          (b.po_number && b.po_number.toLowerCase().includes(q))
-      );
-    }
-    return result;
-  }, [bills, statusFilter, search]);
+    setPage(1);
+  }
 
-  const totalPages = Math.max(1, Math.ceil(filteredBills.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const start = (safePage - 1) * PAGE_SIZE;
-  const pageBills = filteredBills.slice(start, start + PAGE_SIZE);
+  /** Shows neutral, up, or down arrow for the active sort column. */
+  function renderSortIcon(column: string) {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="h-3 w-3 text-text-muted/60 opacity-0 group-hover:opacity-100" />;
+    }
+    return sortOrder === "asc" ? (
+      <ArrowUp className="h-3 w-3 text-primary-600" />
+    ) : (
+      <ArrowDown className="h-3 w-3 text-primary-600" />
+    );
+  }
 
   return (
     <div className="space-y-6 pb-12">
@@ -148,7 +183,7 @@ export function VendorBillsListPage() {
         <div className="flex flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           {/* Tabs */}
           <div className="flex items-center gap-1 rounded-xl bg-surface-muted p-1 text-xs">
-            {["all", "draft", "confirmed", "paid"].map((tab) => (
+            {["all", "confirmed", "paid"].map((tab) => (
               <button
                 key={tab}
                 type="button"
@@ -198,7 +233,7 @@ export function VendorBillsListPage() {
           <div className="py-12 text-center">
             <LoadingSpinner label="Fetching vendor bills…" />
           </div>
-        ) : filteredBills.length === 0 ? (
+        ) : bills.length === 0 ? (
           <div className="py-12 text-center text-xs text-text-muted space-y-2">
             <FileText className="mx-auto h-8 w-8 text-text-muted/60" />
             <p className="font-semibold text-text">No Vendor Bills Found</p>
@@ -210,22 +245,43 @@ export function VendorBillsListPage() {
               <table className="min-w-full text-left text-xs">
                 <thead className="bg-surface-muted text-[10px] font-semibold uppercase tracking-wider text-text-muted">
                   <tr>
-                    <th className="px-5 py-3">Bill Number</th>
+                    <th
+                      className="px-5 py-3 cursor-pointer group select-none hover:text-text"
+                      onClick={() => handleSort("bill_number")}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        Bill Number {renderSortIcon("bill_number")}
+                      </span>
+                    </th>
                     <th className="px-5 py-3">Vendor Partner</th>
                     <th className="px-5 py-3">Source PO</th>
-                    <th className="px-5 py-3">Bill Date</th>
+                    <th
+                      className="px-5 py-3 cursor-pointer group select-none hover:text-text"
+                      onClick={() => handleSort("bill_date")}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        Bill Date {renderSortIcon("bill_date")}
+                      </span>
+                    </th>
                     <th className="px-5 py-3">Due Date</th>
                     <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3 text-right">Total Amount</th>
+                    <th
+                      className="px-5 py-3 text-right cursor-pointer group select-none hover:text-text"
+                      onClick={() => handleSort("total")}
+                    >
+                      <span className="inline-flex items-center justify-end gap-1">
+                        Total Amount {renderSortIcon("total")}
+                      </span>
+                    </th>
                     <th className="px-5 py-3 text-right">Balance Due</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {pageBills.map((bill) => (
+                  {bills.map((bill) => (
                     <tr
                       key={bill.id}
                       className="hover:bg-surface-muted/50 transition-colors cursor-pointer"
-                      onClick={() => (window.location.href = `/vendor-bills/${bill.id}`)}
+                      onClick={() => router.push(`/vendor-bills/${bill.id}`)}
                     >
                       <td className="px-5 py-4 font-bold text-primary-600">
                         <Link href={`/vendor-bills/${bill.id}`} className="hover:underline">
@@ -264,8 +320,8 @@ export function VendorBillsListPage() {
             {totalPages > 1 && (
               <div className="border-t border-border px-5 py-3 flex items-center justify-between">
                 <p className="text-xs text-text-muted">
-                  Showing {start + 1}–{Math.min(safePage * PAGE_SIZE, filteredBills.length)} of{" "}
-                  {filteredBills.length} bills
+                  Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, totalCount)} of{" "}
+                  {totalCount} bills
                 </p>
                 <TablePagination page={safePage} totalPages={totalPages} onPageChange={setPage} />
               </div>
@@ -276,3 +332,4 @@ export function VendorBillsListPage() {
     </div>
   );
 }
+

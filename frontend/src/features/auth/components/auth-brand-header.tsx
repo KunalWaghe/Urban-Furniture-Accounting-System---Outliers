@@ -1,3 +1,16 @@
+/**
+ * @file auth-brand-header.tsx
+ *
+ * Branding header shown at the top of login and signup pages.
+ *
+ * What this file does:
+ * - Displays the Urban Furniture logo, app name, page title, and subtitle
+ * - Pure presentational — no state or side effects
+ *
+ * Who consumes this:
+ * - Login and signup page layouts pass title/subtitle props
+ */
+
 import { Armchair } from "lucide-react";
 
 interface AuthBrandHeaderProps {
@@ -5,6 +18,12 @@ interface AuthBrandHeaderProps {
   subtitle: string;
 }
 
+/**
+ * Centered brand block for auth pages.
+ *
+ * @param title - Page heading (e.g. "Sign in to your account")
+ * @param subtitle - Supporting text below the title
+ */
 export function AuthBrandHeader({ title, subtitle }: AuthBrandHeaderProps) {
   return (
     <div className="flex flex-col items-center text-center">

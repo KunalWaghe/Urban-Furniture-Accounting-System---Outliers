@@ -1,3 +1,14 @@
+/**
+ * Route guard — only renders children for authenticated users.
+ *
+ * Role in the app:
+ * - Wraps protected `(app)` layouts and pages
+ * - Shows a loading spinner while auth is bootstrapping
+ * - Redirects unauthenticated users to `/login`
+ *
+ * Pair with RedirectIfAuth on the `(auth)` layout for the login/register flow.
+ */
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -8,15 +19,25 @@ import { LoadingSpinner } from "@/components/loading-spinner";
 import { useMounted } from "@/hooks/use-mounted";
 
 /**
- * Wraps any (app) layout or page.
+ * Protects a route segment — renders children only when the user is logged in.
  *
- * States:
- *  1. !mounted            → SSR or initial client hydration; render loading spinner
- *                           so server HTML and client initial render match identically.
- *  2. bootstrapping=true  → /auth/me in-flight; show a centered spinner so
- *                           the user sees feedback, not a blank screen.
- *  3. bootstrapping=false, isAuthenticated=true  → render children.
- *  4. bootstrapping=false, isAuthenticated=false → redirect to /login.
+ * When to use: wrap any page or layout under `(app)` that requires login.
+ *
+ * Flow:
+ * 1. Wait for client mount (avoids hydration mismatch)
+ * 2. Wait for AuthContext bootstrapping (`/auth/me` check)
+ * 3. If authenticated → render children
+ * 4. If not → redirect to `/login` and render nothing
+ *
+ * State owned: none (no local useState)
+ * State consumed: AuthContext (`isAuthenticated`, `bootstrapping`), useMounted
+ * Source of truth: AuthContext (backed by stored JWT + `/auth/me` API)
+ *
+ * Render states:
+ *  1. !mounted            → loading spinner (SSR/hydration match)
+ *  2. bootstrapping       → loading spinner (`/auth/me` in-flight)
+ *  3. authenticated       → children
+ *  4. unauthenticated     → null (redirect effect runs)
  */
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { isAuthenticated, bootstrapping } = useAuth();

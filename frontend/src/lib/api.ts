@@ -1,7 +1,27 @@
+/**
+ * HTTP client and auth token storage for the Urban Furniture API.
+ *
+ * Role in the app:
+ * - Central place for all backend HTTP calls (`apiFetch`)
+ * - Reads/writes the JWT auth token in browser storage
+ * - Converts failed API responses into typed `ApiError` instances
+ *
+ * Feature modules (e.g. `master-data-api.ts`) should call `apiFetch` here
+ * instead of using raw `fetch` against the backend.
+ */
+
 import type { ApiErrorEnvelope } from "./types";
 
+/** localStorage/sessionStorage key used to persist the JWT after login. */
 const TOKEN_STORAGE_KEY = "uf_auth_token";
 
+/**
+ * Structured error thrown when the API returns a non-2xx response.
+ *
+ * Use this in UI code to show field-level validation errors (`fields`)
+ * or generic error messages (`message`). Check `instanceof ApiError`
+ * in catch blocks.
+ */
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
@@ -24,10 +44,25 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Returns the backend base URL from env, with a localhost fallback for dev.
+ *
+ * Set `NEXT_PUBLIC_API_BASE_URL` in `.env.local` for production/staging.
+ */
 export function getApiBaseUrl(): string {
   return process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 }
 
+/**
+ * Finds which browser storage currently holds the auth token.
+ *
+ * Flow:
+ * 1. Return `null` during SSR (no `window`)
+ * 2. Check localStorage first (remember-device login)
+ * 3. Fall back to sessionStorage (session-only login)
+ *
+ * @returns The Storage object that has the token, or `null` if none.
+ */
 export function getAuthStorage(): Storage | null {
   if (typeof window === "undefined") {
     return null;
@@ -44,6 +79,11 @@ export function getAuthStorage(): Storage | null {
   return null;
 }
 
+/**
+ * Reads the stored JWT, or `null` if the user is not logged in.
+ *
+ * Safe to call during SSR — returns `null` when `window` is unavailable.
+ */
 export function getStoredToken(): string | null {
   const storage = getAuthStorage();
   if (!storage) {
@@ -57,6 +97,15 @@ export function getStoredToken(): string | null {
   }
 }
 
+/**
+ * Saves a JWT after successful login.
+ *
+ * @param token - JWT string from the login/register response
+ * @param rememberDevice - `true` → localStorage (persists across tabs/restarts);
+ *                         `false` → sessionStorage (cleared when tab closes)
+ *
+ * Clears any existing token in both storages before writing the new one.
+ */
 export function setStoredToken(token: string, rememberDevice = true): void {
   if (typeof window === "undefined") {
     return;
@@ -67,6 +116,11 @@ export function setStoredToken(token: string, rememberDevice = true): void {
   storage.setItem(TOKEN_STORAGE_KEY, token);
 }
 
+/**
+ * Removes the JWT from both localStorage and sessionStorage.
+ *
+ * Call this on logout so stale tokens are not sent on future requests.
+ */
 export function clearStoredToken(): void {
   if (typeof window === "undefined") {
     return;
@@ -76,11 +130,31 @@ export function clearStoredToken(): void {
   sessionStorage.removeItem(TOKEN_STORAGE_KEY);
 }
 
+/** Options passed to `apiFetch`, extending the standard fetch RequestInit. */
 interface ApiFetchOptions extends Omit<RequestInit, "body"> {
+  /** Request body — automatically JSON-stringified. */
   body?: unknown;
+  /** When `true`, attaches `Authorization: Bearer <token>` if a token exists. */
   auth?: boolean;
 }
 
+/**
+ * Typed wrapper around `fetch` for all backend API calls.
+ *
+ * When to use: any time you need data from or send data to the backend.
+ * Pass `auth: true` for endpoints that require a logged-in user.
+ *
+ * Flow:
+ * 1. Build headers (Content-Type for JSON body, Bearer token if `auth`)
+ * 2. `fetch` the full URL: base URL + path
+ * 3. On success (2xx): parse JSON and return as `T` (204 → `undefined`)
+ * 4. On failure: parse error envelope and throw `ApiError`
+ *
+ * @param path - API path starting with `/` (e.g. `/contacts`)
+ * @param options - fetch options plus optional `body` and `auth` flag
+ * @returns Parsed JSON response typed as `T`
+ * @throws {ApiError} When the server returns a non-2xx status
+ */
 export async function apiFetch<T>(
   path: string,
   options: ApiFetchOptions = {}

@@ -1,3 +1,14 @@
+/**
+ * Purchase Order detail page — view one PO, confirm it, or create a vendor bill.
+ *
+ * Data flow:
+ * - Query: useQuery → fetchPurchaseOrderApi → GET /purchase-orders/:id
+ * - Confirm mutation: confirmPurchaseOrder → PATCH /purchase-orders/:id/confirm
+ * - Create bill mutation: createBillFromPo → POST /purchase-orders/:id/create-bill
+ *
+ * Local UI state: confirm dialog open/closed. Mutations invalidate PO and bill caches.
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -22,16 +33,23 @@ interface PurchaseOrderDetailPageProps {
   poId: number;
 }
 
+/**
+ * Shows PO header, line items, summary, and action buttons (Confirm / Create Bill).
+ *
+ * @param poId - Numeric ID from the URL route param.
+ */
 export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  // ── Server state: load the PO by ID ──────────────────────────────────────
   const poQuery = useQuery({
     queryKey: ["purchase-order", poId],
     queryFn: () => fetchPurchaseOrderApi(poId),
   });
 
+  // ── Mutation: confirm draft PO (locks it for billing) ────────────────────
   const confirmMutation = useMutation({
     mutationFn: () => confirmPurchaseOrder(poId),
     onSuccess: () => {
@@ -41,6 +59,7 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
     },
   });
 
+  // ── Mutation: create vendor bill from confirmed PO, then navigate to bill ─
   const createBillMutation = useMutation({
     mutationFn: () => createBillFromPo(poId),
     onSuccess: (bill) => {

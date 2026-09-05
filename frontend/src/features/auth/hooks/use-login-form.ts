@@ -1,3 +1,17 @@
+/**
+ * @file use-login-form.ts
+ *
+ * Custom hook that owns all login form logic.
+ *
+ * What this file does:
+ * - Manages form fields, validation errors, and UI toggles (show password, remember me)
+ * - Validates locally, then calls AuthContext.login via React Query
+ * - Maps API errors back to field messages and banner notices
+ *
+ * Who consumes this:
+ * - `LoginForm` component — renders UI and wires inputs to this hook's return values
+ */
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
@@ -14,20 +28,30 @@ import {
 import { validateLoginFields } from "../validation";
 import type { AuthNotice, LoginErrors, LoginFields } from "../validation";
 
+/** Order used to focus the first invalid field on validation failure. */
 const FIELD_ORDER: Array<keyof LoginFields> = ["login_id", "password"];
 
 /**
- * Custom hook for managing login form state and submission
- * 
+ * Hook for the login form — state, validation, submit, and error handling.
+ *
+ * State owned:
+ * - `fields` — login_id and password input values
+ * - `errors` — per-field validation/API error messages
+ * - `rememberDevice` — whether to persist session in localStorage
+ * - `showPassword` — toggles password visibility
+ * - `notice` — top-of-form banner (error/info)
+ *
+ * Side effects:
+ * - On successful login: redirects to "/" (dashboard)
+ * - On error: sets notice and focuses the relevant input
+ *
  * Flow:
- * 1. Manages form fields (login_id, password), validation errors, and UI state
- * 2. Uses React Query mutation for async login API call
- * 3. Validates fields locally before submission
- * 4. On success: Caches user session via AuthContext and redirects to dashboard
- * 5. On error: Maps API errors to field-specific messages and displays notices
- * 6. Supports "remember device" option for persistent sessions
- * 
- * @returns Form state, handlers, and submission logic for login component
+ * 1. User submits → validate locally
+ * 2. If valid → loginMutation calls AuthContext.login
+ * 3. Success → router.push("/")
+ * 4. Failure → map status codes (422, 401, 403) to user messages
+ *
+ * @returns Form state, setters, handlers, and isSubmitting flag for LoginForm
  */
 export function useLoginForm() {
   const router = useRouter();
@@ -53,7 +77,7 @@ export function useLoginForm() {
   });
 
   /**
-   * Updates a single form field and clears its error
+   * Updates one field and clears its error so the user gets a fresh start.
    */
   function setField(field: keyof LoginFields, value: string) {
     setFields((prev) => ({ ...prev, [field]: value }));
@@ -61,14 +85,7 @@ export function useLoginForm() {
   }
 
   /**
-   * Handles form submission with validation and authentication
-   * 
-   * Flow:
-   * 1. Validates all fields locally
-   * 2. Focuses first invalid field if validation fails
-   * 3. Calls login API via AuthContext
-   * 4. On success: Redirects to dashboard
-   * 5. On error: Displays appropriate error message and focuses relevant field
+   * Form submit handler — validate, then call login API.
    */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -105,8 +122,7 @@ export function useLoginForm() {
   }
 
   /**
-   * Handles login errors from API
-   * Maps different error types (422 validation, 401 unauthorized, 403 forbidden) to user-friendly messages
+   * Handles login API errors — maps HTTP status to field errors or banner notices.
    */
   function handleLoginError(error: unknown) {
     if (error instanceof ApiError) {

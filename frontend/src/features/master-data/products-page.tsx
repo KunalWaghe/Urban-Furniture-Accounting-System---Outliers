@@ -1,3 +1,22 @@
+/**
+ * Products Page
+ *
+ * Master-data screen for managing the product catalogue (goods, services, combos).
+ *
+ * Data flow:
+ * 1. React Query (`productsQuery`) calls `fetchProductsPage` for the main table/kanban
+ * 2. A second query (`allProductsQuery`) loads categories for the filter dropdown
+ * 3. Create/edit form uses local `form` state → `saveMutation` calls create/update API
+ * 4. Delete uses `deleteMutation` → soft-deactivates product on server
+ * 5. On mutation success, all product-related query caches are invalidated
+ *
+ * State ownership:
+ * - Server data: React Query (keys: "products-paged", "products-all-categories")
+ * - View mode (table vs kanban): local useState
+ * - Table filters/sort/page: local useState
+ * - Modal form: local useState (`form`, `editing`, `isModalOpen`)
+ */
+
 "use client";
 
 import { useMemo, useState } from "react";
@@ -21,17 +40,26 @@ import {
 import { formatINR } from "@/lib/format";
 
 const inputClass = "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20";
+
+/** Default empty form values when creating a new product. */
 const emptyForm: ProductInput = { name: "", product_type: "goods", category: "", price: 0, cost: null, tax_percent: 0, description: "" };
 
+/** Turn API product_type into a display label. */
 function productTypeLabel(value: string) { return value === "goods" ? "Goods" : value === "service" ? "Service" : value[0].toUpperCase() + value.slice(1); }
 
+/**
+ * Products master-data page.
+ *
+ * Lists products in table or kanban view with search, category/type filters,
+ * sort, and pagination. Supports create, edit, and deactivate.
+ */
 export function ProductsPage() {
   const queryClient = useQueryClient();
 
-  // View state
+  // --- View toggle: table (DataTable) or kanban (grouped by category) ---
   const [view, setView] = useState<"table" | "kanban">("table");
 
-  // Server-side query parameters
+  // --- Server-side table controls (sent to API on each fetch) ---
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -39,13 +67,14 @@ export function ProductsPage() {
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+  // --- Modal and form UI state ---
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editing, setEditing] = useState<Product | null>(null);
+  const [editing, setEditing] = useState<Product | null>(null); // null = create mode
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductInput>(emptyForm);
   const [error, setError] = useState<string | null>(null);
 
-  // Paginated server query
+  // Main paginated query — powers both table and kanban views
   const productsQuery = useQuery({
     queryKey: [
       "products-paged",
@@ -64,13 +93,14 @@ export function ProductsPage() {
     placeholderData: (prev) => prev,
   });
 
-  // Query to populate category filter dropdown
+  // Secondary query to build the category filter dropdown options
   const allProductsQuery = useQuery({
     queryKey: ["products-all-categories"],
     queryFn: () => fetchProductsPage({ limit: 100 }),
-    staleTime: 60000,
+    staleTime: 60000, // Cache for 1 minute — categories change less often
   });
 
+  // Derive unique sorted category names from the secondary query (fallback to main query)
   const categories = useMemo(() => {
     const list = allProductsQuery.data?.data ?? productsQuery.data?.data ?? [];
     return Array.from(
@@ -82,9 +112,11 @@ export function ProductsPage() {
   const totalCount = productsQuery.data?.total ?? 0;
   const totalPages = productsQuery.data?.pages ?? 1;
 
+  // Create or update product — chosen based on whether `editing` is set
   const saveMutation = useMutation({
     mutationFn: () => (editing ? updateProduct(editing.id, form) : createProduct(form)),
     onSuccess: async () => {
+      // Invalidate all product caches so table, kanban, and dropdowns stay in sync
       await queryClient.invalidateQueries({ queryKey: ["products"] });
       await queryClient.invalidateQueries({ queryKey: ["products-paged"] });
       await queryClient.invalidateQueries({ queryKey: ["products-all-categories"] });
@@ -96,6 +128,7 @@ export function ProductsPage() {
     onError: (err) => setError(err instanceof Error ? err.message : "Could not save product."),
   });
 
+  // Soft-delete (deactivate) a product
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteProduct(id),
     onSuccess: async () => {
@@ -106,6 +139,7 @@ export function ProductsPage() {
     },
   });
 
+  /** Toggle sort direction or switch column; reset to page 1. */
   function handleSort(columnKey: string) {
     if (sortBy === columnKey) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -116,6 +150,7 @@ export function ProductsPage() {
     setPage(1);
   }
 
+  /** Open modal in create mode with a blank form. */
   function openCreate() {
     setEditing(null);
     setForm(emptyForm);
@@ -123,6 +158,7 @@ export function ProductsPage() {
     setIsModalOpen(true);
   }
 
+  /** Open modal in edit mode — copy product fields into local form state. */
   function openEdit(product: Product) {
     setEditing(product);
     setForm({
@@ -138,10 +174,12 @@ export function ProductsPage() {
     setIsModalOpen(true);
   }
 
+  /** Update a single form field by key. */
   function updateField(field: keyof ProductInput, value: string | number | null) {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  /** Validate form client-side, then trigger saveMutation. */
   function submitForm(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.name.trim()) {
@@ -235,6 +273,7 @@ export function ProductsPage() {
         </Button>
       </div>
 
+      {/* Summary stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card size="sm">
           <CardContent className="flex items-center gap-3">
@@ -335,6 +374,7 @@ export function ProductsPage() {
             </div>
           </div>
 
+          {/* Same `products` array — rendered as table or kanban depending on `view` */}
           {view === "table" ? (
             <DataTable
               columns={columns}
@@ -371,7 +411,9 @@ export function ProductsPage() {
           )}
         </CardContent>
       </Card>
+    {/* Create / edit modal — submitForm validates then calls saveMutation */}
     {isModalOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-2 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="product-dialog-title"><div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-surface p-4 shadow-2xl sm:p-6"><div className="flex items-start justify-between gap-4"><div><h2 id="product-dialog-title" className="text-base font-semibold text-text sm:text-lg">{editing ? "Edit product" : "New product"}</h2><p className="mt-1 text-xs text-text-muted sm:text-sm">Pricing here flows into sales orders and purchase orders.</p></div><button type="button" onClick={() => setIsModalOpen(false)} className="text-sm text-text-muted hover:text-text" aria-label="Close dialog">✕</button></div>{error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}<form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={submitForm}><label className="sm:col-span-2 text-sm font-medium text-text">Name *<input required value={form.name} onChange={(event) => updateField("name", event.target.value)} className={inputClass} placeholder="Executive Ergonomic Chair" /></label><label className="text-sm font-medium text-text">Product type<select value={form.product_type} onChange={(event) => updateField("product_type", event.target.value)} className={inputClass}><option value="goods">Goods</option><option value="service">Service</option><option value="combo">Combo</option></select></label><label className="text-sm font-medium text-text">Category<input value={form.category} onChange={(event) => updateField("category", event.target.value)} className={inputClass} placeholder="Office Seating" /></label><label className="text-sm font-medium text-text">Sales price *<input type="number" min="0" step="0.01" required value={form.price} onChange={(event) => updateField("price", Number(event.target.value))} className={inputClass} /></label><label className="text-sm font-medium text-text">Cost price<input type="number" min="0" step="0.01" value={form.cost ?? ""} onChange={(event) => updateField("cost", event.target.value === "" ? null : Number(event.target.value))} className={inputClass} /></label><label className="text-sm font-medium text-text">Tax rate (%)<input type="number" min="0" max="100" step="0.01" value={form.tax_percent} onChange={(event) => updateField("tax_percent", Number(event.target.value))} className={inputClass} /></label><label className="sm:col-span-2 text-sm font-medium text-text">Description<textarea rows={3} value={form.description} onChange={(event) => updateField("description", event.target.value)} className={inputClass} placeholder="Short description for users and invoices" /></label><div className="mt-2 flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 sm:col-span-2"><Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="w-full sm:w-auto">Cancel</Button><Button type="submit" disabled={saveMutation.isPending} className="w-full sm:w-auto">{saveMutation.isPending ? <LoadingSpinner /> : editing ? "Save changes" : "Create product"}</Button></div></form></div></div>}
+    {/* Deactivate confirmation — deleteMutation runs on confirm */}
     <ConfirmDialog
       open={Boolean(deletingProduct)}
       title="Deactivate Product"
@@ -389,9 +431,15 @@ export function ProductsPage() {
   );
 }
 
+/**
+ * Kanban-style product view grouped by category.
+ *
+ * Receives the same paginated `products` array as the table — columns are
+ * built client-side from unique category names. Edit/delete callbacks bubble
+ * up to ProductsPage so the parent owns modal and mutation state.
+ */
 function ProductKanban({ products, onEdit, onDelete, search, onSearch, loading }: { products: Product[]; onEdit: (product: Product) => void; onDelete: (product: Product) => void; search: string; onSearch: (value: string) => void; loading: boolean }) {
   const groups = Array.from(new Set(products.map((product) => product.category || "Uncategorized")));
   if (loading) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
   return <div className="space-y-4"><input type="search" value={search} onChange={(event) => onSearch(event.target.value)} placeholder="Search products..." className="w-full max-w-sm rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" />{groups.length === 0 ? <div className="rounded-xl border border-dashed border-border px-6 py-12 text-center text-sm text-text-muted">No products found.</div> : <div className="grid gap-4 xl:grid-cols-3">{groups.map((group) => { const groupProducts = products.filter((product) => (product.category || "Uncategorized") === group); return <section key={group} className="min-h-48 rounded-xl bg-surface-muted/60 p-3"><div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-semibold text-text">{group}</h3><span className="rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">{groupProducts.length}</span></div><div className="space-y-3">{groupProducts.map((product) => <div key={product.id} className="group relative w-full rounded-xl border border-border bg-surface p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-md"><div className="flex items-start justify-between gap-3"><button type="button" onClick={() => onEdit(product)} className="flex items-center gap-2 text-left"><div className="rounded-lg bg-primary-50 p-2 text-primary-600 dark:bg-primary-950/40"><Boxes className="h-4 w-4" /></div><p className="font-semibold text-text">{product.name}</p></button><div className="flex items-center gap-1"><button type="button" onClick={() => onEdit(product)} className="p-1 text-text-muted hover:text-text" title="Edit product"><Edit3 className="h-3.5 w-3.5" /></button>{product.is_active && <button type="button" onClick={() => onDelete(product)} className="p-1 text-red-600 hover:text-red-700" title="Deactivate product"><Trash2 className="h-3.5 w-3.5" /></button>}</div></div><div className="mt-4 flex items-end justify-between"><div><p className="text-[11px] uppercase tracking-wide text-text-muted">Sales price</p><p className="mt-0.5 text-lg font-bold text-primary-600">{formatINR(product.price)}</p></div><div className="text-right"><Badge variant="secondary">{productTypeLabel(product.product_type)}</Badge>{product.cost != null && <p className="mt-1 text-[11px] text-text-muted">Cost {formatINR(product.cost)}</p>}</div></div></div>)}</div></section>; })}</div>}</div>;
 }
-

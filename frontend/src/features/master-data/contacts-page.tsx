@@ -1,3 +1,21 @@
+/**
+ * Contacts Page
+ *
+ * Master-data screen for managing customers and vendors.
+ *
+ * Data flow:
+ * 1. React Query (`contactsQuery`) calls `fetchContactsPage` from master-data-api
+ * 2. Server returns paginated contacts → rendered in DataTable
+ * 3. Create/edit form uses local `form` state → `saveMutation` calls create/update API
+ * 4. Delete uses `deleteMutation` → soft-deactivates contact on server
+ * 5. On mutation success, query cache is invalidated so the table refreshes
+ *
+ * State ownership:
+ * - Server data: React Query cache (key: "contacts-paged")
+ * - Table filters/sort/page: local useState
+ * - Modal form: local useState (`form`, `editing`, `isModalOpen`)
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -22,10 +40,12 @@ import {
 const inputClass =
   "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20";
 
+/** Turn API type value into a human-readable label for badges and filters. */
 function typeLabel(type: Contact["type"]): string {
   return type === "both" ? "Customer & Vendor" : type[0].toUpperCase() + type.slice(1);
 }
 
+/** Render a colored badge for customer, vendor, or both. */
 function typeBadge(type: Contact["type"]) {
   const styles: Record<Contact["type"], string> = {
     customer: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300",
@@ -35,24 +55,33 @@ function typeBadge(type: Contact["type"]) {
   return <Badge variant="outline" className={styles[type]}>{typeLabel(type)}</Badge>;
 }
 
+/** Default empty form values when creating a new contact. */
 const emptyForm: ContactInput = { name: "", type: "customer", email: "", mobile: "", city: "", state: "", pincode: "" };
 
+/**
+ * Contacts master-data page.
+ *
+ * Lists customers and vendors with search, type filter, sort, and pagination.
+ * Supports create, edit (modal form), and deactivate (confirm dialog).
+ */
 export function ContactsPage() {
   const queryClient = useQueryClient();
 
-  // Server-side query parameters
+  // --- Server-side table controls (sent to API on each fetch) ---
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | Contact["type"]>("all");
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+  // --- Modal and form UI state (client-only, not in React Query) ---
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editing, setEditing] = useState<Contact | null>(null);
+  const [editing, setEditing] = useState<Contact | null>(null); // null = create mode
   const [deletingContact, setDeletingContact] = useState<Contact | null>(null);
   const [form, setForm] = useState<ContactInput>(emptyForm);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch paginated contacts — re-runs when page, search, filters, or sort change
   const contactsQuery = useQuery({
     queryKey: ["contacts-paged", { page, search, typeFilter, sortBy, sortOrder }],
     queryFn: () =>
@@ -64,11 +93,14 @@ export function ContactsPage() {
         sort_by: sortBy,
         sort_order: sortOrder,
       }),
+    // Keep previous page visible while the next page loads (avoids flicker)
     placeholderData: (prev) => prev,
   });
 
+  // Create or update contact — chosen based on whether `editing` is set
   const saveMutation = useMutation({
     mutationFn: () => {
+      // Convert empty strings to undefined so the API omits optional fields
       const normalized = Object.fromEntries(
         Object.entries(form).map(([key, value]) => [
           key,
@@ -78,6 +110,7 @@ export function ContactsPage() {
       return editing ? updateContact(editing.id, normalized) : createContact(normalized);
     },
     onSuccess: async () => {
+      // Refresh both dashboard and paginated list caches
       await queryClient.invalidateQueries({ queryKey: ["contacts"] });
       await queryClient.invalidateQueries({ queryKey: ["contacts-paged"] });
       setEditing(null);
@@ -87,6 +120,7 @@ export function ContactsPage() {
     onError: (err) => setError(err instanceof Error ? err.message : "Could not save contact."),
   });
 
+  // Soft-delete (deactivate) a contact
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteContact(id),
     onSuccess: async () => {
@@ -100,6 +134,7 @@ export function ContactsPage() {
   const totalCount = contactsQuery.data?.total ?? 0;
   const totalPages = contactsQuery.data?.pages ?? 1;
 
+  /** Toggle sort direction or switch to a new column; reset to page 1. */
   function handleSort(columnKey: string) {
     if (sortBy === columnKey) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -110,6 +145,7 @@ export function ContactsPage() {
     setPage(1);
   }
 
+  /** Open modal in create mode with a blank form. */
   function openCreate() {
     setEditing(null);
     setForm(emptyForm);
@@ -117,6 +153,7 @@ export function ContactsPage() {
     setIsModalOpen(true);
   }
 
+  /** Open modal in edit mode — copy contact fields into local form state. */
   function openEdit(contact: Contact) {
     setEditing(contact);
     setForm({
@@ -132,6 +169,7 @@ export function ContactsPage() {
     setIsModalOpen(true);
   }
 
+  /** Update a single form field by key. */
   function updateField(field: keyof ContactInput, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
   }
@@ -238,6 +276,7 @@ export function ContactsPage() {
         </Button>
       </div>
 
+      {/* Summary stat cards — derived from the same query as the table */}
       <div className="grid gap-4 sm:grid-cols-3">
         <Card size="sm">
           <CardContent className="flex items-center gap-3">
@@ -315,6 +354,7 @@ export function ContactsPage() {
         </CardContent>
       </Card>
 
+      {/* Create / edit modal — form state lives in `form`; submit triggers saveMutation */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="dialog" aria-modal="true" aria-labelledby="contact-dialog-title">
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-2xl">
@@ -334,6 +374,7 @@ export function ContactsPage() {
         </div>
       )}
 
+      {/* Deactivate confirmation — deleteMutation runs on confirm */}
       <ConfirmDialog
         open={Boolean(deletingContact)}
         title="Deactivate Contact"
@@ -350,4 +391,3 @@ export function ContactsPage() {
     </div>
   );
 }
-

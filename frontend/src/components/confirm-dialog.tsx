@@ -1,16 +1,47 @@
+/**
+ * ConfirmDialog — modal overlay that asks the user to confirm or cancel an action.
+ *
+ * Used before destructive operations like delete. The parent controls visibility
+ * via the `open` prop (this component does not manage its own open/close state).
+ */
 "use client"
 
 interface ConfirmDialogProps {
+  /** When false, nothing is rendered. Parent toggles this to show/hide the dialog. */
   open: boolean
+  /** Bold heading at the top of the dialog. */
   title: string
+  /** Explanatory text below the title. */
   message: string
+  /** Label for the primary action button (default: "Confirm"). */
   confirmLabel?: string
+  /** Label for the dismiss button (default: "Cancel"). */
   cancelLabel?: string
+  /** Called when the user clicks the confirm button. */
   onConfirm: () => void
+  /** Called when the user clicks cancel or wants to dismiss. */
   onCancel: () => void
+  /** When true, confirm button uses red styling (for delete/destructive actions). */
   destructive?: boolean
 }
 
+/**
+ * Confirmation modal with title, message, and two action buttons.
+ *
+ * **State OWNED:** none — fully controlled by parent props.
+ *
+ * **State CONSUMED:**
+ * - `open` — whether the dialog is visible
+ * - `title`, `message`, button labels
+ * - `onConfirm`, `onCancel` — parent handles the actual logic
+ *
+ * **Source of truth:** parent page/component owns open state and action handlers.
+ *
+ * **Flow:**
+ * 1. If `open` is false, return null (dialog hidden)
+ * 2. Render overlay with title, message, Cancel and Confirm buttons
+ * 3. Parent closes dialog by setting `open` to false inside onConfirm/onCancel
+ */
 export function ConfirmDialog({
   open,
   title,

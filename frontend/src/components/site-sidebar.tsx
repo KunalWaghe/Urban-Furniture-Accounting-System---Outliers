@@ -1,3 +1,9 @@
+/**
+ * SiteSidebar — left vertical navigation for desktop layouts (md+ screens).
+ *
+ * Shows logo, role-filtered nav links, user info, theme toggle, and sign out.
+ * Hidden on mobile where SiteHeader handles navigation instead.
+ */
 "use client"
 
 import Link from "next/link"
@@ -23,33 +29,61 @@ import { useAuth } from "@/features/auth/auth-context"
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 
+/** Single sidebar link with optional role restrictions. */
 interface NavItem {
   label: string
   href: string
   icon: LucideIcon
+  /** If set, link only shows for these roles. Omit to show for everyone. */
   roles?: string[]
 }
 
+/**
+ * Full list of sidebar navigation items.
+ * Exported so tests or other layouts can reuse the same route config.
+ */
 export const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Sales Orders", href: "/sales-orders", icon: FileText, roles: ["admin", "invoicing_user"] },
+  { label: "Sales Invoices", href: "/sales-invoices", icon: Receipt, roles: ["admin", "invoicing_user"] },
   { label: "Purchase Orders", href: "/purchase-orders", icon: ShoppingCart, roles: ["admin", "invoicing_user"] },
-  { label: "Bills", href: "#", icon: Receipt, roles: ["admin", "invoicing_user"] },
-  { label: "Payments", href: "#", icon: CreditCard, roles: ["admin", "invoicing_user"] },
-  { label: "Reports", href: "#", icon: BarChart3, roles: ["admin", "invoicing_user"] },
+  { label: "Vendor Bills", href: "/vendor-bills", icon: Receipt, roles: ["admin", "invoicing_user"] },
+  { label: "Reports", href: "/#budget-section", icon: BarChart3, roles: ["admin", "invoicing_user"] },
   { label: "Contacts", href: "/contacts", icon: Users, roles: ["admin", "invoicing_user"] },
   { label: "Products", href: "/products", icon: FolderKanban, roles: ["admin", "invoicing_user"] },
   { label: "Chart of Accounts", href: "/chart-of-accounts", icon: CreditCard, roles: ["admin", "invoicing_user"] },
   { label: "User Management", href: "/admin/users", icon: Users, roles: ["admin"] },
-  { label: "Portal Invoices", href: "#", icon: FileText, roles: ["contact"] },
+  { label: "Portal Invoices", href: "/sales-invoices", icon: FileText, roles: ["contact"] },
 ]
 
+/**
+ * Desktop sidebar with vertical nav links and user controls.
+ *
+ * **State OWNED:** none — no useState in this component.
+ *
+ * **State CONSUMED:**
+ * - `user`, `logout` from AuthContext
+ * - `darkMode`, `toggleTheme` from ThemeProvider
+ * - `pathname` from Next.js (highlights active link)
+ *
+ * **Source of truth:**
+ * - Auth user → AuthContext
+ * - Theme → ThemeProvider
+ * - Active route → URL via usePathname()
+ * - Nav items → ALL_NAV_ITEMS constant, filtered by role
+ *
+ * **Flow:**
+ * 1. Filter ALL_NAV_ITEMS by current user role
+ * 2. Render links; highlight the one matching pathname
+ * 3. Bottom section shows user card, theme toggle, logout
+ */
 export function SiteSidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { darkMode, toggleTheme } = useTheme()
   const { user, logout } = useAuth()
 
+  /** Clear auth session and redirect to login. */
   function handleLogout() {
     logout()
     router.replace("/login")
@@ -76,7 +110,7 @@ export function SiteSidebar() {
         </div>
       </div>
 
-      {/* Nav */}
+      {/* Nav links — active state derived from current pathname */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {visibleNavItems.map((item) => {
           const Icon = item.icon

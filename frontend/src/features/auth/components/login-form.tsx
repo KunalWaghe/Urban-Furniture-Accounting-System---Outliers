@@ -1,3 +1,20 @@
+/**
+ * @file login-form.tsx
+ *
+ * Login page form UI.
+ *
+ * What this file does:
+ * - Renders login_id, password, remember-me, and submit button
+ * - Includes demo account quick-fill buttons for development
+ * - Delegates all logic to `useLoginForm` hook
+ *
+ * State consumed (from hook, not owned here):
+ * - fields, errors, notice, showPassword, rememberDevice, isSubmitting
+ *
+ * Who consumes this:
+ * - `/login` page imports and renders this component
+ */
+
 "use client";
 
 import Link from "next/link";
@@ -10,6 +27,12 @@ import { AuthAlert } from "./auth-alert";
 import { PasswordInput } from "./password-input";
 import { TextField } from "./text-field";
 
+/**
+ * Full login form with demo accounts, validation display, and sign-up link.
+ *
+ * All form state and submit logic live in `useLoginForm` — this component
+ * only wires inputs to the hook and renders UI.
+ */
 export function LoginForm() {
   const form = useLoginForm();
 
@@ -20,6 +43,7 @@ export function LoginForm() {
           <AuthAlert {...form.notice} onDismiss={form.dismissNotice} />
         )}
 
+        {/* Dev helper: one-click fill for demo accounts */}
         <div className="mb-5 rounded-xl border border-primary-200 bg-primary-50/60 p-3.5 text-xs text-text-muted">
           <div className="flex items-center justify-between font-semibold text-text-main">
             <span>Demo Accounts</span>

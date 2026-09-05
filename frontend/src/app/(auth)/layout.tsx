@@ -1,7 +1,24 @@
+/**
+ * Next.js App Router — Auth Layout
+ *
+ * Route group: `(auth)` — applies to `/login` and `/signup`.
+ *
+ * The `(auth)` folder is a route group (parentheses do not appear in the URL).
+ * This layout centers auth forms on a full-screen background and redirects users
+ * who are already logged in away from login/signup pages.
+ */
 import type { ReactNode } from "react";
 
 import { RedirectIfAuth } from "@/components/redirect-if-auth";
 
+/**
+ * Layout for unauthenticated auth pages (login and signup).
+ *
+ * Auth guard: `RedirectIfAuth` sends logged-in users to the dashboard (`/`)
+ * so they cannot open login/signup while already signed in.
+ *
+ * @param children - The active auth page (`LoginPage` or `SignupPage`).
+ */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <RedirectIfAuth>

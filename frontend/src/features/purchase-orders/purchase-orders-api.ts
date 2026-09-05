@@ -1,8 +1,19 @@
+/**
+ * Purchase Orders API layer — HTTP calls and data mapping for PO features.
+ *
+ * Talks to `/api/v1/purchase-orders` and related master-data endpoints
+ * (vendors, products, expense accounts). Raw API shapes are mapped to
+ * frontend `PurchaseOrder` types used by pages and hooks.
+ *
+ * Used by: orders list, PO detail/form pages, vendor bill creation.
+ */
+
 import { apiFetch } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import type { Account, Contact, ContactListResponse, Product, ProductListResponse } from "@/lib/types";
 import type { PurchaseOrder } from "@/lib/types";
 
+/** Single line item as returned by the backend PO endpoint. */
 export interface PurchaseOrderLineApi {
   id: number;
   product_id: number;
@@ -15,6 +26,7 @@ export interface PurchaseOrderLineApi {
   subtotal: number;
 }
 
+/** Full purchase order record from the backend API. */
 export interface PurchaseOrderApi {
   id: number;
   po_number: string;
@@ -27,6 +39,7 @@ export interface PurchaseOrderApi {
   lines: PurchaseOrderLineApi[];
 }
 
+/** Paginated list response wrapper from GET /purchase-orders. */
 export interface PurchaseOrderListResponse {
   data: PurchaseOrderApi[];
   total: number;
@@ -35,6 +48,7 @@ export interface PurchaseOrderListResponse {
   pages: number;
 }
 
+/** Query params for listing purchase orders (search, filter, sort, page). */
 export interface PurchaseOrderListParams {
   page?: number;
   limit?: number;
@@ -44,6 +58,7 @@ export interface PurchaseOrderListParams {
   sort_order?: "asc" | "desc";
 }
 
+/** Payload for one line when creating a PO. */
 export interface PurchaseOrderLineInput {
   product_id: number;
   account_id?: number;
@@ -51,12 +66,14 @@ export interface PurchaseOrderLineInput {
   unit_price: number;
 }
 
+/** Payload for POST /purchase-orders. */
 export interface PurchaseOrderInput {
   vendor_id: number;
   order_date?: string;
   lines: PurchaseOrderLineInput[];
 }
 
+/** Converts backend status strings (e.g. "confirmed") to display labels. */
 function mapPoStatus(status: string): PurchaseOrder["status"] {
   switch (status) {
     case "confirmed":
@@ -68,6 +85,12 @@ function mapPoStatus(status: string): PurchaseOrder["status"] {
   }
 }
 
+/**
+ * Maps a raw API purchase order to the frontend `PurchaseOrder` shape.
+ * Formats dates and normalizes line items for UI consumption.
+ *
+ * @param po - Raw record from the backend.
+ */
 export function mapPurchaseOrder(po: PurchaseOrderApi): PurchaseOrder {
   return {
     id: String(po.id),
@@ -88,6 +111,12 @@ export function mapPurchaseOrder(po: PurchaseOrderApi): PurchaseOrder {
   };
 }
 
+/**
+ * GET /api/v1/purchase-orders — paginated list with search, status filter, and sort.
+ *
+ * @param params - Optional page, limit, search, status, sort_by, sort_order.
+ * @returns Mapped orders plus pagination metadata (total, page, pages).
+ */
 export async function fetchPurchaseOrdersPage(
   params: PurchaseOrderListParams = {}
 ): Promise<{ orders: PurchaseOrder[]; total: number; page: number; pages: number }> {
@@ -112,15 +141,32 @@ export async function fetchPurchaseOrdersPage(
   };
 }
 
+/**
+ * GET /api/v1/purchase-orders/:id — raw API record (unmapped).
+ * Used when the detail page needs backend fields like raw status strings.
+ *
+ * @param id - Numeric purchase order ID.
+ */
 export async function fetchPurchaseOrderApi(id: number): Promise<PurchaseOrderApi> {
   return apiFetch<PurchaseOrderApi>(`/api/v1/purchase-orders/${id}`, { auth: true });
 }
 
+/**
+ * GET /api/v1/purchase-orders/:id — single PO mapped to frontend type.
+ *
+ * @param id - Numeric purchase order ID.
+ */
 export async function fetchPurchaseOrder(id: number): Promise<PurchaseOrder> {
   const po = await fetchPurchaseOrderApi(id);
   return mapPurchaseOrder(po);
 }
 
+/**
+ * POST /api/v1/purchase-orders — creates a new draft purchase order.
+ *
+ * @param input - Vendor, date, and line items.
+ * @returns The newly created PO in frontend shape.
+ */
 export async function createPurchaseOrder(input: PurchaseOrderInput): Promise<PurchaseOrder> {
   const po = await apiFetch<PurchaseOrderApi>("/api/v1/purchase-orders", {
     method: "POST",
@@ -130,6 +176,12 @@ export async function createPurchaseOrder(input: PurchaseOrderInput): Promise<Pu
   return mapPurchaseOrder(po);
 }
 
+/**
+ * PATCH /api/v1/purchase-orders/:id/confirm — locks a draft PO for billing.
+ *
+ * @param id - Numeric purchase order ID.
+ * @returns Updated PO with Confirmed status.
+ */
 export async function confirmPurchaseOrder(id: number): Promise<PurchaseOrder> {
   const po = await apiFetch<PurchaseOrderApi>(`/api/v1/purchase-orders/${id}/confirm`, {
     method: "PATCH",
@@ -138,16 +190,27 @@ export async function confirmPurchaseOrder(id: number): Promise<PurchaseOrder> {
   return mapPurchaseOrder(po);
 }
 
+/**
+ * GET /api/v1/contacts — active vendors for the PO form vendor picker.
+ * Filters to contacts with type "vendor" or "both".
+ */
 export async function fetchVendors(): Promise<Contact[]> {
   const res = await apiFetch<ContactListResponse>("/api/v1/contacts?is_active=true&limit=100", { auth: true });
   return (res.data ?? []).filter((c) => c.type === "vendor" || c.type === "both");
 }
 
+/**
+ * GET /api/v1/products — active products for PO line item dropdowns.
+ */
 export async function fetchProducts(): Promise<Product[]> {
   const res = await apiFetch<ProductListResponse>("/api/v1/products?is_active=true&limit=100", { auth: true });
   return res.data ?? [];
 }
 
+/**
+ * GET /api/v1/accounts — expense accounts for PO line purchase account dropdown.
+ * Filters to expense and other_expense account types.
+ */
 export async function fetchExpenseAccounts(): Promise<Account[]> {
   const res = await apiFetch<{ data: Account[] }>("/api/v1/accounts?is_active=true&limit=100", { auth: true });
   return (res.data ?? []).filter((a) => a.type === "expense" || a.type === "other_expense");

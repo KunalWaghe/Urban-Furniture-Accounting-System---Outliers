@@ -1,3 +1,18 @@
+/**
+ * Master Data API
+ *
+ * Thin wrapper around backend REST endpoints for contacts, products, and
+ * chart-of-accounts (ledger accounts). Each function builds a request URL,
+ * calls `apiFetch`, and returns typed data.
+ *
+ * Used by:
+ * - Master-data pages (contacts, products, chart of accounts)
+ * - Other features that need dropdown lists (e.g. fetchContacts, fetchProducts)
+ *
+ * This file does NOT use React Query — pages/hooks call these functions inside
+ * their own `queryFn` or `mutationFn`.
+ */
+
 import { apiFetch } from "@/lib/api";
 import type {
   Account,
@@ -8,6 +23,7 @@ import type {
   ProductListResponse,
 } from "@/lib/types";
 
+/** Shape of the form body when creating or updating a contact. */
 export interface ContactInput {
   name: string;
   type: Contact["type"];
@@ -18,6 +34,7 @@ export interface ContactInput {
   pincode?: string;
 }
 
+/** Shape of the form body when creating or updating a product. */
 export interface ProductInput {
   name: string;
   product_type: string;
@@ -28,6 +45,7 @@ export interface ProductInput {
   description?: string;
 }
 
+/** Optional filters and pagination for the contacts list endpoint. */
 export interface ContactListParams {
   page?: number;
   limit?: number;
@@ -38,6 +56,15 @@ export interface ContactListParams {
   sort_order?: "asc" | "desc";
 }
 
+/**
+ * Fetch a paginated, filterable page of contacts from the backend.
+ *
+ * @param params - Search, type filter, sort, and pagination options
+ * @returns Paginated response with `data`, `total`, and `pages`
+ *
+ * @example
+ * fetchContactsPage({ page: 1, limit: 10, search: "Acme" })
+ */
 export async function fetchContactsPage(
   params: ContactListParams = {}
 ): Promise<ContactListResponse> {
@@ -57,11 +84,21 @@ export async function fetchContactsPage(
   );
 }
 
+/**
+ * Fetch all contacts (up to 100) sorted by name.
+ * Convenience helper for dropdowns and simple lists — not paginated.
+ */
 export async function fetchContacts(): Promise<Contact[]> {
   const response = await fetchContactsPage({ limit: 100, sort_by: "name", sort_order: "asc" });
   return response.data ?? [];
 }
 
+/**
+ * Create a new contact.
+ *
+ * @param input - Contact fields from the create/edit form
+ * @returns The newly created contact record from the server
+ */
 export async function createContact(input: ContactInput): Promise<Contact> {
   return apiFetch<Contact>("/api/v1/contacts", {
     method: "POST",
@@ -70,6 +107,12 @@ export async function createContact(input: ContactInput): Promise<Contact> {
   });
 }
 
+/**
+ * Update an existing contact by ID.
+ *
+ * @param id - Database ID of the contact to update
+ * @param input - Only the fields that changed (partial update)
+ */
 export async function updateContact(id: number, input: Partial<ContactInput>): Promise<Contact> {
   return apiFetch<Contact>(`/api/v1/contacts/${id}`, {
     method: "PUT",
@@ -78,6 +121,10 @@ export async function updateContact(id: number, input: Partial<ContactInput>): P
   });
 }
 
+/**
+ * Soft-delete (deactivate) a contact by ID.
+ * The backend marks the record inactive rather than removing it.
+ */
 export async function deleteContact(id: number): Promise<void> {
   return apiFetch<void>(`/api/v1/contacts/${id}`, {
     method: "DELETE",
@@ -85,6 +132,7 @@ export async function deleteContact(id: number): Promise<void> {
   });
 }
 
+/** Optional filters and pagination for the products list endpoint. */
 export interface ProductListParams {
   page?: number;
   limit?: number;
@@ -96,6 +144,12 @@ export interface ProductListParams {
   sort_order?: "asc" | "desc";
 }
 
+/**
+ * Fetch a paginated, filterable page of products from the backend.
+ *
+ * @param params - Search, category/type filters, sort, and pagination
+ * @returns Paginated response with `data`, `total`, and `pages`
+ */
 export async function fetchProductsPage(
   params: ProductListParams = {}
 ): Promise<ProductListResponse> {
@@ -116,11 +170,20 @@ export async function fetchProductsPage(
   );
 }
 
+/**
+ * Fetch all products (up to 100) sorted by name.
+ * Convenience helper for dropdowns — not paginated.
+ */
 export async function fetchProducts(): Promise<Product[]> {
   const response = await fetchProductsPage({ limit: 100, sort_by: "name", sort_order: "asc" });
   return response.data ?? [];
 }
 
+/**
+ * Create a new product.
+ *
+ * @param input - Product fields from the create/edit form
+ */
 export async function createProduct(input: ProductInput): Promise<Product> {
   return apiFetch<Product>("/api/v1/products", {
     method: "POST",
@@ -129,6 +192,12 @@ export async function createProduct(input: ProductInput): Promise<Product> {
   });
 }
 
+/**
+ * Update an existing product by ID.
+ *
+ * @param id - Database ID of the product to update
+ * @param input - Only the fields that changed (partial update)
+ */
 export async function updateProduct(id: number, input: Partial<ProductInput>): Promise<Product> {
   return apiFetch<Product>(`/api/v1/products/${id}`, {
     method: "PUT",
@@ -137,6 +206,9 @@ export async function updateProduct(id: number, input: Partial<ProductInput>): P
   });
 }
 
+/**
+ * Soft-delete (deactivate) a product by ID.
+ */
 export async function deleteProduct(id: number): Promise<void> {
   return apiFetch<void>(`/api/v1/products/${id}`, {
     method: "DELETE",
@@ -144,6 +216,7 @@ export async function deleteProduct(id: number): Promise<void> {
   });
 }
 
+/** Optional filters and pagination for the accounts (chart of accounts) list endpoint. */
 export interface AccountListParams {
   page?: number;
   limit?: number;
@@ -154,6 +227,11 @@ export interface AccountListParams {
   sort_order?: "asc" | "desc";
 }
 
+/**
+ * Fetch a paginated, filterable page of ledger accounts.
+ *
+ * @param params - Search, account type filter, sort, and pagination
+ */
 export async function fetchAccountsPage(
   params: AccountListParams = {}
 ): Promise<AccountListResponse> {
@@ -173,6 +251,10 @@ export async function fetchAccountsPage(
   );
 }
 
+/**
+ * Fetch active accounts (up to 100) sorted by account code.
+ * Used by the Chart of Accounts page for a read-only ledger view.
+ */
 export async function fetchAccounts(): Promise<Account[]> {
   const response = await fetchAccountsPage({
     is_active: true,
@@ -182,4 +264,3 @@ export async function fetchAccounts(): Promise<Account[]> {
   });
   return response.data ?? [];
 }
-

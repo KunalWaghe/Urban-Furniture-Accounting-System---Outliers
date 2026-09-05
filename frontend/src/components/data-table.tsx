@@ -1,3 +1,11 @@
+/**
+ * DataTable — reusable table for listing records across master-data pages.
+ *
+ * Supports client-side search/filter/pagination out of the box, or can be
+ * switched to server-side mode by passing pagination/sort/search callbacks.
+ *
+ * Used by: contacts-page, products-page, and other list views.
+ */
 "use client"
 
 import { useMemo, useState, type ReactNode } from "react"
@@ -7,13 +15,24 @@ import { EmptyState } from "@/components/empty-state"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { TablePagination } from "@/components/ui/table-pagination"
 
+/** Default number of rows shown per page when using client-side pagination. */
 const DEFAULT_PAGE_SIZE = 10
 
+/**
+ * Describes one column in the table.
+ *
+ * @template T - The row data type (e.g. Contact, Product).
+ */
 export interface DataTableColumn<T> {
+  /** Unique key used for sorting and default cell lookup. */
   key: string
+  /** Header label shown in the table head. */
   label: string
+  /** Optional custom value extractor for search filtering. */
   accessor?: (row: T) => unknown
+  /** Optional custom cell renderer. Falls back to row[key] when omitted. */
   render?: (row: T) => ReactNode
+  /** When true and onSort is provided, the column header becomes clickable. */
   sortable?: boolean
 }
 
@@ -48,6 +67,28 @@ interface DataTableProps<T extends { id?: string | number }> {
   toolbarExtra?: ReactNode
 }
 
+/**
+ * Generic data table with search, sort, pagination, loading, and empty states.
+ *
+ * **State OWNED (internal):**
+ * - `internalSearch` — search text when parent does not control search
+ * - `clientPage` — current page when using client-side pagination
+ *
+ * **State CONSUMED (from props):**
+ * - `data`, `loading`, column config
+ * - Optional controlled search (`searchValue` + `onSearch`)
+ * - Optional server pagination/sort (`currentPage`, `totalPages`, `onPageChange`, etc.)
+ *
+ * **Source of truth:**
+ * - Row data → parent (usually React Query)
+ * - Search/page/sort → parent when callback props are passed; otherwise this component
+ *
+ * **Flow:**
+ * 1. Show spinner while `loading` is true
+ * 2. Filter rows locally (unless `onSearch` is provided)
+ * 3. Slice rows for client pagination (or trust server-provided page)
+ * 4. Render table, empty state, or pagination footer
+ */
 export function DataTable<T extends { id?: string | number }>({
   columns,
   data = [],
@@ -67,14 +108,19 @@ export function DataTable<T extends { id?: string | number }>({
   onSort,
   toolbarExtra,
 }: DataTableProps<T>) {
+  // Local search text — only used when parent does not pass searchValue
   const [internalSearch, setInternalSearch] = useState("")
+  // Local page number — only used for client-side pagination
   const [clientPage, setClientPage] = useState(1)
 
+  // "Controlled" means the parent owns the search value via searchValue prop
   const isControlledSearch = searchValue !== undefined
   const currentSearch = isControlledSearch ? searchValue : internalSearch
 
+  // Server mode: parent passes onPageChange + totalPages
   const isServerPagination = typeof onPageChange === "function" && serverTotalPages !== undefined
 
+  // Client-side filter: match search query against each column's value
   const filteredData = useMemo(() => {
     if (onSearch || !currentSearch.trim()) return data
     const query = currentSearch.toLowerCase()
@@ -95,9 +141,11 @@ export function DataTable<T extends { id?: string | number }>({
     ? Math.max(1, Math.ceil(filteredData.length / pageSize))
     : 1
 
+  // Keep client page in bounds if filtered results shrink
   const safeClientPage = Math.min(clientPage, totalPages)
   const activePage = isServerPagination ? (currentPage ?? 1) : safeClientPage
 
+  // Slice visible rows for client pagination; server mode shows full data prop
   const visibleData = useMemo(() => {
     if (isServerPagination || !clientPaginationEnabled) return filteredData
     const start = (safeClientPage - 1) * pageSize
@@ -207,7 +255,7 @@ export function DataTable<T extends { id?: string | number }>({
             </table>
           </div>
 
-          {/* Pagination footer */}
+          {/* Pagination footer — hidden when only one page exists */}
           {totalPages > 1 && (
             <div className="border-t border-border px-3 sm:px-4">
               <div className="flex flex-col items-center justify-between gap-2 py-2 sm:flex-row sm:gap-0">
@@ -232,4 +280,3 @@ export function DataTable<T extends { id?: string | number }>({
     </div>
   )
 }
-

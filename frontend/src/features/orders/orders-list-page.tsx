@@ -1,3 +1,14 @@
+/**
+ * Shared orders list page for Sales Orders and Purchase Orders routes.
+ *
+ * Data flow:
+ * - Sales: useSalesOrders → orders-api → dashboard data (client-side filter + pagination)
+ * - Purchase: usePaginatedPurchaseOrders → orders-api → purchase-orders API (server-side)
+ *
+ * Local UI state: search query, status filter, pagination, sort (PO only), detail modal (sales).
+ * No mutations on this page — purchase rows navigate to /purchase-orders/:id.
+ */
+
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -33,6 +44,7 @@ interface OrdersListPageProps {
 
 const PAGE_SIZE = 10;
 
+/** Formats a number as USD (sales) or INR (purchase). */
 function currency(value: number, isPurchase = false) {
   if (isPurchase) {
     return `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
@@ -40,10 +52,12 @@ function currency(value: number, isPurchase = false) {
   return `$${value.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
 }
 
+/** Type guard: sales orders have `order_number`, purchase orders have `po_number`. */
 function isSalesOrder(order: Order): order is SalesOrder {
   return "order_number" in order;
 }
 
+/** Returns Tailwind classes for the order status pill color. */
 function statusClasses(status: string) {
   if (status === "Confirmed") {
     return "border-emerald-200/70 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-400";
@@ -57,6 +71,7 @@ function statusClasses(status: string) {
   return "border-amber-200/70 bg-amber-50 text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-400";
 }
 
+/** Small colored badge showing order status in the table. */
 function OrderStatus({ status }: { status: string }) {
   return (
     <span
@@ -68,6 +83,11 @@ function OrderStatus({ status }: { status: string }) {
   );
 }
 
+/**
+ * Renders the sales or purchase orders table with filters, stats, and pagination.
+ *
+ * @param kind - "sales" for customer orders, "purchase" for supplier POs.
+ */
 export function OrdersListPage({ kind }: OrdersListPageProps) {
   const router = useRouter();
   const isSales = kind === "sales";
@@ -85,6 +105,7 @@ export function OrdersListPage({ kind }: OrdersListPageProps) {
   const [salesPage, setSalesPage] = useState(1);
   const [purchasePage, setPurchasePage] = useState(1);
 
+  /** Toggles sort direction or switches sort column for purchase orders. */
   function handlePoSort(field: string) {
     if (poSortBy === field) {
       setPoSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -459,6 +480,7 @@ export function OrdersListPage({ kind }: OrdersListPageProps) {
   );
 }
 
+/** KPI card showing a count with label and icon (All orders, Confirmed, Draft). */
 function StatCard({
   label,
   value,
@@ -492,6 +514,7 @@ function StatCard({
   );
 }
 
+/** Slide-over modal with full order line items (sales orders only). */
 function OrderDetails({
   order,
   title,
@@ -577,6 +600,7 @@ function OrderDetails({
   );
 }
 
+/** Single label + value pair inside the order details modal. */
 function Detail({ label, value, icon }: { label: string; value: string; icon?: ReactNode }) {
   return (
     <div>
