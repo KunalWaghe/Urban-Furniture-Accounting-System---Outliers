@@ -23,7 +23,7 @@ import type {
   Journal,
   SalesOrder,
   PurchaseOrder,
-  VendorBill,
+  DashboardVendorBill,
   BudgetMetric,
 } from "@/lib/types";
 
@@ -107,12 +107,13 @@ export async function fetchDashboardCustomerInvoiceStats(): Promise<DashboardInv
 }
 
 /** Maps vendor-bills API records to the simplified dashboard bill shape. */
-export function mapDashboardVendorBill(bill: ApiVendorBill): VendorBill {
-  let payment_status: VendorBill["payment_status"];
-  if (bill.status === "Paid") {
+export function mapDashboardVendorBill(bill: ApiVendorBill): DashboardVendorBill {
+  let payment_status: DashboardVendorBill["payment_status"];
+  const amount_paid = bill.total_amount - bill.amount_due;
+  if (bill.status === "Paid" || bill.amount_due <= 0) {
     payment_status = "Paid";
   } else if (bill.amount_due > 0 && bill.amount_due < bill.total_amount) {
-    payment_status = "Scheduled";
+    payment_status = "Partially Paid";
   } else {
     payment_status = "Unpaid";
   }
@@ -123,6 +124,7 @@ export function mapDashboardVendorBill(bill: ApiVendorBill): VendorBill {
     vendor_name: bill.vendor_name,
     due_date: formatDate(bill.due_date),
     amount: bill.total_amount,
+    amount_paid,
     payment_status,
   };
 }
@@ -196,7 +198,7 @@ export function markPurchaseOrdersWithBills(
 export function buildBudgetMetricsFromTransactions(params: {
   salesOrders: SalesOrder[];
   purchaseOrders: PurchaseOrder[];
-  vendorBills: VendorBill[];
+  vendorBills: DashboardVendorBill[];
 }): BudgetMetric {
   const { salesOrders, purchaseOrders, vendorBills } = params;
 

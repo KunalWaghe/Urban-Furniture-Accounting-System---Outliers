@@ -5,14 +5,14 @@
  *
  * Data flow:
  * 1. React Query (`contactsQuery`) calls `fetchContactsPage` from master-data-api
- * 2. Server returns paginated contacts → rendered in DataTable
+ * 2. Server returns paginated contacts → rendered in DataTable or ContactKanban
  * 3. Create/edit form uses local `form` state → `saveMutation` calls create/update API
  * 4. Delete uses `deleteMutation` → soft-deactivates contact on server
- * 5. On mutation success, query cache is invalidated so the table refreshes
+ * 5. On mutation success, query cache is invalidated so the table/kanban refreshes
  *
  * State ownership:
  * - Server data: React Query cache (key: "contacts-paged")
- * - Table filters/sort/page: local useState
+ * - Table filters/sort/page/view: local useState
  * - Modal form: local useState (`form`, `editing`, `isModalOpen`)
  */
 
@@ -20,7 +20,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit3, Mail, MapPin, Phone, Plus, Trash2, Users } from "lucide-react";
+import { Edit3, Grid2X2, List, Mail, MapPin, Phone, Plus, Trash2, Users } from "lucide-react";
 
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable, type DataTableColumn } from "@/components/data-table";
@@ -29,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Contact } from "@/lib/types";
+import { ContactKanban } from "./contact-kanban";
 import {
   createContact,
   deleteContact,
@@ -61,11 +62,14 @@ const emptyForm: ContactInput = { name: "", type: "customer", email: "", mobile:
 /**
  * Contacts master-data page.
  *
- * Lists customers and vendors with search, type filter, sort, and pagination.
+ * Lists customers and vendors with search, type filter, sort, pagination, and Kanban view.
  * Supports create, edit (modal form), and deactivate (confirm dialog).
  */
 export function ContactsPage() {
   const queryClient = useQueryClient();
+
+  // --- View mode: table or kanban ---
+  const [view, setView] = useState<"table" | "kanban">("table");
 
   // --- Server-side table controls (sent to API on each fetch) ---
   const [page, setPage] = useState(1);
@@ -83,11 +87,11 @@ export function ContactsPage() {
 
   // Fetch paginated contacts — re-runs when page, search, filters, or sort change
   const contactsQuery = useQuery({
-    queryKey: ["contacts-paged", { page, search, typeFilter, sortBy, sortOrder }],
+    queryKey: ["contacts-paged", view, { page, search, typeFilter, sortBy, sortOrder }],
     queryFn: () =>
       fetchContactsPage({
         page,
-        limit: 10,
+        limit: view === "kanban" ? 100 : 10,
         search: search.trim() || undefined,
         type: typeFilter !== "all" ? typeFilter : undefined,
         sort_by: sortBy,
@@ -128,6 +132,17 @@ export function ContactsPage() {
       await queryClient.invalidateQueries({ queryKey: ["contacts-paged"] });
       setDeletingContact(null);
     },
+  });
+
+  // Moving a Kanban card updates contact type
+  const moveMutation = useMutation({
+    mutationFn: ({ contactId, type }: { contactId: number; type: Contact["type"] }) =>
+      updateContact(contactId, { type }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      await queryClient.invalidateQueries({ queryKey: ["contacts-paged"] });
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : "Could not move contact."),
   });
 
   const contacts = contactsQuery.data?.data ?? [];
@@ -315,60 +330,224 @@ export function ContactsPage() {
 
       <Card>
         <CardContent className="p-5">
-          <DataTable
-            columns={columns}
-            data={contacts}
-            loading={contactsQuery.isLoading}
-            searchPlaceholder="Search contacts by name, email, or city..."
-            searchValue={search}
-            onSearch={(val) => {
-              setSearch(val);
-              setPage(1);
-            }}
-            currentPage={page}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            onPageChange={setPage}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onSort={handleSort}
-            toolbarExtra={
-              <select
-                value={typeFilter}
-                onChange={(event) => {
-                  setTypeFilter(event.target.value as typeof typeFilter);
-                  setPage(1);
-                }}
-                className="rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text outline-none focus:border-primary-500"
-                aria-label="Filter contacts by type"
-              >
-                <option value="all">All contact types</option>
-                <option value="customer">Customers</option>
-                <option value="vendor">Vendors</option>
-                <option value="both">Customer &amp; Vendor</option>
-              </select>
-            }
-            emptyTitle="No contacts found"
-            emptyDescription="Add a contact or adjust your search and type filter."
-          />
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-semibold text-text">Contact directory</h2>
+              <p className="mt-1 text-xs text-text-muted">
+                Switch views to scan details in a table or manage contacts by type in Kanban.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {view === "table" && (
+                <select
+                  value={typeFilter}
+                  onChange={(event) => {
+                    setTypeFilter(event.target.value as typeof typeFilter);
+                    setPage(1);
+                  }}
+                  className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text outline-none focus:border-primary-500"
+                  aria-label="Filter contacts by type"
+                >
+                  <option value="all">All contact types</option>
+                  <option value="customer">Customers</option>
+                  <option value="vendor">Vendors</option>
+                  <option value="both">Customer &amp; Vendor</option>
+                </select>
+              )}
+              <div className="flex rounded-lg border border-border bg-surface-muted p-1">
+                <button
+                  type="button"
+                  onClick={() => setView("table")}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                    view === "table"
+                      ? "bg-surface text-primary-600 shadow-sm"
+                      : "text-text-muted hover:text-text"
+                  }`}
+                >
+                  <List className="h-3.5 w-3.5" />
+                  Table
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView("kanban")}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                    view === "kanban"
+                      ? "bg-surface text-primary-600 shadow-sm"
+                      : "text-text-muted hover:text-text"
+                  }`}
+                >
+                  <Grid2X2 className="h-3.5 w-3.5" />
+                  Kanban
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {view === "table" ? (
+            <DataTable
+              columns={columns}
+              data={contacts}
+              loading={contactsQuery.isLoading}
+              searchPlaceholder="Search contacts by name, email, or city..."
+              searchValue={search}
+              onSearch={(val) => {
+                setSearch(val);
+                setPage(1);
+              }}
+              currentPage={page}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              onPageChange={setPage}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSort={handleSort}
+              emptyTitle="No contacts found"
+              emptyDescription="Add a contact or adjust your search and type filter."
+            />
+          ) : (
+            <ContactKanban
+              contacts={contacts}
+              onEdit={openEdit}
+              onDelete={setDeletingContact}
+              onMove={(contact, type) => moveMutation.mutate({ contactId: contact.id, type })}
+              search={search}
+              onSearch={setSearch}
+              loading={contactsQuery.isLoading}
+            />
+          )}
         </CardContent>
       </Card>
 
       {/* Create / edit modal — form state lives in `form`; submit triggers saveMutation */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="dialog" aria-modal="true" aria-labelledby="contact-dialog-title">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="contact-dialog-title"
+        >
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-2xl">
-            <div className="flex items-start justify-between gap-4"><div><h2 id="contact-dialog-title" className="text-lg font-semibold text-text">{editing ? "Edit contact" : "New contact"}</h2><p className="mt-1 text-sm text-text-muted">Use this contact in sales and purchase workflows.</p></div><button type="button" onClick={() => setIsModalOpen(false)} className="text-sm text-text-muted hover:text-text" aria-label="Close dialog">✕</button></div>
-            {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
-            <form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={(event) => { event.preventDefault(); if (!form.name.trim()) { setError("Name is required."); return; } saveMutation.mutate(); }}>
-              <label className="sm:col-span-2 text-sm font-medium text-text">Name *<input required value={form.name} onChange={(event) => updateField("name", event.target.value)} className={inputClass} placeholder="e.g. Acme Interiors" /></label>
-              <label className="text-sm font-medium text-text">Type *<select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as Contact["type"] }))} className={inputClass}><option value="customer">Customer</option><option value="vendor">Vendor</option><option value="both">Both</option></select></label>
-              <label className="text-sm font-medium text-text">Email<input type="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} className={inputClass} placeholder="accounts@example.com" /></label>
-              <label className="text-sm font-medium text-text">Mobile<input value={form.mobile} onChange={(event) => updateField("mobile", event.target.value)} className={inputClass} placeholder="+91 98765 43210" /></label>
-              <label className="text-sm font-medium text-text">City<input value={form.city} onChange={(event) => updateField("city", event.target.value)} className={inputClass} placeholder="Mumbai" /></label>
-              <label className="text-sm font-medium text-text">State<input value={form.state} onChange={(event) => updateField("state", event.target.value)} className={inputClass} placeholder="Maharashtra" /></label>
-              <label className="text-sm font-medium text-text">Pincode<input value={form.pincode} onChange={(event) => updateField("pincode", event.target.value)} className={inputClass} placeholder="400001" /></label>
-              <div className="mt-2 flex justify-end gap-3 sm:col-span-2"><Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button><Button type="submit" disabled={saveMutation.isPending}>{saveMutation.isPending ? <LoadingSpinner /> : editing ? "Save changes" : "Create contact"}</Button></div>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 id="contact-dialog-title" className="text-lg font-semibold text-text">
+                  {editing ? "Edit contact" : "New contact"}
+                </h2>
+                <p className="mt-1 text-sm text-text-muted">
+                  Use this contact in sales and purchase workflows.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="text-sm text-text-muted hover:text-text"
+                aria-label="Close dialog"
+              >
+                ✕
+              </button>
+            </div>
+            {error && (
+              <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">
+                {error}
+              </p>
+            )}
+            <form
+              className="mt-5 grid gap-4 sm:grid-cols-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!form.name.trim()) {
+                  setError("Name is required.");
+                  return;
+                }
+                saveMutation.mutate();
+              }}
+            >
+              <label className="sm:col-span-2 text-sm font-medium text-text">
+                Name *
+                <input
+                  required
+                  value={form.name}
+                  onChange={(event) => updateField("name", event.target.value)}
+                  className={inputClass}
+                  placeholder="e.g. Acme Interiors"
+                />
+              </label>
+              <label className="text-sm font-medium text-text">
+                Type *
+                <select
+                  value={form.type}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      type: event.target.value as Contact["type"],
+                    }))
+                  }
+                  className={inputClass}
+                >
+                  <option value="customer">Customer</option>
+                  <option value="vendor">Vendor</option>
+                  <option value="both">Both</option>
+                </select>
+              </label>
+              <label className="text-sm font-medium text-text">
+                Email
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => updateField("email", event.target.value)}
+                  className={inputClass}
+                  placeholder="accounts@example.com"
+                />
+              </label>
+              <label className="text-sm font-medium text-text">
+                Mobile
+                <input
+                  value={form.mobile}
+                  onChange={(event) => updateField("mobile", event.target.value)}
+                  className={inputClass}
+                  placeholder="+91 98765 43210"
+                />
+              </label>
+              <label className="text-sm font-medium text-text">
+                City
+                <input
+                  value={form.city}
+                  onChange={(event) => updateField("city", event.target.value)}
+                  className={inputClass}
+                  placeholder="Mumbai"
+                />
+              </label>
+              <label className="text-sm font-medium text-text">
+                State
+                <input
+                  value={form.state}
+                  onChange={(event) => updateField("state", event.target.value)}
+                  className={inputClass}
+                  placeholder="Maharashtra"
+                />
+              </label>
+              <label className="text-sm font-medium text-text">
+                Pincode
+                <input
+                  value={form.pincode}
+                  onChange={(event) => updateField("pincode", event.target.value)}
+                  className={inputClass}
+                  placeholder="400001"
+                />
+              </label>
+              <div className="mt-2 flex justify-end gap-3 sm:col-span-2">
+                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={saveMutation.isPending}>
+                  {saveMutation.isPending ? (
+                    <LoadingSpinner />
+                  ) : editing ? (
+                    "Save changes"
+                  ) : (
+                    "Create contact"
+                  )}
+                </Button>
+              </div>
             </form>
           </div>
         </div>

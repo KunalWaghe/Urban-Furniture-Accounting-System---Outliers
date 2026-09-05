@@ -249,6 +249,7 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
                 contacts={customers}
                 value={customerId}
                 onChange={setCustomerId}
+                label="Customer"
                 placeholder="Select customer…"
               />
             </div>

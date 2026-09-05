@@ -39,7 +39,7 @@ import type {
   Product,
   SalesOrder,
   PurchaseOrder,
-  VendorBill,
+  DashboardVendorBill,
 } from "@/lib/types";
 import {
   useDashboardCustomerInvoiceStats,
@@ -117,7 +117,7 @@ export default function AppDashboardPage() {
   // Selected Order / PO / Bill for Inspection & Payment Modals
   const [selectedSalesOrder, setSelectedSalesOrder] = useState<SalesOrder | null>(null);
   const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState<PurchaseOrder | null>(null);
-  const [selectedBillForPayment, setSelectedBillForPayment] = useState<VendorBill | null>(null);
+  const [selectedBillForPayment, setSelectedBillForPayment] = useState<DashboardVendorBill | null>(null);
 
   // Create Modals
   const [isCreateOrderModalOpen, setIsCreateOrderModalOpen] = useState(false);

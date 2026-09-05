@@ -25,7 +25,6 @@ import {
   Wallet,
 } from "lucide-react";
 
-import { ConfirmDialog } from "@/components/confirm-dialog";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatINR, todayDate } from "@/lib/format";
@@ -318,17 +317,6 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
           </div>
         </aside>
       </div>
-
-      {/* Confirm Dialog */}
-      <ConfirmDialog
-        open={confirmDialogOpen}
-        title="Confirm Vendor Bill"
-        message={`Are you sure you want to confirm ${bill.bill_number}? This will lock line amounts and post a journal entry to Accounts Payable.`}
-        confirmLabel={confirmMutation.isPending ? "Confirming…" : "Confirm Bill"}
-        onConfirm={() => confirmMutation.mutate()}
-        onCancel={() => setConfirmDialogOpen(false)}
-        pending={confirmMutation.isPending}
-      />
 
       {/* Register Payment Modal */}
       {paymentModalOpen && (

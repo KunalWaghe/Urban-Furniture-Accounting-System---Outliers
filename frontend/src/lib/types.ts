@@ -252,6 +252,17 @@ export interface PurchaseOrder {
 }
 
 
+/** A vendor bill summary as displayed on the main dashboard. */
+export interface DashboardVendorBill {
+  id: string;
+  bill_number: string;
+  vendor_name: string;
+  due_date: string;
+  amount: number;
+  amount_paid?: number;
+  payment_status: "Paid" | "Partially Paid" | "Scheduled" | "Unpaid";
+}
+
 /** Budget vs actual metrics for a single cost center. */
 export interface BudgetMetric {
   cost_center_code: string;
