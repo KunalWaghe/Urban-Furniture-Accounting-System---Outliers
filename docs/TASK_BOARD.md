@@ -1,7 +1,7 @@
 # Urban Furniture Accounting System — Master Task List
 > **Ground source of truth.** Frontend: Sourabh · Backend: Kunal · Integration: Both
 > Last synced: 5 Sep 2026, 11:09 PM IST — code audit
-> Current checklist: **33/51 complete (65%)**; **18 remain**.
+> Current checklist: **37/52 complete (71%)**; **15 remain**.
 
 ---
 
@@ -149,6 +149,8 @@
   - `/reports/balance-sheet` with date filter, totals, equation status, and print action
 - [x] 7B.3 · FE · P&L page — Income, Expenses, Net Income (P0-FE-13b)
   - `/reports/profit-loss` with year filter, totals, result status, and print action
+- [x] 7C.1 · FE · Payments history screen
+  - `/payments` uses `GET /api/v1/payments` with inbound/outbound filters, search, linked documents, journal references, and payment totals.
 
 ---
 
@@ -165,8 +167,10 @@
 ## Audit Notes
 
 - Frontend production build passes with the current route set, including `/reports/profit-loss`.
+- Frontend production build now includes `/analytic-accounts`, `/budgets`, `/reports/budget`, `/payments`, and `/portal`.
 - Backend tests are present for auth, master data, purchase, sales, billing, payments, journals, and reports, but the full suite could not execute in this environment because PostgreSQL on `localhost:5432` is unavailable.
 - Purchase and sales integration gates remain open until the complete live golden paths are run against the configured database.
+- Budget and portal frontend screens are implemented, but their live data remains blocked by the unimplemented P1 backend endpoints.
 
 ## Step 9 — P1: Budget & Contact Portal 🔲
 
@@ -174,17 +178,20 @@
 
 - [ ] 9.1 · BE · Analytic Account & Budget models + endpoints (P1-BE-01)
   - Committed, achieved, achieved %, amount-to-achieve computation
-- [ ] 9.2 · FE · Analytic/Budget master views + Budget Report page with donut chart (P1-FE-01)
+- [x] 9.2 · FE · Analytic/Budget master views + Budget Report page with donut chart (P1-FE-01)
+  - `/analytic-accounts`, `/budgets`, and `/reports/budget` implemented against the locked API contract with loading, empty, and API-unavailable states.
 - [ ] 9.3 · INT · Verify Budget Flow end-to-end (P1-INT-01)
 - [ ] 9.4 · BE · Contact Portal endpoints — restrict to own invoices/bills (P1-BE-02)
-- [ ] 9.5 · FE · Contact Portal restricted view ("My Invoices") + pay action (P1-FE-02)
+- [x] 9.5 · FE · Contact Portal restricted view ("My Invoices") + pay action (P1-FE-02)
+  - `/portal` is restricted to the `contact` role and uses the locked portal invoice/payment endpoints.
 - [ ] 9.6 · INT · Verify Contact Portal end-to-end (P1-INT-02)
 
 ---
 
 ## Step 10 — Bonus (Post-Midnight, only if P0 is stable) 🔲
 
-- [ ] 10.1 · FE · Dashboard KPI cards — Receivables, Payables, Net Profit (BONUS-02)
+- [x] 10.1 · FE · Dashboard KPI cards — Receivables, Payables, Net Profit (BONUS-02)
+  - Dashboard now loads Cash, Bank, Receivables, Payables, and Net Profit from the Balance Sheet/P&L APIs.
 - [ ] 10.2 · BE · PDF invoice/bill export (BONUS-03)
 - [ ] 10.3 · INT · Date period filters on reports (BONUS-01)
 

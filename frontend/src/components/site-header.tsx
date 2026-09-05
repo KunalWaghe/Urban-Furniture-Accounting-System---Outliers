@@ -58,7 +58,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     items: [
       { label: "Sales Orders", href: "/sales-orders", description: "Customer orders & fulfillment status" },
       { label: "Sales Invoices", href: "/sales-invoices", description: "Commercial invoicing & customer dues" },
-      { label: "Payments / Receipts", href: "/sales-invoices", description: "Customer receipts & accounts receivable" },
+      { label: "Payments / Receipts", href: "/payments", description: "Customer receipts & accounts receivable" },
     ],
   },
   {
@@ -68,7 +68,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     items: [
       { label: "Purchase Orders", href: "/purchase-orders", description: "Supplier purchase orders & goods receipt" },
       { label: "Purchase Bills", href: "/vendor-bills", description: "Vendor bills & accounts payable" },
-      { label: "Payments", href: "/vendor-bills", description: "Bank & cash vendor disbursements" },
+      { label: "Payments", href: "/payments", description: "Bank & cash vendor disbursements" },
     ],
   },
   {
@@ -78,7 +78,8 @@ export const NAV_CATEGORIES: NavCategory[] = [
     items: [
       { label: "Contacts", href: "/contacts", description: "Customers & Vendors master directory" },
       { label: "Products Catalog", href: "/products", description: "Furniture inventory & sales pricing" },
-      { label: "Analytical Budget", href: "/#budget-section", description: "Production & operational cost centers" },
+      { label: "Analytic Accounts", href: "/analytic-accounts", description: "Income and expense tracking dimensions" },
+      { label: "Budgets", href: "/budgets", description: "Committed amounts and revisions" },
       { label: "Chart of Accounts", href: "/chart-of-accounts", description: "8 canonical double-entry ledger accounts" },
       { label: "Journals", href: "/journals", description: "Sales, Purchase, Bank & Cash journals" },
       { label: "Journal Entries", href: "/journal-entries", description: "Balanced double-entry ledger postings" },
@@ -92,7 +93,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     items: [
       { label: "Balance Sheet", href: "/reports/balance-sheet", description: "Assets = Liabilities + Capital check" },
       { label: "Profit and Loss", href: "/reports/profit-loss", description: "Operating revenue, COGS & net income" },
-      { label: "Budget Report", href: "/#budget-section", description: "Committed vs Achieved utilization metrics" },
+      { label: "Budget Report", href: "/reports/budget", description: "Committed vs Achieved utilization metrics" },
     ],
   },
 ];
@@ -146,6 +147,14 @@ export function SiteHeader() {
 
   // Remove admin-only items for non-admin users
   const categories = useMemo(() => {
+    if (userRole === "contact") {
+      return [{
+        id: "sales" as const,
+        label: "Portal",
+        color: "bg-amber-500",
+        items: [{ label: "My Invoices", href: "/portal", description: "View and pay your outstanding invoices" }],
+      }];
+    }
     return NAV_CATEGORIES.map((cat) => ({
       ...cat,
       items: cat.items.filter((item) => {

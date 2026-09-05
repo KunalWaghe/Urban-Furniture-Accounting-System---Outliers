@@ -18,6 +18,7 @@ import {
   LogOut,
   Moon,
   Receipt,
+  WalletCards,
   ShoppingCart,
   Sun,
   User,
@@ -48,14 +49,18 @@ export const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Sales Invoices", href: "/sales-invoices", icon: Receipt, roles: ["admin", "invoicing_user"] },
   { label: "Purchase Orders", href: "/purchase-orders", icon: ShoppingCart, roles: ["admin", "invoicing_user"] },
   { label: "Vendor Bills", href: "/vendor-bills", icon: Receipt, roles: ["admin", "invoicing_user"] },
+  { label: "Payments", href: "/payments", icon: WalletCards, roles: ["admin", "invoicing_user"] },
   { label: "Reports", href: "/reports/balance-sheet", icon: BarChart3, roles: ["admin", "invoicing_user"] },
   { label: "Contacts", href: "/contacts", icon: Users, roles: ["admin", "invoicing_user"] },
   { label: "Products", href: "/products", icon: FolderKanban, roles: ["admin", "invoicing_user"] },
   { label: "Chart of Accounts", href: "/chart-of-accounts", icon: CreditCard, roles: ["admin", "invoicing_user"] },
   { label: "Journals", href: "/journals", icon: FileText, roles: ["admin", "invoicing_user"] },
   { label: "Journal Entries", href: "/journal-entries", icon: FileText, roles: ["admin", "invoicing_user"] },
+  { label: "Analytic Accounts", href: "/analytic-accounts", icon: BarChart3, roles: ["admin", "invoicing_user"] },
+  { label: "Budgets", href: "/budgets", icon: BarChart3, roles: ["admin", "invoicing_user"] },
+  { label: "Budget Report", href: "/reports/budget", icon: BarChart3, roles: ["admin", "invoicing_user"] },
   { label: "User Management", href: "/admin/users", icon: Users, roles: ["admin"] },
-  { label: "Portal Invoices", href: "/sales-invoices", icon: FileText, roles: ["contact"] },
+  { label: "Portal Invoices", href: "/portal", icon: FileText, roles: ["contact"] },
 ]
 
 /**

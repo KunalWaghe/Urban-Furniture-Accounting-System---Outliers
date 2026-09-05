@@ -58,6 +58,7 @@ import {
 import { createBillFromPo } from "@/features/vendor-bills/vendor-bills-api";
 import { SearchableContactSelect } from "@/components/searchable-contact-select";
 import { PaymentModal } from "@/components/payment-modal";
+import { DashboardKpiCards } from "@/features/dashboard/dashboard-kpi-cards";
 
 /**
  * Main dashboard page — sales, purchase, and budget overview in one scrollable view.
@@ -308,6 +309,8 @@ export default function AppDashboardPage() {
           </button>
         </div>
       )}
+
+      <DashboardKpiCards />
 
 
       {/* ========================================================================= */}
