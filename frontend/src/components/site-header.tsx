@@ -248,11 +248,11 @@ export function SiteHeader() {
       ref={navContainerRef}
       className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-md"
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 gap-3 sm:gap-4">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-4 md:px-6 lg:px-8 gap-2 sm:gap-3 md:gap-4">
         {/* Left: Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="rounded-xl bg-primary-600 p-2 text-white shadow-sm shadow-primary-500/20">
-            <Armchair className="h-5 w-5" />
+        <Link href="/" className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <div className="rounded-lg sm:rounded-xl bg-primary-600 p-1.5 sm:p-2 text-white shadow-sm shadow-primary-500/20">
+            <Armchair className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
           <div className="hidden sm:block">
             <span className="block text-sm font-bold tracking-tight text-text sm:text-base leading-tight">
@@ -392,7 +392,7 @@ export function SiteHeader() {
         </div>
 
         {/* Right: User Pill + Dark Mode + Sign Out */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
           {user && (
             <div className="hidden lg:flex items-center gap-2 rounded-xl border border-border/70 bg-surface-muted/40 px-2.5 py-1.5 text-xs">
               <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
@@ -422,30 +422,30 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-text transition-colors hover:bg-surface-muted shadow-xs"
+            className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg sm:rounded-xl border border-border text-text transition-colors hover:bg-surface-muted shadow-xs"
             aria-label="Toggle dark mode"
           >
-            {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {darkMode ? <Sun className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Moon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
           </button>
 
           <button
             type="button"
             onClick={handleLogout}
-            className="hidden sm:flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text shadow-xs"
+            className="hidden sm:flex h-8 sm:h-9 items-center gap-1.5 rounded-lg sm:rounded-xl border border-border px-2.5 sm:px-3 text-xs font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text shadow-xs"
             aria-label="Sign out"
           >
             <LogOut className="h-3.5 w-3.5" />
-            <span>Sign out</span>
+            <span className="hidden sm:inline">Sign out</span>
           </button>
 
           {/* Mobile menu hamburger toggle */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-text transition-colors hover:bg-surface-muted md:hidden"
+            className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg sm:rounded-xl border border-border text-text transition-colors hover:bg-surface-muted md:hidden"
             aria-label="Toggle navigation menu"
           >
-            {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            {mobileMenuOpen ? <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Menu className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
           </button>
         </div>
       </div>
@@ -454,28 +454,28 @@ export function SiteHeader() {
 
       {/* Mobile navigation drawer — shown when mobileMenuOpen is true */}
       {mobileMenuOpen && (
-        <div className="border-t border-border bg-surface px-4 py-4 md:hidden max-h-[85vh] overflow-y-auto space-y-4">
+        <div className="border-t border-border bg-surface px-3 py-3 md:hidden max-h-[calc(100vh-4rem)] overflow-y-auto space-y-3">
           {/* User profile card */}
           {user && (
-            <div className="flex items-center justify-between rounded-xl border border-border/70 bg-surface-muted/40 p-2.5">
+            <div className="flex items-center justify-between rounded-lg border border-border/70 bg-surface-muted/40 p-2">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
-                  <User className="h-4 w-4" />
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
+                  <User className="h-3.5 w-3.5" />
                 </div>
                 <div>
                   <div className="text-xs font-semibold text-text">{user.name}</div>
-                  <div className="text-[11px] text-text-muted">
+                  <div className="text-[10px] text-text-muted">
                     {user.login_id ? `@${user.login_id}` : user.email}
                   </div>
                 </div>
               </div>
               {user.role === "admin" && (
-                <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
                   Admin
                 </span>
               )}
               {user.role === "invoicing_user" && (
-                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
                   Accountant
                 </span>
               )}
@@ -489,26 +489,26 @@ export function SiteHeader() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search orders, bills, accounts..."
-              className="w-full rounded-xl border border-border bg-surface-muted py-2 pl-9 pr-4 text-xs text-text placeholder:text-text-muted focus:border-primary-500 focus:bg-surface focus:outline-none"
+              className="w-full rounded-lg border border-border bg-surface-muted py-2 pl-8 pr-3 text-xs text-text placeholder:text-text-muted focus:border-primary-500 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary-500/20"
             />
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-muted pointer-events-none" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-text-muted pointer-events-none" />
           </div>
 
           {/* Categorized Mobile Navigation */}
-          <div className="space-y-4 pt-1">
+          <div className="space-y-3 pt-1">
             {categories.map((cat) => (
-              <div key={cat.id} className="space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text px-1">
+              <div key={cat.id} className="space-y-1">
+                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text px-1">
                   <span className={cn("h-1.5 w-1.5 rounded-full", cat.color)} />
                   {cat.label}
                 </div>
-                <div className="space-y-1 pl-3 border-l border-border/80">
+                <div className="space-y-0.5 pl-2.5 border-l-2 border-border/80">
                   {cat.items.map((sub) => (
                     <button
                       key={sub.label}
                       type="button"
                       onClick={() => handleNavClick(sub)}
-                      className="flex items-center justify-between w-full py-1.5 px-2 rounded-lg text-xs font-medium text-text-muted hover:text-text hover:bg-surface-muted text-left"
+                      className="flex items-center justify-between w-full py-1.5 px-2 rounded-lg text-xs font-medium text-text-muted hover:text-text hover:bg-surface-muted text-left transition-colors"
                     >
                       <span>{sub.label}</span>
                     </button>
@@ -518,13 +518,13 @@ export function SiteHeader() {
             ))}
           </div>
 
-          <div className="border-t border-border pt-3">
+          <div className="border-t border-border pt-2">
             <button
               type="button"
               onClick={handleLogout}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-medium text-text-muted hover:bg-surface-muted hover:text-text"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-text-muted hover:bg-surface-muted hover:text-text transition-colors"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
               <span>Sign out</span>
             </button>
           </div>

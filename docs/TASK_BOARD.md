@@ -1,6 +1,6 @@
 # Urban Furniture Accounting System — Master Task List
 > **Ground source of truth.** Frontend: Sourabh · Backend: Kunal · Integration: Both
-> Last synced: 5 Sep 2026, 11:09 PM IST — code audit
+> Last synced: 5 Sep 2026, 11:28 PM IST — frontend route/API audit
 > Current checklist: **37/52 complete (71%)**; **15 remain**.
 
 ---
@@ -126,6 +126,7 @@
 - [ ] 6D.1 · INT · Verify Sales vertical slice end-to-end (P0-INT-03)
   - SO create → confirm → create invoice → pay → ledger balanced.
   - Note: invoice creation currently opens the invoice directly; no separate invoice-confirm endpoint exists.
+  - Frontend audit: SO and invoice screens call the live endpoints first, but retain localStorage seed fallbacks in `sales-orders-api.ts` and `customer-invoices-api.ts`; remove or explicitly disable those fallbacks for the final live-data demo.
 
 ---
 
@@ -168,6 +169,7 @@
 
 - Frontend production build passes with the current route set, including `/reports/profit-loss`.
 - Frontend production build now includes `/analytic-accounts`, `/budgets`, `/reports/budget`, `/payments`, and `/portal`.
+- Frontend route audit complete: auth (`/login`, `/signup`, `/forgot-password`, `/reset-password`), admin users, master data, journals, journal entries, purchase/sales flows, payments, portal, and all three report surfaces have route wrappers and feature implementations; no missing page route was found.
 - Backend tests are present for auth, master data, purchase, sales, billing, payments, journals, and reports, but the full suite could not execute in this environment because PostgreSQL on `localhost:5432` is unavailable.
 - Purchase and sales integration gates remain open until the complete live golden paths are run against the configured database.
 - Budget and portal frontend screens are implemented, but their live data remains blocked by the unimplemented P1 backend endpoints.
@@ -200,6 +202,7 @@
 ## Step 11 — Stabilize, Polish & Submit 🔲
 
 - [ ] 11.1 · FE · Responsive checks (phone + laptop), keyboard nav, contrast (Sourabh)
+  - Open frontend findings: dashboard fiscal-period filter and two export controls are toast-only; PO detail Edit is disabled/"coming soon"; auth footer/terms links still use `href="#"`; complete a browser pass across auth, admin, portal, and transaction/report pages.
 - [ ] 11.2 · BE · Input validation, CORS, error redaction, transaction boundaries (Kunal)
 - [ ] 11.3 · INT · Clean browser golden path test + backup screen recording (Both)
 - [ ] 11.4 · DOCS · Reviewer brief, API contract, README — no placeholders (Both)

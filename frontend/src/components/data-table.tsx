@@ -138,8 +138,8 @@ export function DataTable<T extends { id?: string | number }>({
   const totalPages = isServerPagination
     ? serverTotalPages
     : clientPaginationEnabled
-    ? Math.max(1, Math.ceil(filteredData.length / pageSize))
-    : 1
+      ? Math.max(1, Math.ceil(filteredData.length / pageSize))
+      : 1
 
   // Keep client page in bounds if filtered results shrink
   const safeClientPage = Math.min(clientPage, totalPages)
@@ -183,18 +183,20 @@ export function DataTable<T extends { id?: string | number }>({
   return (
     <div className="space-y-4">
       {/* Search and filter toolbar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-          <input
-            type="search"
-            value={currentSearch}
-            onChange={handleSearchChange}
-            placeholder={searchPlaceholder}
-            className="w-full rounded-lg border border-border bg-surface py-2 pl-10 pr-3 text-sm text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900/40"
-          />
+      <div className="flex flex-col gap-2 sm:gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:items-center sm:justify-between">
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="absolute left-2.5 sm:left-3 top-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 text-text-muted" />
+            <input
+              type="search"
+              value={currentSearch}
+              onChange={handleSearchChange}
+              placeholder={searchPlaceholder}
+              className="w-full rounded-lg border border-border bg-surface py-2 pl-9 sm:pl-10 pr-3 text-xs sm:text-sm text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900/40"
+            />
+          </div>
+          {toolbarExtra && <div className="flex items-center gap-2 overflow-x-auto">{toolbarExtra}</div>}
         </div>
-        {toolbarExtra && <div className="flex items-center gap-2">{toolbarExtra}</div>}
       </div>
 
       {visibleData.length === 0 ? (
@@ -263,9 +265,9 @@ export function DataTable<T extends { id?: string | number }>({
                   {totalRecords === 0
                     ? 0
                     : `${(activePage - 1) * pageSize + 1}–${Math.min(
-                        activePage * pageSize,
-                        totalRecords
-                      )} of ${totalRecords}`}
+                      activePage * pageSize,
+                      totalRecords
+                    )} of ${totalRecords}`}
                 </p>
                 <TablePagination
                   page={activePage}
