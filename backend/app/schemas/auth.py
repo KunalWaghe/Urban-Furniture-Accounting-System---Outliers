@@ -31,11 +31,15 @@ class RegisterRequest(BaseModel):
         v = v.strip()
         if not (6 <= len(v) <= 12):
             raise ValueError("Login Id must be between 6 and 12 characters long")
+        if not re.match(r'^[A-Za-z0-9]+$', v):
+            raise ValueError("Login Id must contain only letters and numbers")
         return v
 
     @field_validator("password")
     @classmethod
     def validate_password(cls, v: str) -> str:
+        if len(v) > 128:
+            raise ValueError("Password must not exceed 128 characters")
         if len(v) <= 8:
             raise ValueError("Password must have more than 8 characters")
         if not re.search(r"[a-z]", v):
@@ -62,11 +66,15 @@ class AdminUserCreateRequest(BaseModel):
         v = v.strip()
         if not (6 <= len(v) <= 12):
             raise ValueError("Login Id must be between 6 and 12 characters long")
+        if not re.match(r'^[A-Za-z0-9]+$', v):
+            raise ValueError("Login Id must contain only letters and numbers")
         return v
 
     @field_validator("password")
     @classmethod
     def validate_password(cls, v: str) -> str:
+        if len(v) > 128:
+            raise ValueError("Password must not exceed 128 characters")
         if len(v) <= 8:
             raise ValueError("Password must have more than 8 characters")
         if not re.search(r"[a-z]", v):

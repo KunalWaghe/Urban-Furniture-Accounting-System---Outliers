@@ -29,6 +29,14 @@ DEFAULT_JOURNALS_CONFIG = [
     {"code": "CSH", "name": "Cash Journal", "type": "cash", "account_code": "1010"},
 ]
 
+# Module-level flag to avoid re-seeding on every GET request
+_seeded = False
+
+
+def _escape_like(s: str) -> str:
+    """Escape LIKE wildcard characters to prevent search manipulation."""
+    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
 
 def seed_accounting_defaults(db: Session) -> None:
     """Ensure default Chart of Accounts and Journals are present in the database."""
@@ -103,9 +111,9 @@ def get_accounts(
 
     query = db.query(Account)
     if account_type:
-        query = query.filter(Account.type.ilike(f"%{account_type}%"))
+        query = query.filter(Account.type.ilike(f"%{_escape_like(account_type)}%"))
     if search:
-        pattern = f"%{search}%"
+        pattern = f"%{_escape_like(search)}%"
         query = query.filter((Account.name.ilike(pattern)) | (Account.code.ilike(pattern)))
     if is_active is not None:
         query = query.filter(Account.is_active == is_active)

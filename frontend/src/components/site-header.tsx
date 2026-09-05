@@ -41,7 +41,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: "Sales",
     color: "bg-blue-500",
     items: [
-      { label: "Sales Orders", href: "/#sales-section", description: "Customer orders & fulfillment status" },
+      { label: "Sales Orders", href: "/sales-orders", description: "Customer orders & fulfillment status" },
       { label: "Sales Invoices", href: "/#sales-section", description: "Commercial invoicing & customer dues" },
       { label: "Payments / Receipts", href: "/#sales-section", description: "Customer receipts & accounts receivable" },
     ],
@@ -51,7 +51,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: "Purchase",
     color: "bg-indigo-500",
     items: [
-      { label: "Purchase Orders", href: "/#purchase-orders", tab: "po", description: "Supplier purchase orders & goods receipt" },
+      { label: "Purchase Orders", href: "/purchase-orders", description: "Supplier purchase orders & goods receipt" },
       { label: "Purchase Bills", href: "/#purchase-bills", tab: "bills", description: "Vendor bills & accounts payable" },
       { label: "Payments", href: "/#purchase-section", description: "Bank & cash vendor disbursements" },
     ],
@@ -122,7 +122,7 @@ export function SiteHeader() {
       setIsSearchFocused(false);
       setMobileMenuOpen(false);
 
-      if (pathname === "/") {
+      if (pathname === "/" && item.href.startsWith("/#")) {
         // Dispatch custom event for dashboard page to switch tabs and scroll
         window.dispatchEvent(
           new CustomEvent("erp-navigate", {

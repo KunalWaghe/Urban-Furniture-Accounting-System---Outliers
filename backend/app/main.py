@@ -53,7 +53,7 @@ async def lifespan(app: FastAPI):
             conn.execute(text("ALTER TABLE journals ADD COLUMN IF NOT EXISTS default_account_id INTEGER REFERENCES accounts(id)"))
             conn.commit()
         Base.metadata.create_all(bind=engine)
-        print(f"[OK] Database connected & models synchronized: {settings.DATABASE_URL.split('@')[1]}")
+        print("[OK] Database connected & models synchronized")
     except Exception as e:
         print(f"[ERROR] Database connection failed: {e}")
         raise

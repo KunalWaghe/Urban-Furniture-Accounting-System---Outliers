@@ -20,8 +20,8 @@ export interface PasswordRule {
 export const PASSWORD_RULES: PasswordRule[] = [
   {
     id: "length",
-    label: "At least 8 characters",
-    test: (password) => password.length >= 8,
+    label: "More than 8 characters",
+    test: (password) => password.length > 8,
   },
   {
     id: "case",

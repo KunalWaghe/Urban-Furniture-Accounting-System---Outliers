@@ -22,6 +22,11 @@ CONTACT_SORT_MAP = {
 }
 
 
+def _escape_like(s: str) -> str:
+    """Escape LIKE wildcard characters to prevent search manipulation."""
+    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 def create_contact(db: Session, req: ContactCreate) -> Contact:
     """Create a new contact."""
     if req.type not in VALID_TYPES:
@@ -64,7 +69,7 @@ def get_contacts(
             query = query.filter(Contact.type == type_filter)
 
     if search:
-        search_term = f"%{search}%"
+        search_term = f"%{_escape_like(search)}%"
         query = query.filter(
             or_(
                 Contact.name.ilike(search_term),
@@ -103,12 +108,14 @@ def update_contact(db: Session, contact_id: int, req: ContactUpdate) -> Contact:
     if req.type is not None:
         if req.type not in VALID_TYPES:
             raise ValidationException(f"Invalid contact type '{req.type}'. Must be one of: {', '.join(VALID_TYPES)}")
-        contact.type = req.type
 
-    for field in ["name", "email", "mobile", "city", "state", "pincode", "is_active"]:
-        val = getattr(req, field)
-        if val is not None:
-            setattr(contact, field, val)
+    update_data = req.model_dump(exclude_unset=True)
+    for field, val in update_data.items():
+        if field == "type":
+            continue  # already validated above
+        setattr(contact, field, val)
+    if "type" in update_data:
+        contact.type = update_data["type"]
 
     db.commit()
     db.refresh(contact)
