@@ -139,16 +139,16 @@ export async function confirmPurchaseOrder(id: number): Promise<PurchaseOrder> {
 }
 
 export async function fetchVendors(): Promise<Contact[]> {
-  const res = await apiFetch<ContactListResponse>("/api/v1/contacts?is_active=true", { auth: true });
+  const res = await apiFetch<ContactListResponse>("/api/v1/contacts?is_active=true&limit=100", { auth: true });
   return (res.data ?? []).filter((c) => c.type === "vendor" || c.type === "both");
 }
 
 export async function fetchProducts(): Promise<Product[]> {
-  const res = await apiFetch<ProductListResponse>("/api/v1/products?is_active=true", { auth: true });
+  const res = await apiFetch<ProductListResponse>("/api/v1/products?is_active=true&limit=100", { auth: true });
   return res.data ?? [];
 }
 
 export async function fetchExpenseAccounts(): Promise<Account[]> {
-  const res = await apiFetch<{ data: Account[] }>("/api/v1/accounts?is_active=true", { auth: true });
+  const res = await apiFetch<{ data: Account[] }>("/api/v1/accounts?is_active=true&limit=100", { auth: true });
   return (res.data ?? []).filter((a) => a.type === "expense" || a.type === "other_expense");
 }
