@@ -8,6 +8,8 @@ from app.routers.purchase_orders import router as purchase_order_router
 from app.routers.vendor_bills import router as vendor_bill_router
 from app.routers.journal_entries import router as journal_entry_router
 from app.routers.payments import router as payment_router
+from app.routers.sales_orders import router as sales_order_router
+from app.routers.customer_invoices import router as customer_invoice_router
 
 __all__ = [
     "auth_router",
@@ -20,5 +22,7 @@ __all__ = [
     "vendor_bill_router",
     "journal_entry_router",
     "payment_router",
+    "sales_order_router",
+    "customer_invoice_router",
 ]
 

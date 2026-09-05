@@ -25,8 +25,8 @@ class Payment(Base):
     contact_id: Mapped[int] = mapped_column(Integer, ForeignKey("contacts.id"), nullable=False, index=True)
     # Foreign key referencing the settled VendorBill (nullable for customer invoices or direct payments)
     bill_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("vendor_bills.id"), nullable=True, index=True)
-    # Target placeholder for CustomerInvoice ID in Phase 4
-    invoice_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
+    # Foreign key referencing the settled CustomerInvoice in Phase 3/4
+    invoice_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("customer_invoices.id"), nullable=True, index=True)
     # Foreign key referencing the Bank (BNK) or Cash (CSH) Journal
     journal_id: Mapped[int] = mapped_column(Integer, ForeignKey("journals.id"), nullable=False, index=True)
     # Monetized settlement amount
@@ -53,5 +53,7 @@ class Payment(Base):
     contact: Mapped["Contact"] = relationship("Contact")
     # 'back_populates' keyword establishes bidirectional sync with VendorBill.payments
     vendor_bill: Mapped[Optional["VendorBill"]] = relationship("VendorBill", back_populates="payments")
+    # 'back_populates' keyword connects inbound receipts to customer invoices
+    customer_invoice: Mapped[Optional["CustomerInvoice"]] = relationship("CustomerInvoice", back_populates="payments")
     journal: Mapped["Journal"] = relationship("Journal")
     journal_entry: Mapped[Optional["JournalEntry"]] = relationship("JournalEntry")

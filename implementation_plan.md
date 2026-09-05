@@ -133,9 +133,9 @@ class Payment(Base):
 
 ---
 
-## Phase 3 — Sales Order + Customer Invoice
+## Phase 3 — Sales Order + Customer Invoice [COMPLETED]
 
-> Mirror of the purchase flow. Copy the PO pattern structure, change account mappings.
+> Mirror of the purchase flow. Completed with models, schemas, services, routers, seed integration, and tests.
 
 ### [NEW] `app/models/sales_order.py`
 
