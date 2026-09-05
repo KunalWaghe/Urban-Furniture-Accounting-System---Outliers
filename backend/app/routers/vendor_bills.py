@@ -6,12 +6,13 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.vendor_bill import VendorBillResponse, VendorBillListResponse
 from app.schemas.payment import BillPayRequest, PaymentResponse
 from app.services import vendor_bill_service, payment_service
 
-router = APIRouter()
+# 'dependencies' parameter enforces route-level RBAC restricting vendor bill access to administrators and accountants
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 # Queries paginated, filtered, and sorted vendor bills
@@ -77,3 +78,14 @@ def get_bill_payments(
 ):
     """Retrieve all payment records logged against a specific vendor bill."""
     return payment_service.get_payments_for_bill(db, bill_id)
+
+
+# Cancels an open vendor bill that has no existing payments
+@router.patch("/{bill_id}/cancel", response_model=VendorBillResponse, status_code=status.HTTP_200_OK)
+def cancel_vendor_bill(
+    bill_id: int,
+    db: Session = Depends(get_db),
+):
+    """Cancel an open Vendor Bill. Blocked if any payments have been made."""
+    return vendor_bill_service.cancel_vendor_bill(db, bill_id)
+

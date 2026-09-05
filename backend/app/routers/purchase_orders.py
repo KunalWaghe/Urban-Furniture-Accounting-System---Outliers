@@ -6,12 +6,13 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.purchase_order import POCreate, POResponse, POListResponse
 from app.schemas.vendor_bill import CreateBillResponse
 from app.services import purchase_order_service, vendor_bill_service
 
-router = APIRouter()
+# 'dependencies' parameter enforces route-level authentication guards globally across all endpoints in this APIRouter
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 @router.post("", response_model=POResponse, status_code=status.HTTP_201_CREATED)
@@ -64,3 +65,10 @@ def confirm_purchase_order(po_id: int, db: Session = Depends(get_db)):
 def create_bill_from_purchase_order(po_id: int, db: Session = Depends(get_db)):
     """Convert a confirmed Purchase Order into a Vendor Bill and post balanced Journal Entry."""
     return vendor_bill_service.create_bill_from_po(db, po_id)
+
+
+@router.patch("/{po_id}/cancel", response_model=POResponse, status_code=status.HTTP_200_OK)
+def cancel_purchase_order(po_id: int, db: Session = Depends(get_db)):
+    """Cancel a Purchase Order (draft/confirmed -> cancelled). Blocked if already billed."""
+    return purchase_order_service.cancel_purchase_order(db, po_id)
+

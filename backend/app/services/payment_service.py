@@ -191,8 +191,13 @@ def create_outbound_payment(
         status="posted",
     )
     db.add(payment)
-    # 'commit' persists all entities (bill update, journal entry, payment) atomically in one transaction
-    db.commit()
+    try:
+        # 'commit' persists all entities (bill update, journal entry, payment) atomically in one transaction
+        db.commit()
+    except Exception:
+        # 'rollback' ensures no partial financial posting or corrupt bill balance updates
+        db.rollback()
+        raise
 
     # 8. Reload payment with related joined models for full response
     full_payment = db.scalar(
@@ -341,8 +346,13 @@ def create_inbound_payment(
         status="posted",
     )
     db.add(payment)
-    # 'commit' persists all entities (invoice update, journal entry, payment) atomically in one transaction
-    db.commit()
+    try:
+        # 'commit' persists all entities (invoice update, journal entry, payment) atomically in one transaction
+        db.commit()
+    except Exception:
+        # 'rollback' ensures no partial collections or corrupt invoice paid amounts persist
+        db.rollback()
+        raise
 
     # 8. Reload payment with related joined models for full response
     full_payment = db.scalar(

@@ -43,7 +43,12 @@ def create_contact(db: Session, req: ContactCreate) -> Contact:
         is_active=True,
     )
     db.add(contact)
-    db.commit()
+    try:
+        # 'commit' persists new customer or vendor contact
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(contact)
     return contact
 
@@ -117,7 +122,12 @@ def update_contact(db: Session, contact_id: int, req: ContactUpdate) -> Contact:
     if "type" in update_data:
         contact.type = update_data["type"]
 
-    db.commit()
+    try:
+        # 'commit' applies contact edits
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(contact)
     return contact
 
@@ -125,5 +135,9 @@ def update_contact(db: Session, contact_id: int, req: ContactUpdate) -> Contact:
 def delete_contact(db: Session, contact_id: int) -> None:
     """Soft-delete a contact by setting is_active=False."""
     contact = get_contact_by_id(db, contact_id)
-    contact.is_active = False
-    db.commit()
+    try:
+        contact.is_active = False
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise

@@ -6,12 +6,13 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.sales_order import SOCreate, SOResponse, SOListResponse
 from app.schemas.customer_invoice import CreateInvoiceResponse
 from app.services import sales_order_service, customer_invoice_service
 
-router = APIRouter()
+# 'dependencies' parameter attaches global security guards enforcing admin or invoicing_user authorization
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 # Endpoint to create a new Sales Order in draft status with line items
@@ -69,3 +70,10 @@ def confirm_sales_order(so_id: int, db: Session = Depends(get_db)):
 def create_invoice_from_sales_order(so_id: int, db: Session = Depends(get_db)):
     """Convert a confirmed Sales Order into a Customer Invoice and post balanced Journal Entry."""
     return customer_invoice_service.create_invoice_from_so(db, so_id)
+
+
+@router.patch("/{so_id}/cancel", response_model=SOResponse, status_code=status.HTTP_200_OK)
+def cancel_sales_order(so_id: int, db: Session = Depends(get_db)):
+    """Cancel a Sales Order (draft/confirmed -> cancelled). Blocked if already invoiced."""
+    return sales_order_service.cancel_sales_order(db, so_id)
+

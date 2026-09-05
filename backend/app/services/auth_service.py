@@ -66,7 +66,12 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
         is_active=True,
     )
     db.add(user)
-    db.commit()
+    try:
+        # 'commit' persists the registered user record
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(user)
 
     # 4. Generate JWT token
@@ -138,7 +143,12 @@ def admin_create_user(db: Session, req: AdminUserCreateRequest) -> User:
         is_active=True,
     )
     db.add(user)
-    db.commit()
+    try:
+        # 'commit' persists the admin-provisioned user account
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(user)
 
     return user
@@ -197,7 +207,11 @@ def forgot_password(db: Session, req: ForgotPasswordRequest) -> ForgotPasswordRe
         # Store token in database
         user.reset_token = reset_token
         user.reset_token_expiry = reset_token_expiry
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
         
         # TODO: In production, send email with reset link
         # send_password_reset_email(user.email, reset_token)
@@ -236,7 +250,11 @@ def reset_password(db: Session, req: ResetPasswordRequest) -> ResetPasswordRespo
     user.password_hash = hash_password(req.new_password)
     user.reset_token = None
     user.reset_token_expiry = None
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     
     return ResetPasswordResponse(
         message="Password has been successfully reset. You can now login with your new password."

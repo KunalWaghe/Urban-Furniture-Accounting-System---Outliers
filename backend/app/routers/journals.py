@@ -6,11 +6,12 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.journal import JournalListResponse
 from app.services import accounting_service
 
-router = APIRouter()
+# RBAC guard: only admin and invoicing_user roles can access Journal management
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 @router.get("", response_model=JournalListResponse, status_code=status.HTTP_200_OK)

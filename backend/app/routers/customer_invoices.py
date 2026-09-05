@@ -6,12 +6,13 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.customer_invoice import CustomerInvoiceResponse, CustomerInvoiceListResponse
 from app.schemas.payment import InvoicePayRequest, PaymentResponse
 from app.services import customer_invoice_service, payment_service
 
-router = APIRouter()
+# 'dependencies' parameter enforces route-level authentication guards globally across customer invoice management
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 # Endpoint to query paginated, filtered, and sorted Customer Invoices
@@ -79,3 +80,14 @@ def get_invoice_payments(
 ):
     """Retrieve all payment records logged against a specific customer invoice."""
     return payment_service.get_payments_for_invoice(db, invoice_id)
+
+
+# Cancels an open customer invoice that has no existing payments
+@router.patch("/{invoice_id}/cancel", response_model=CustomerInvoiceResponse, status_code=status.HTTP_200_OK)
+def cancel_customer_invoice(
+    invoice_id: int,
+    db: Session = Depends(get_db),
+):
+    """Cancel an open Customer Invoice. Blocked if any payments have been received."""
+    return customer_invoice_service.cancel_customer_invoice(db, invoice_id)
+

@@ -107,8 +107,14 @@ def create_sales_order(db: Session, so_in: SOCreate) -> SOResponse:
         )
         db.add(so_line)
 
-    so.total = round(total_amount, 2)
-    db.commit()
+    try:
+        so.total = round(total_amount, 2)
+        # 'commit' persists the draft Sales Order and lines atomically
+        db.commit()
+    except Exception:
+        # 'rollback' ensures no partial or corrupt order entities persist on failure
+        db.rollback()
+        raise
 
     # Reload SO with full relations
     return get_sales_order(db, so.id)
@@ -214,7 +220,34 @@ def confirm_sales_order(db: Session, so_id: int) -> SOResponse:
     if so.status != "draft":
         raise ValidationException(f"Cannot confirm Sales Order in status '{so.status}'")
 
-    so.status = "confirmed"
-    db.commit()
+    try:
+        so.status = "confirmed"
+        # 'commit' applies the confirmed transition atomically
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
 
     return get_sales_order(db, so_id)
+
+
+def cancel_sales_order(db: Session, so_id: int) -> SOResponse:
+    """Cancel a Sales Order ('draft' or 'confirmed' -> 'cancelled'). Cannot cancel if already invoiced."""
+    so = db.scalar(select(SalesOrder).where(SalesOrder.id == so_id))
+    if not so:
+        raise NotFoundException("SalesOrder", so_id)
+
+    if so.status == "cancelled":
+        raise ValidationException("Sales Order is already cancelled")
+    if so.status == "invoiced":
+        raise ValidationException("Cannot cancel a Sales Order that has already been invoiced")
+
+    try:
+        so.status = "cancelled"
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return get_sales_order(db, so_id)
+

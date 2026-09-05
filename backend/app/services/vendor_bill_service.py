@@ -3,7 +3,7 @@ Service logic for Vendor Bills and automated Journal Entry posting (P0-BE-06).
 """
 
 import math
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select, func, or_, desc, asc
@@ -39,6 +39,16 @@ def generate_bill_number(db: Session) -> str:
     return f"BILL-{(count + 1):04d}"
 
 
+# Validates chronological consistency between bill issuance and payment due date
+def validate_bill_dates(bill_date: datetime, due_date: Optional[datetime]) -> None:
+    """
+    Ensure due_date is not earlier than bill_date.
+    Raises ValidationException if due_date < bill_date.
+    """
+    if due_date and bill_date and due_date < bill_date:
+        raise ValidationException("Vendor bill due_date cannot be earlier than bill_date")
+
+
 # Converts a VendorBill ORM entity into a validated Pydantic response schema
 def _build_bill_response(bill: VendorBill) -> VendorBillResponse:
     lines_resp = []
@@ -66,6 +76,7 @@ def _build_bill_response(bill: VendorBill) -> VendorBillResponse:
         vendor_id=bill.vendor_id,
         vendor_name=bill.vendor.name if bill.vendor else None,
         bill_date=bill.bill_date,
+        due_date=bill.due_date,
         total=bill.total,
         amount_paid=bill.amount_paid,
         status=bill.status,
@@ -141,6 +152,26 @@ def create_bill_from_po(db: Session, po_id: int) -> CreateBillResponse:
     default_expense = db.scalar(select(Account).where(Account.code == "5010"))
     default_expense_id = default_expense.id if default_expense else None
 
+    # Budget-exceeded blocking check: validate PO lines with analytic accounts against active budgets
+    from app.services.budget_service import check_budget_exceeded
+    budget_warnings = []
+    for line in po.lines:
+        if line.analytic_account_id:
+            warning = check_budget_exceeded(
+                db,
+                analytic_account_id=line.analytic_account_id,
+                new_amount=line.subtotal,
+                reference_date=po.order_date,
+            )
+            if warning:
+                budget_warnings.append(warning)
+
+    if budget_warnings:
+        raise ConflictException(
+            code="BUDGET_EXCEEDED",
+            message=" | ".join(budget_warnings),
+        )
+
     bill_number = generate_bill_number(db)
     now_utc = datetime.now(timezone.utc)
 
@@ -180,12 +211,16 @@ def create_bill_from_po(db: Session, po_id: int) -> CreateBillResponse:
         is_posted=True,
     )
 
-    # 6. Create Vendor Bill record
+    # 6. Create Vendor Bill record with 30-day net due date terms
+    due_date = now_utc + timedelta(days=30)
+    validate_bill_dates(now_utc, due_date)
+
     vendor_bill = VendorBill(
         bill_number=bill_number,
         po_id=po.id,
         vendor_id=po.vendor_id,
         bill_date=now_utc,
+        due_date=due_date,
         total=po.total,
         amount_paid=0.0,
         status="open",
@@ -207,9 +242,15 @@ def create_bill_from_po(db: Session, po_id: int) -> CreateBillResponse:
         )
         db.add(bill_line)
 
-    # 8. Transition PO status to billed
-    po.status = "billed"
-    db.commit()
+    try:
+        # 8. Transition PO status to billed atomically with the bill and journal entry
+        po.status = "billed"
+        # 'commit' finalizes the database transaction persisting all changes permanently
+        db.commit()
+    except Exception:
+        # 'rollback' reverts uncommitted database state preventing orphan records or partial postings
+        db.rollback()
+        raise
 
     # 9. Reload with relationships for full response
     full_bill = db.scalar(
@@ -323,3 +364,27 @@ def list_vendor_bills(
     pages = math.ceil(total / limit) if limit > 0 and total > 0 else 1
 
     return bill_responses, total, page, limit, pages
+
+
+def cancel_vendor_bill(db: Session, bill_id: int) -> VendorBillResponse:
+    """Cancel a Vendor Bill ('open' -> 'cancelled'). Cannot cancel if any payments have been made."""
+    bill = db.scalar(select(VendorBill).where(VendorBill.id == bill_id))
+    if not bill:
+        raise NotFoundException("VendorBill", bill_id)
+
+    if bill.status == "cancelled":
+        raise ValidationException("Vendor Bill is already cancelled")
+    if bill.amount_paid and bill.amount_paid > 0:
+        raise ValidationException("Cannot cancel a Vendor Bill with existing payments")
+    if bill.status in ("paid", "partially_paid"):
+        raise ValidationException(f"Cannot cancel a Vendor Bill in status '{bill.status}'")
+
+    try:
+        bill.status = "cancelled"
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return get_vendor_bill(db, bill_id)
+

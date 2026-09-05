@@ -17,6 +17,7 @@ DEFAULT_ACCOUNTS = [
     {"code": "2010", "name": "Accounts Payable (Creditors)", "type": "liability", "description": "Trade Creditors"},
     {"code": "2020", "name": "Tax Payable", "type": "liability", "description": "Output tax / GST payable"},
     {"code": "3010", "name": "Owner Capital", "type": "capital", "description": "Owner Equity & Capital"},
+    {"code": "3999", "name": "Retained Earnings", "type": "capital", "description": "Accumulated net earnings and retained profits"},
     {"code": "4010", "name": "Sales Income", "type": "income", "description": "Revenue from furniture sales"},
     {"code": "5010", "name": "Purchase Expense", "type": "expense", "description": "Cost of goods purchased"},
 ]
@@ -29,7 +30,7 @@ DEFAULT_JOURNALS_CONFIG = [
     {"code": "CSH", "name": "Cash Journal", "type": "cash", "account_code": "1010"},
 ]
 
-# Module-level flag to avoid re-seeding on every GET request
+# Module-level flag to avoid re-seeding on every request
 _seeded = False
 
 
@@ -38,8 +39,12 @@ def _escape_like(s: str) -> str:
     return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
-def seed_accounting_defaults(db: Session) -> None:
+def seed_accounting_defaults(db: Session, force: bool = False) -> None:
     """Ensure default Chart of Accounts and Journals are present in the database."""
+    global _seeded
+    if _seeded and not force:
+        return
+
     # 1. Seed Accounts if missing
     existing_accounts = {acc.code: acc for acc in db.query(Account).all()}
     accounts_added = False
@@ -76,6 +81,8 @@ def seed_accounting_defaults(db: Session) -> None:
 
     if journals_added:
         db.commit()
+
+    _seeded = True
 
 
 import math

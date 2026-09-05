@@ -12,7 +12,7 @@ from app.models.contact import Contact
 from app.models.product import Product
 from app.models.account import Account
 from app.schemas.purchase_order import POCreate, POResponse, POLineResponse
-from app.core.exceptions import NotFoundException, ValidationException
+from app.core.exceptions import NotFoundException, ValidationException, ConflictException
 
 
 def generate_po_number(db: Session) -> str:
@@ -104,8 +104,14 @@ def create_purchase_order(db: Session, po_in: POCreate) -> POResponse:
         )
         db.add(po_line)
 
-    po.total = round(total_amount, 2)
-    db.commit()
+    try:
+        po.total = round(total_amount, 2)
+        # 'commit' persists the draft Purchase Order and lines atomically
+        db.commit()
+    except Exception:
+        # 'rollback' cancels uncommitted transactions preventing database corruption
+        db.rollback()
+        raise
 
     # Reload PO with relationships
     return get_purchase_order(db, po.id)
@@ -203,15 +209,66 @@ def list_purchase_orders(
 
 
 def confirm_purchase_order(db: Session, po_id: int) -> POResponse:
-    """Confirm a Purchase Order ('draft' -> 'confirmed')."""
-    po = db.scalar(select(PurchaseOrder).where(PurchaseOrder.id == po_id))
+    """Confirm a Purchase Order ('draft' -> 'confirmed') with budget-exceeded blocking check."""
+    po = db.scalar(
+        select(PurchaseOrder)
+        .options(joinedload(PurchaseOrder.lines))
+        .where(PurchaseOrder.id == po_id)
+    )
     if not po:
         raise NotFoundException("PurchaseOrder", po_id)
 
     if po.status != "draft":
         raise ValidationException(f"Cannot confirm Purchase Order in status '{po.status}'")
 
-    po.status = "confirmed"
-    db.commit()
+    # Budget-exceeded blocking check: validate each line's analytic account against active budgets
+    from app.services.budget_service import check_budget_exceeded
+    budget_warnings = []
+    for line in po.lines:
+        if line.analytic_account_id:
+            warning = check_budget_exceeded(
+                db,
+                analytic_account_id=line.analytic_account_id,
+                new_amount=line.subtotal,
+                reference_date=po.order_date,
+            )
+            if warning:
+                budget_warnings.append(warning)
+
+    if budget_warnings:
+        raise ConflictException(
+            code="BUDGET_EXCEEDED",
+            message=" | ".join(budget_warnings),
+        )
+
+    try:
+        po.status = "confirmed"
+        # 'commit' transitions PO lifecycle state atomically
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
 
     return get_purchase_order(db, po_id)
+
+
+def cancel_purchase_order(db: Session, po_id: int) -> POResponse:
+    """Cancel a Purchase Order ('draft' or 'confirmed' -> 'cancelled'). Cannot cancel if already billed."""
+    po = db.scalar(select(PurchaseOrder).where(PurchaseOrder.id == po_id))
+    if not po:
+        raise NotFoundException("PurchaseOrder", po_id)
+
+    if po.status == "cancelled":
+        raise ValidationException("Purchase Order is already cancelled")
+    if po.status == "billed":
+        raise ValidationException("Cannot cancel a Purchase Order that has already been billed")
+
+    try:
+        po.status = "cancelled"
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return get_purchase_order(db, po_id)
+
