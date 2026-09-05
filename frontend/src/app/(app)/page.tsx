@@ -30,12 +30,13 @@ import type {
   VendorBill,
 } from "@/lib/types";
 import { buildDashboardDataFromBackend } from "@/features/dashboard/dashboard-api";
-import { useContacts, useProducts } from "@/features/dashboard/queries";
+import { useContacts, useProducts, useVendorBills } from "@/features/dashboard/queries";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   createPurchaseOrder,
   confirmPurchaseOrder,
 } from "@/features/purchase-orders/purchase-orders-api";
+import { PaymentModal } from "@/components/payment-modal";
 
 export default function AppDashboardPage() {
   const queryClient = useQueryClient();
@@ -50,6 +51,10 @@ export default function AppDashboardPage() {
     isLoading: productsLoading,
     refetch: refetchProducts,
   } = useProducts();
+  const {
+    data: backendBillsData,
+    refetch: refetchBills,
+  } = useVendorBills();
 
   const contacts = useMemo(() => contactsData ?? [], [contactsData]);
   const products = useMemo(() => productsData ?? [], [productsData]);
@@ -68,6 +73,7 @@ export default function AppDashboardPage() {
   const [createdPOs, setCreatedPOs] = useState<PurchaseOrder[]>([]);
   const [createdBills, setCreatedBills] = useState<VendorBill[]>([]);
   const [billedPoIds, setBilledPoIds] = useState<Record<string, true>>({});
+  const [selectedBillForPayment, setSelectedBillForPayment] = useState<VendorBill | null>(null);
 
   const salesOrders = useMemo(
     () => [...createdOrders, ...(baseData?.salesOrders ?? [])],
@@ -82,10 +88,12 @@ export default function AppDashboardPage() {
     ],
     [createdPOs, baseData, billedPoIds]
   );
-  const vendorBills = useMemo(
-    () => [...createdBills, ...(baseData?.vendorBills ?? [])],
-    [createdBills, baseData]
-  );
+  const vendorBills = useMemo(() => {
+    if (backendBillsData && backendBillsData.length > 0) {
+      return [...createdBills, ...backendBillsData];
+    }
+    return [...createdBills, ...(baseData?.vendorBills ?? [])];
+  }, [createdBills, backendBillsData, baseData]);
   const budgetMetric = baseData?.budgetMetric ?? null;
 
   // Filter & View States
@@ -192,11 +200,11 @@ export default function AppDashboardPage() {
 
   // Customers and Vendors derived from backend data
   const backendCustomers = useMemo(() => {
-    return contacts.filter((c) => c.type === "customer" || c.type === "both");
+    return contacts.filter((c: Contact) => c.type === "customer" || c.type === "both");
   }, [contacts]);
 
   const backendVendors = useMemo(() => {
-    return contacts.filter((c) => c.type === "vendor" || c.type === "both");
+    return contacts.filter((c: Contact) => c.type === "vendor" || c.type === "both");
   }, [contacts]);
 
   // Filtered Sales Orders
@@ -954,7 +962,9 @@ export default function AppDashboardPage() {
                     <th className="px-4 py-3">Vendor Name</th>
                     <th className="px-4 py-3">Due Date</th>
                     <th className="px-4 py-3 text-right">Amount</th>
+                    <th className="px-4 py-3 text-right">Paid</th>
                     <th className="px-4 py-3">Payment Status</th>
+                    <th className="px-4 py-3 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border bg-surface">
@@ -971,10 +981,18 @@ export default function AppDashboardPage() {
                       <td className="px-4 py-3 text-right font-mono font-bold text-text">
                         ${bill.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                       </td>
+                      <td className="px-4 py-3 text-right font-mono font-medium text-emerald-600 dark:text-emerald-400">
+                        ${(bill.amount_paid ?? (bill.payment_status === "Paid" ? bill.amount : 0)).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      </td>
                       <td className="px-4 py-3">
                         {bill.payment_status === "Unpaid" && (
                           <span className="inline-flex items-center rounded-full border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-400">
                             Unpaid
+                          </span>
+                        )}
+                        {bill.payment_status === "Partially Paid" && (
+                          <span className="inline-flex items-center rounded-full border border-blue-200/60 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-400">
+                            Partially Paid
                           </span>
                         )}
                         {bill.payment_status === "Scheduled" && (
@@ -985,6 +1003,23 @@ export default function AppDashboardPage() {
                         {bill.payment_status === "Paid" && (
                           <span className="inline-flex items-center rounded-full border border-emerald-200/60 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400">
                             Paid
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {bill.payment_status !== "Paid" ? (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedBillForPayment(bill)}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700 transition-colors shadow-xs"
+                          >
+                            <CreditCard className="h-3.5 w-3.5" />
+                            Pay
+                          </button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Settled
                           </span>
                         )}
                       </td>
@@ -1498,6 +1533,51 @@ export default function AppDashboardPage() {
             queryClient.invalidateQueries({ queryKey: ["purchase-orders-paged"] });
             setIsCreatePOModalOpen(false);
             showToast(`Purchase Order ${newPO.po_number} created successfully for ${newPO.vendor_name}!`);
+          }}
+        />
+      )}
+
+      {selectedBillForPayment && (
+        <PaymentModal
+          isOpen={Boolean(selectedBillForPayment)}
+          onClose={() => setSelectedBillForPayment(null)}
+          billId={selectedBillForPayment.id}
+          billNumber={selectedBillForPayment.bill_number}
+          vendorName={selectedBillForPayment.vendor_name}
+          totalAmount={selectedBillForPayment.amount}
+          amountPaid={
+            selectedBillForPayment.amount_paid ??
+            (selectedBillForPayment.payment_status === "Paid" ? selectedBillForPayment.amount : 0)
+          }
+          onSuccess={(payment) => {
+            setCreatedBills((prev) => {
+              const existingIdx = prev.findIndex((b) => b.id === selectedBillForPayment.id);
+              const targetBill = existingIdx >= 0 ? prev[existingIdx] : selectedBillForPayment;
+              const prevPaid =
+                targetBill.amount_paid ?? (targetBill.payment_status === "Paid" ? targetBill.amount : 0);
+              const newPaid = prevPaid + payment.amount;
+              const newStatus: "Paid" | "Partially Paid" =
+                newPaid >= targetBill.amount - 0.001 ? "Paid" : "Partially Paid";
+
+              const updatedBill: VendorBill = {
+                ...targetBill,
+                amount_paid: newPaid,
+                payment_status: newStatus,
+              };
+
+              if (existingIdx >= 0) {
+                return prev.map((b, i) => (i === existingIdx ? updatedBill : b));
+              }
+              return [updatedBill, ...prev];
+            });
+
+            showToast(
+              `Payment ${payment.payment_number} ($${payment.amount.toFixed(
+                2
+              )}) recorded for Bill ${selectedBillForPayment.bill_number}! Journal Entry auto-posted.`
+            );
+            queryClient.invalidateQueries({ queryKey: ["vendor-bills"] });
+            setSelectedBillForPayment(null);
           }}
         />
       )}

@@ -7,6 +7,7 @@ from app.models.journal import Journal
 from app.models.purchase_order import PurchaseOrder, PurchaseOrderLine
 from app.models.journal_entry import JournalEntry, JournalItem
 from app.models.vendor_bill import VendorBill, VendorBillLine
+from app.models.payment import Payment
 
 __all__ = [
     "Base",
@@ -21,5 +22,6 @@ __all__ = [
     "JournalItem",
     "VendorBill",
     "VendorBillLine",
+    "Payment",
 ]
 

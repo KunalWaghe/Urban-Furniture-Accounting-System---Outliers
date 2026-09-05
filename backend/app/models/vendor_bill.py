@@ -32,6 +32,8 @@ class VendorBill(Base):
     vendor: Mapped["Contact"] = relationship("Contact")
     journal_entry: Mapped[Optional["JournalEntry"]] = relationship("JournalEntry")
     lines: Mapped[List["VendorBillLine"]] = relationship("VendorBillLine", back_populates="bill", cascade="all, delete-orphan")
+    # 'relationship' keyword connects settlements to this bill with cascading cleanup
+    payments: Mapped[List["Payment"]] = relationship("Payment", back_populates="vendor_bill", cascade="all, delete-orphan")
 
 
 class VendorBillLine(Base):

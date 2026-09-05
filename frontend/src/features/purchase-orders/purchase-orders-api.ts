@@ -61,6 +61,8 @@ function mapPoStatus(status: string): PurchaseOrder["status"] {
   switch (status) {
     case "confirmed":
       return "Confirmed";
+    case "billed":
+      return "Billed";
     case "cancelled":
       return "Cancelled";
     default:
@@ -136,6 +138,13 @@ export async function confirmPurchaseOrder(id: number): Promise<PurchaseOrder> {
     auth: true,
   });
   return mapPurchaseOrder(po);
+}
+
+export async function createBillFromPo(id: number): Promise<any> {
+  return apiFetch(`/api/v1/purchase-orders/${id}/create-bill`, {
+    method: "POST",
+    auth: true,
+  });
 }
 
 export async function fetchVendors(): Promise<Contact[]> {
