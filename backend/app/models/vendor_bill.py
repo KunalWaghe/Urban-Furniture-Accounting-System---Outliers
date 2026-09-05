@@ -46,7 +46,7 @@ class VendorBillLine(Base):
     bill_id: Mapped[int] = mapped_column(Integer, ForeignKey("vendor_bills.id", ondelete="CASCADE"), nullable=False, index=True)
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey("products.id"), nullable=False, index=True)
     account_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("accounts.id"), nullable=True)
-    analytic_account_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    analytic_account_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("analytic_accounts.id", ondelete="SET NULL"), nullable=True)
     quantity: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
     unit_price: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     subtotal: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
@@ -54,3 +54,4 @@ class VendorBillLine(Base):
     bill: Mapped["VendorBill"] = relationship("VendorBill", back_populates="lines")
     product: Mapped["Product"] = relationship("Product")
     account: Mapped[Optional["Account"]] = relationship("Account")
+    analytic_account: Mapped[Optional["AnalyticAccount"]] = relationship("AnalyticAccount")

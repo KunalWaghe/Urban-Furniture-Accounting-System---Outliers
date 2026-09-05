@@ -15,7 +15,7 @@ from fastapi.exceptions import RequestValidationError
 from sqlalchemy import text
 
 from app.core.config import settings
-from app.core.database import engine
+from app.core.database import engine, SessionLocal
 from app.core.exceptions import (
     AppException,
     app_exception_handler,
@@ -23,6 +23,7 @@ from app.core.exceptions import (
     generic_exception_handler,
 )
 from app.models import Base
+from app.services.accounting_service import seed_accounting_defaults
 from app.routers import (
     auth_router,
     user_router,
@@ -37,6 +38,8 @@ from app.routers import (
     sales_order_router,
     customer_invoice_router,
     report_router,
+    analytic_account_router,
+    budget_router,
 )
 
 
@@ -46,7 +49,8 @@ async def lifespan(app: FastAPI):
     """
     Application lifespan handler.
     
-    On startup: verify database connectivity and ensure tables exist.
+    On startup: verify database connectivity, synchronize schema migrations,
+    and guarantee default Chart of Accounts and Journals are present.
     """
     try:
         # Ensure all tables exist first before running any ALTER TABLE migrations
@@ -63,10 +67,47 @@ async def lifespan(app: FastAPI):
             conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS cost NUMERIC(10, 2)"))
             conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT"))
             conn.execute(text("ALTER TABLE journals ADD COLUMN IF NOT EXISTS default_account_id INTEGER REFERENCES accounts(id)"))
+            # Financial precision migrations: enforce NUMERIC(15, 2) on monetary columns
+            conn.execute(text("ALTER TABLE journal_items ALTER COLUMN debit TYPE NUMERIC(15, 2) USING debit::NUMERIC(15, 2)"))
+            conn.execute(text("ALTER TABLE journal_items ALTER COLUMN credit TYPE NUMERIC(15, 2) USING credit::NUMERIC(15, 2)"))
+            conn.execute(text("ALTER TABLE journal_entries ALTER COLUMN total_amount TYPE NUMERIC(15, 2) USING total_amount::NUMERIC(15, 2)"))
+            conn.execute(text("ALTER TABLE payments ALTER COLUMN amount TYPE NUMERIC(15, 2) USING amount::NUMERIC(15, 2)"))
+            if engine.dialect.name == "postgresql":
+                conn.execute(text("""
+                    DO $$
+                    BEGIN
+                        IF NOT EXISTS (
+                            SELECT 1 FROM pg_constraint WHERE conname = 'fk_vendor_bill_lines_analytic_account'
+                        ) THEN
+                            ALTER TABLE vendor_bill_lines 
+                            ADD CONSTRAINT fk_vendor_bill_lines_analytic_account 
+                            FOREIGN KEY (analytic_account_id) REFERENCES analytic_accounts(id) ON DELETE SET NULL;
+                        END IF;
+                        IF NOT EXISTS (
+                            SELECT 1 FROM pg_constraint WHERE conname = 'fk_customer_invoice_lines_analytic_account'
+                        ) THEN
+                            ALTER TABLE customer_invoice_lines 
+                            ADD CONSTRAINT fk_customer_invoice_lines_analytic_account 
+                            FOREIGN KEY (analytic_account_id) REFERENCES analytic_accounts(id) ON DELETE SET NULL;
+                        END IF;
+                        IF NOT EXISTS (
+                            SELECT 1 FROM pg_constraint WHERE conname = 'fk_journal_items_analytic_account'
+                        ) THEN
+                            ALTER TABLE journal_items 
+                            ADD CONSTRAINT fk_journal_items_analytic_account 
+                            FOREIGN KEY (analytic_account_id) REFERENCES analytic_accounts(id) ON DELETE SET NULL;
+                        END IF;
+                    END $$;
+                """))
             conn.commit()
-        print("[OK] Database connected & models synchronized")
+
+        # Seed default Chart of Accounts and Journals at application startup
+        with SessionLocal() as db:
+            seed_accounting_defaults(db)
+
+        print("[OK] Database connected, models synchronized, and accounting defaults seeded")
     except Exception as e:
-        print(f"[ERROR] Database connection failed: {e}")
+        print(f"[ERROR] Database connection/startup failed: {e}")
         raise
 
     yield  # App runs here
@@ -146,4 +187,6 @@ app.include_router(sales_order_router, prefix="/api/v1/sales-orders", tags=["Sal
 app.include_router(customer_invoice_router, prefix="/api/v1/customer-invoices", tags=["Customer Invoices"])
 # 'app.include_router' attaches the financial reports endpoints under '/api/v1/reports'
 app.include_router(report_router, prefix="/api/v1/reports", tags=["Reports"])
+app.include_router(analytic_account_router, prefix="/api/v1/analytic-accounts", tags=["Analytic Accounts"])
+app.include_router(budget_router, prefix="/api/v1/budgets", tags=["Budgets"])
 

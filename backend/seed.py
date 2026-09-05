@@ -23,6 +23,10 @@ from app.models import (
     JournalItem,
     Account,
     Journal,
+    AnalyticAccount,
+    Budget,
+    VendorBillLine,
+    CustomerInvoiceLine,
 )
 from app.services.accounting_service import seed_accounting_defaults
 from app.services.purchase_order_service import create_purchase_order, confirm_purchase_order
@@ -31,8 +35,10 @@ from app.services.sales_order_service import create_sales_order, confirm_sales_o
 from app.services.customer_invoice_service import create_invoice_from_so
 from app.services import payment_service
 from app.services import report_service
+from app.services import budget_service
 from app.schemas.purchase_order import POCreate, POLineCreate
 from app.schemas.sales_order import SOCreate, SOLineCreate
+from app.schemas.budget import BudgetCreate
 from app.core.security import hash_password
 
 
@@ -535,6 +541,103 @@ def verify_phase5_reports(db):
         raise RuntimeError(f"Audit failure: Balance sheet is unbalanced! Assets={bs.assets.total} != Liab+Cap={bs.total_liabilities_and_capital}")
 
 
+# Seeds deterministic dummy data for Phase 6 Analytic Accounts and Budgets
+def seed_phase6_analytic_and_budget_data(db):
+    """
+    Seed deterministic dummy data for Analytic Accounts and Budgets (Phase 6, P1):
+    1. Cost and Revenue Centers (Analytic Accounts)
+    2. Operational Budgets (Draft and Confirmed targets)
+    3. Tag existing lines for live variance tracking demo
+    """
+    print("\n--- Seeding Phase 6 Analytic Accounts & Budgets ---")
+
+    # 1. Analytic Accounts
+    accounts_data = [
+        {
+            "code": "ANL-OFFICE-01",
+            "name": "Office Furniture Project",
+            "type": "expense",
+            "description": "Cost center for corporate office procurement & fitouts",
+        },
+        {
+            "code": "ANL-SHOWROOM-01",
+            "name": "Showroom Renovation",
+            "type": "expense",
+            "description": "Capital expenditure for showroom visual upgrades",
+        },
+        {
+            "code": "ANL-CORP-01",
+            "name": "Corporate Custom Orders",
+            "type": "income",
+            "description": "Revenue center for bespoke enterprise sales",
+        },
+    ]
+
+    for ad in accounts_data:
+        acc = db.query(AnalyticAccount).filter(AnalyticAccount.code == ad["code"]).first()
+        if not acc:
+            db.add(AnalyticAccount(**ad, is_active=True))
+    db.commit()
+
+    office_acc = db.query(AnalyticAccount).filter(AnalyticAccount.code == "ANL-OFFICE-01").first()
+    showroom_acc = db.query(AnalyticAccount).filter(AnalyticAccount.code == "ANL-SHOWROOM-01").first()
+    corp_acc = db.query(AnalyticAccount).filter(AnalyticAccount.code == "ANL-CORP-01").first()
+
+    # 2. Tag existing VendorBillLines and CustomerInvoiceLines with analytic accounts if untagged
+    bill_lines = db.query(VendorBillLine).filter(VendorBillLine.analytic_account_id.is_(None)).all()
+    for bl in bill_lines:
+        bl.analytic_account_id = office_acc.id
+
+    inv_lines = db.query(CustomerInvoiceLine).filter(CustomerInvoiceLine.analytic_account_id.is_(None)).all()
+    for il in inv_lines:
+        il.analytic_account_id = corp_acc.id
+    db.commit()
+
+    # 3. Seed Budgets
+    existing_budgets = db.query(Budget).count()
+    if existing_budgets >= 2:
+        print(f"[INFO] Budgets already seeded ({existing_budgets} found). Skipping creation.")
+    else:
+        now = datetime.now(timezone.utc)
+        p_start = datetime(now.year, 1, 1, tzinfo=timezone.utc)
+        p_end = datetime(now.year, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
+
+        # Budget 1: Confirmed Office Furniture Project
+        b1_in = BudgetCreate(
+            name=f"Annual Office Fitout Budget {now.year}",
+            analytic_account_id=office_acc.id,
+            period_start=p_start,
+            period_end=p_end,
+            committed_amount=350000.0,
+        )
+        b1_resp = budget_service.create_budget(db, b1_in)
+        b1_conf = budget_service.confirm_budget(db, b1_resp.id)
+        print(f"  [CONFIRMED BUDGET] '{b1_conf.name}' (Committed: INR {b1_conf.committed_amount:,.2f}) -> Achieved: INR {b1_conf.achieved_amount:,.2f} ({b1_conf.achieved_pct:.1f}%)")
+
+        # Budget 2: Draft Showroom Renovation
+        b2_in = BudgetCreate(
+            name=f"Showroom Upgrade Allocation {now.year}",
+            analytic_account_id=showroom_acc.id,
+            period_start=p_start,
+            period_end=p_end,
+            committed_amount=150000.0,
+        )
+        b2_resp = budget_service.create_budget(db, b2_in)
+        print(f"  [DRAFT BUDGET] '{b2_resp.name}' (Committed: INR {b2_resp.committed_amount:,.2f}) -> Status: {b2_resp.status}")
+
+        # Budget 3: Confirmed Corporate Custom Revenue Target
+        b3_in = BudgetCreate(
+            name=f"Corporate Sales Revenue Target {now.year}",
+            analytic_account_id=corp_acc.id,
+            period_start=p_start,
+            period_end=p_end,
+            committed_amount=500000.0,
+        )
+        b3_resp = budget_service.create_budget(db, b3_in)
+        b3_conf = budget_service.confirm_budget(db, b3_resp.id)
+        print(f"  [CONFIRMED BUDGET] '{b3_conf.name}' (Committed: INR {b3_conf.committed_amount:,.2f}) -> Achieved: INR {b3_conf.achieved_amount:,.2f} ({b3_conf.achieved_pct:.1f}%)")
+
+
 def run_seed():
     """Main seed orchestrator."""
     Base.metadata.create_all(bind=engine)
@@ -560,6 +663,9 @@ def run_seed():
 
         # 7. Phase 5 Report Verification (P&L and Balance Sheet)
         verify_phase5_reports(db)
+
+        # 8. Phase 6 Analytic Accounts & Budgets
+        seed_phase6_analytic_and_budget_data(db)
 
         print("\n[SUCCESS] Master, Dummy data, & Financial Reports verified successfully!")
     finally:

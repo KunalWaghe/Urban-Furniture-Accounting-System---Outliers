@@ -4,7 +4,7 @@ Payment database model for inbound and outbound financial transactions (Phase 2,
 
 from datetime import datetime, timezone
 from typing import Optional
-from sqlalchemy import String, Integer, Float, DateTime, ForeignKey, Text
+from sqlalchemy import String, Integer, Numeric, DateTime, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 
@@ -30,7 +30,7 @@ class Payment(Base):
     # Foreign key referencing the Bank (BNK) or Cash (CSH) Journal
     journal_id: Mapped[int] = mapped_column(Integer, ForeignKey("journals.id"), nullable=False, index=True)
     # Monetized settlement amount
-    amount: Mapped[float] = mapped_column(Float, nullable=False)
+    amount: Mapped[float] = mapped_column(Numeric(15, 2), nullable=False)
     # Payment instrument type: 'bank' or 'cash'
     payment_method: Mapped[str] = mapped_column(String(20), nullable=False)
     # Value date for the financial payment

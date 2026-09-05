@@ -1,8 +1,10 @@
 """
 Unit and Integration tests for Financial Reporting (Profit & Loss and Balance Sheet) (Phase 5, P0-BE-08).
+Includes test isolation cleanup, exact double-entry equilibrium checks, and schema validation.
 """
 
 from datetime import datetime, timezone
+import uuid
 import pytest
 from fastapi.testclient import TestClient
 
@@ -68,9 +70,9 @@ def test_balance_sheet_report_endpoint_and_equilibrium():
     Test GET /api/v1/reports/balance-sheet:
     - Returns 200 OK
     - Validates assets, liabilities, and capital categories
-    - Asserts fundamental accounting equation: Assets == Liabilities + Capital
+    - Asserts fundamental accounting equation: Assets == Liabilities + Capital exactly
     - Confirms is_balanced == True
-    - Verifies Retained Earnings line exists in capital section
+    - Verifies Retained Earnings line exists in capital section and is flagged is_computed
     """
     with TestClient(app) as client:
         # Fetch P&L first to obtain reference Net Income
@@ -88,16 +90,18 @@ def test_balance_sheet_report_endpoint_and_equilibrium():
         capital_total = bs_data["capital"]["total"]
         is_balanced = bs_data["is_balanced"]
 
-        # Double-entry invariant check
+        # Exact Double-entry invariant check
         expected_liab_cap = round(liabilities_total + capital_total, 2)
         assert is_balanced is True
-        assert abs(round(assets_total - expected_liab_cap, 2)) < 0.01
+        assert round(assets_total, 2) == expected_liab_cap
 
         # Check Retained Earnings line in Capital
         capital_lines = bs_data["capital"]["lines"]
         retained_line = next((l for l in capital_lines if l["account_name"] == "Retained Earnings"), None)
         assert retained_line is not None
         assert round(retained_line["balance"], 2) == round(net_income, 2)
+        assert retained_line["is_computed"] is True
+        assert retained_line["account_code"] == "3999"
 
 
 # Tests fiscal year filtering functionality for both reports
@@ -137,14 +141,16 @@ def test_reports_fiscal_year_filter():
         assert bs_empty_data["is_balanced"] is True
 
 
-# Direct unit tests of report service functions and double-entry sign conventions
+# Direct unit tests of report service functions and double-entry sign conventions with isolated cleanup
 def test_report_service_direct_units():
     """
     Unit test report_service internal functions:
     - get_account_balance with asset, liability, income, expense accounts
     - dynamic journal entry posting impacts balances correctly
+    - cleans up created journal entry to guarantee zero state leakage across test runs
     """
     db = SessionLocal()
+    created_entry_id = None
     try:
         # Look up accounts
         bank_acc = db.query(Account).filter(Account.code == "1020").first() # Asset
@@ -156,17 +162,19 @@ def test_report_service_direct_units():
         bal_bank_before = report_service.get_account_balance(db, bank_acc.id)
         bal_sales_before = report_service.get_account_balance(db, sales_acc.id)
 
-        # Post a direct balanced transaction: Dr 1020 Bank 5,000 / Cr 4010 Sales 5,000
-        post_journal_entry(
+        # Post a direct balanced transaction with unique reference: Dr 1020 Bank 5,000 / Cr 4010 Sales 5,000
+        unique_ref = f"TEST-ISO-{uuid.uuid4().hex[:8]}"
+        entry = post_journal_entry(
             db=db,
             journal_code="SLS",
-            reference="TEST-REP-001",
+            reference=unique_ref,
             entry_date=datetime.now(timezone.utc),
             lines=[
                 {"account_id": bank_acc.id, "debit": 5000.0, "credit": 0.0, "description": "Cash sale"},
                 {"account_id": sales_acc.id, "debit": 0.0, "credit": 5000.0, "description": "Revenue"},
             ],
         )
+        created_entry_id = entry.id
 
         bal_bank_after = report_service.get_account_balance(db, bank_acc.id)
         bal_sales_after = report_service.get_account_balance(db, sales_acc.id)
@@ -177,7 +185,13 @@ def test_report_service_direct_units():
         # Verify Balance Sheet is still balanced
         bs = report_service.get_balance_sheet(db)
         assert bs.is_balanced is True
-        assert abs(round(bs.assets.total - (bs.liabilities.total + bs.capital.total), 2)) < 0.01
+        assert round(bs.assets.total, 2) == round(bs.total_liabilities_and_capital, 2)
 
     finally:
+        # Clean up the posted journal entry to maintain test isolation
+        if created_entry_id:
+            entry_to_del = db.get(JournalEntry, created_entry_id)
+            if entry_to_del:
+                db.delete(entry_to_del)
+                db.commit()
         db.close()

@@ -10,6 +10,8 @@ from app.models.vendor_bill import VendorBill, VendorBillLine
 from app.models.sales_order import SalesOrder, SalesOrderLine
 from app.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
 from app.models.payment import Payment
+from app.models.analytic_account import AnalyticAccount
+from app.models.budget import Budget
 
 __all__ = [
     "Base",
@@ -29,5 +31,7 @@ __all__ = [
     "CustomerInvoice",
     "CustomerInvoiceLine",
     "Payment",
+    "AnalyticAccount",
+    "Budget",
 ]
 

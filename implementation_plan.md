@@ -229,63 +229,37 @@ Same shape as `vendor_bill.py`:
 
 ---
 
-## Phase 6 — Budget & Analytic Accounts (P1 — only if time allows)
+## Phase 6 — Budget & Analytic Accounts [COMPLETED]
 
-> The plan says "only start after Step 8 passes." Build this last.
+> Built cost/revenue centre tracking (Analytic Accounts) and financial target management (Budgets) with real-time performance tracking computed live from the ledger, revision lineage tracking, and constraint enforcement.
 
-### [NEW] `app/models/analytic_account.py`
+### [NEW] `app/models/analytic_account.py` & `app/models/budget.py`
 
-```python
-class AnalyticAccount(Base):
-    __tablename__ = "analytic_accounts"
-    id, name, type  # "income" | "expenses"
-```
+- `AnalyticAccount`: Unique `code`, `name`, `type` ('income' | 'expense'), `description`, `is_active`.
+- `Budget`: `name`, `analytic_account_id` (FK), `period_start`, `period_end`, `committed_amount`, `status` ('draft', 'confirmed', 'revised', 'cancelled'), `responsible_person_id` (FK), and self-referencing `revised_from_id` for immutable revision history.
+- Added foreign key relationships linking `VendorBillLine`, `CustomerInvoiceLine`, and `JournalItem` to `AnalyticAccount`.
 
-### [NEW] `app/models/budget.py`
+### [NEW] `app/services/analytic_account_service.py` & `app/services/budget_service.py`
 
-```python
-class Budget(Base):
-    __tablename__ = "budgets"
-    id, name, analytic_account_id, period_start, period_end,
-    committed_amount, status,  # draft/confirmed/revised/cancelled
-    responsible_person_id,  # FK → contacts
-    revised_from_id,  # nullable self-FK (links revision to original)
-```
+- Full CRUD on Analytic Accounts with duplicate code collision safeguards.
+- Implemented `get_achieved_amount()` querying `VendorBillLine` and `CustomerInvoiceLine` subtotals against parent transaction dates.
+- Real-time derived performance metrics: `achieved_amount`, `achieved_pct`, `amount_to_achieve`.
+- `check_budget_exceeded()` warning evaluator for procurement and sales allocations.
+- State machine transitions (`draft` -> `confirmed`, `draft` -> `cancelled`, `confirmed` -> `revised`) with branch-from-confirmed invariants.
+- Overlapping active budget period validation for identical analytic accounts.
 
-### [NEW] `app/services/budget_service.py`
+### [NEW] `app/schemas/analytic_account.py` & `app/schemas/budget.py`
 
-**Computed fields (not stored, calculated on read):**
-```python
-def get_achieved_amount(db, analytic_account_id, period_start, period_end, budget_type):
-    """
-    For type "expenses": sum subtotals from VendorBillLines
-        WHERE analytic_account_id matches AND bill_date in period
-    For type "income": sum subtotals from CustomerInvoiceLines
-        WHERE analytic_account_id matches AND invoice_date in period
-    """
+- Pydantic models for creation, updates, and serialized responses with live performance metrics and period chronology validation (`period_end > period_start`).
 
-achieved_pct = (achieved / committed) * 100
-amount_to_achieve = committed - achieved
-```
+### [NEW] `app/routers/analytic_accounts.py` & `app/routers/budgets.py`
 
-**Budget check (used in PO confirm + Bill confirm):**
-```python
-def check_budget_exceeded(db, analytic_account_id, new_amount) -> Optional[str]:
-    """
-    Find the active (confirmed) budget for this analytic account.
-    Sum existing committed spend + new_amount.
-    If > budget.committed_amount → return warning message.
-    """
-```
+- REST endpoints mounted under `/api/v1/analytic-accounts` and `/api/v1/budgets` with pagination, filtering, search, and lifecycle action endpoints (`/confirm`, `/revise`, `/cancel`).
 
-**Revise flow:**
-- `POST /api/v1/budgets/{id}/revise` → creates a new Budget row with `revised_from_id = original.id`, original budget stays as history
+### [MODIFY] `seed.py` & `backend/tests/test_budgets.py`
 
-**Edge cases:**
-- ❌ Revising a draft budget → reject (must be confirmed first)
-- ❌ Revising an already-revised budget → reject (follow the chain to the latest)
-- ⚠️ Budget periods overlapping for same analytic account → warn or reject
-- ⚠️ Achieved amount can exceed committed (it's informational, not blocking by itself — the blocking check is on PO/Bill confirm)
+- Integrated `seed_phase6_analytic_and_budget_data(db)` seeding cost centers, draft/confirmed budgets, and transaction line tags.
+- Comprehensive unit and integration test suite (`tests/test_budgets.py`) validating CRUD, status machines, revision lineage, cancellation guards, overlap rejections, and live ledger-driven variance calculations.
 
 ---
 

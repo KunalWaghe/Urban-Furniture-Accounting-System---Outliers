@@ -15,6 +15,7 @@ class ReportLine(BaseModel):
     account_code: str = Field(..., description="Chart of accounts code e.g. '1010', '4010'")
     account_name: str = Field(..., description="Human-readable ledger account title")
     balance: float = Field(..., description="Net balance in standard currency units (INR)")
+    is_computed: bool = Field(False, description="Whether this line is dynamically computed (e.g. period net income adjustment)")
 
 
 # Grouped category section of report lines with an aggregate total
