@@ -1047,14 +1047,13 @@ export default function AppDashboardPage() {
             </div>
 
             <div className="flex items-center gap-3 self-end sm:self-auto">
-              <button
-                type="button"
-                onClick={() => showToast("Loading Full Analytical Profit & Loss report...")}
+              <Link
+                href="/reports/profit-loss"
                 className="inline-flex items-center gap-1 text-xs font-semibold text-purple-600 hover:text-purple-700 hover:underline transition-colors dark:text-purple-400"
               >
                 <span>Full Analytical P&amp;L</span>
                 <span>→</span>
-              </button>
+              </Link>
               <button
                 type="button"
                 onClick={() => showToast("Exporting comprehensive cost accounting statement...")}
@@ -1193,21 +1192,19 @@ export default function AppDashboardPage() {
                 </span>
               </div>
               <div className="flex items-center gap-3 font-medium">
-                <button
-                  type="button"
-                  onClick={() => showToast("Opening Balancesheet report...")}
+                <Link
+                  href="/reports/balance-sheet"
                   className="text-purple-600 hover:text-purple-700 hover:underline dark:text-purple-400"
                 >
                   Balancesheet
-                </button>
+                </Link>
                 <span className="text-border">•</span>
-                <button
-                  type="button"
-                  onClick={() => showToast("Opening Profit & Loss statement...")}
+                <Link
+                  href="/reports/profit-loss"
                   className="text-purple-600 hover:text-purple-700 hover:underline dark:text-purple-400"
                 >
                   Profit &amp; Loss
-                </button>
+                </Link>
               </div>
             </div>
           </div>

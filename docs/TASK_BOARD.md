@@ -1,6 +1,7 @@
 # Urban Furniture Accounting System — Master Task List
 > **Ground source of truth.** Frontend: Sourabh · Backend: Kunal · Integration: Both
-> Last synced: 5 Sep 2026, 9:14 PM IST
+> Last synced: 5 Sep 2026, 11:09 PM IST — code audit
+> Current checklist: **33/51 complete (65%)**; **18 remain**.
 
 ---
 
@@ -11,6 +12,7 @@
 - [x] 1.3 · BE · User model, JWT register/login/me, RBAC dependency (P0-BE-02R)
 - [x] 1.4 · FE · Login & Signup pages wired to live API, role-gated routing (P0-FE-02R)
 - [x] 1.5 · INT · Auth handshake verified end-to-end, role gates enforced (P0-INT-01)
+  - Additional implemented auth surfaces: `/forgot-password`, `/reset-password`, and Admin `/admin/users`, backed by auth/user API routes and services.
 
 ---
 
@@ -47,6 +49,8 @@
 - [x] 4.3 · FE · Chart of Accounts hierarchical list view (P0-FE-05-CoA)
   - `GET /api/v1/accounts` → grouped by type (Asset, Liability, Income, Expense, Capital)
   - Read-only ledger structure
+- [x] 4.4 · FE · Journals list view
+  - `/journals` uses the live journals API with search, type filtering, default-account display, and active/inactive status.
 
 
 ---
@@ -61,20 +65,23 @@
 
 ### 5B — Journal Engine + Vendor Bill
 
-- [ ] 5B.1 · BE · Build `post_journal_entry()` helper — unit test debit==credit invariant
-- [ ] 5B.2 · BE · Vendor Bill creation endpoint + auto Journal Entry (P0-BE-06)
+- [x] 5B.1 · BE · Build `post_journal_entry()` helper — unit test debit==credit invariant
+  - Evidence: `backend/app/services/journal_engine.py`, covered by `backend/tests/test_journal_entries.py`.
+- [x] 5B.2 · BE · Vendor Bill creation endpoint + auto Journal Entry (P0-BE-06)
   - `POST /api/v1/purchase-orders/:id/create-bill`
   - Journal: Dr Purchase Expense / Cr Creditors (AP)
+  - Evidence: `backend/app/routers/purchase_orders.py`, `backend/app/services/vendor_bill_service.py`, and `backend/tests/test_vendor_bills.py`.
 - [x] 5B.3 · FE · Vendor Bill UI — list, detail, status badges (P0-FE-06)
   - Show bill linked from PO detail page
-  - Status: Draft → Confirmed → Paid
+  - UI status mapping covers open/confirmed, partially paid, and paid states.
 
 ### 5C — Outbound Payment
 
-- [ ] 5C.1 · BE · Payment endpoint (outbound) + auto Journal Entry (P0-BE-07)
+- [x] 5C.1 · BE · Payment endpoint (outbound) + auto Journal Entry (P0-BE-07)
   - `POST /api/v1/payments` (type: outbound)
   - Journal: Dr AP / Cr Bank or Cash
   - Bill status → Paid
+  - Evidence: `backend/app/routers/payments.py`, `backend/app/routers/vendor_bills.py`, `backend/app/services/payment_service.py`, and `backend/tests/test_payments.py`.
 - [x] 5C.2 · FE · Bill Payment modal/form + status update (P0-FE-08)
   - Payment method selector (Cash / Bank)
   - Disables repeat payment after paid
@@ -82,7 +89,8 @@
 ### 5D — Purchase Slice Integration
 
 - [ ] 5D.1 · INT · Verify Purchase vertical slice end-to-end (P0-INT-02)
-  - PO create → confirm → create bill → confirm bill → pay → ledger balanced
+  - PO create → confirm → create bill → pay → ledger balanced.
+  - Note: bill creation currently opens the bill directly; no separate bill-confirm endpoint exists.
 
 ---
 
@@ -90,30 +98,34 @@
 
 ### 6A — Sales Order
 
-- [ ] 6A.1 · BE · Sales Order model & create/confirm endpoints (P0-BE-08)
+- [x] 6A.1 · BE · Sales Order model & create/confirm endpoints (P0-BE-08)
   - `POST /api/v1/sales-orders`, `POST /api/v1/sales-orders/:id/confirm`
+  - Evidence: `backend/app/routers/sales_orders.py`, `backend/app/services/sales_order_service.py`, and `backend/tests/test_sales_orders_and_invoices.py`.
 - [x] 6A.2 · FE · SO list page wired to `GET /api/v1/sales-orders` (P0-FE-09a)
 - [x] 6A.3 · FE · SO create form + confirm action + detail page (P0-FE-09b)
 
 ### 6B — Customer Invoice
 
-- [ ] 6B.1 · BE · Customer Invoice creation + auto Journal Entry (P0-BE-09)
+- [x] 6B.1 · BE · Customer Invoice creation + auto Journal Entry (P0-BE-09)
   - `POST /api/v1/sales-orders/:id/create-invoice`
   - Journal: Dr Debtors (AR) / Cr Sales Income + Tax
+  - Evidence: `backend/app/routers/sales_orders.py`, `backend/app/services/customer_invoice_service.py`, and `backend/tests/test_sales_orders_and_invoices.py`.
 - [x] 6B.2 · FE · SO Detail — "Generate Invoice" action + Invoice detail view (P0-FE-10)
 
 ### 6C — Inbound Payment
 
-- [ ] 6C.1 · BE · Payment endpoint (inbound) + auto Journal Entry (P0-BE-10)
+- [x] 6C.1 · BE · Payment endpoint (inbound) + auto Journal Entry (P0-BE-10)
   - `POST /api/v1/payments` (type: inbound)
   - Journal: Dr Cash/Bank / Cr AR
   - Invoice status → Paid
+  - Evidence: `backend/app/routers/payments.py`, `backend/app/routers/customer_invoices.py`, `backend/app/services/payment_service.py`, and `backend/tests/test_payments.py`.
 - [x] 6C.2 · FE · Customer Invoice Payment modal/action (P0-FE-11)
 
 ### 6D — Sales Slice Integration
 
 - [ ] 6D.1 · INT · Verify Sales vertical slice end-to-end (P0-INT-03)
-  - SO create → confirm → create invoice → confirm invoice → pay → ledger balanced
+  - SO create → confirm → create invoice → pay → ledger balanced.
+  - Note: invoice creation currently opens the invoice directly; no separate invoice-confirm endpoint exists.
 
 ---
 
@@ -121,29 +133,40 @@
 
 ### 7A — Journal Entries
 
-- [ ] 7A.1 · BE · Journal Entries create/list endpoint + balance checks (P0-BE-11)
+- [x] 7A.1 · BE · Journal Entries create/list endpoint + balance checks (P0-BE-11)
   - `POST /GET /api/v1/journal-entries`
   - Enforce debit == credit on save
-- [ ] 7A.2 · FE · Journal Entries list + manual entry form with balance warning (P0-FE-12)
+  - Evidence: `backend/app/routers/journal_entries.py`, `backend/app/services/journal_entry_service.py`, and `backend/tests/test_journal_entries.py`.
+- [x] 7A.2 · FE · Journal Entries list + manual entry form with balance warning (P0-FE-12)
+  - `/journal-entries` lists entries and validates live debit/credit balance before posting.
 
 ### 7B — Financial Reports
 
 - [x] 7B.1 · BE · Balance Sheet report query (P0-BE-12a)
   - `GET /api/v1/reports/balance-sheet`
+  - `GET /api/v1/reports/profit-loss` is also implemented and covered by `backend/tests/test_reports.py`.
 - [x] 7B.2 · FE · Balance Sheet page — Assets, Liabilities, Capital with equation check (P0-FE-13a)
   - `/reports/balance-sheet` with date filter, totals, equation status, and print action
-- [ ] 7B.3 · FE · P&L page — Income, Expenses, Net Income (P0-FE-13b)
+- [x] 7B.3 · FE · P&L page — Income, Expenses, Net Income (P0-FE-13b)
+  - `/reports/profit-loss` with year filter, totals, result status, and print action
 
 ---
 
 ## Step 8 — Demo Data & Golden Path 🔲
 
-- [ ] 8.1 · BE · Deterministic demo seed script with realistic data (P0-BE-13)
+- [x] 8.1 · BE · Deterministic demo seed script with realistic data (P0-BE-13)
   - Azure Furniture, Nimesh Pathak, chairs, full PO→Bill→Pay + SO→Invoice→Pay cycle
+  - Evidence: `backend/seed.py` seeds users, master data, procurement, sales, payments, and verifies P&L/Balance Sheet output.
 - [ ] 8.2 · INT · Full Golden-Path Dry Run — 3-min demo without errors (P0-INT-04)
   - Tag stable commit, update `docs/REVIEWER_BRIEF.md`
 
 ---
+
+## Audit Notes
+
+- Frontend production build passes with the current route set, including `/reports/profit-loss`.
+- Backend tests are present for auth, master data, purchase, sales, billing, payments, journals, and reports, but the full suite could not execute in this environment because PostgreSQL on `localhost:5432` is unavailable.
+- Purchase and sales integration gates remain open until the complete live golden paths are run against the configured database.
 
 ## Step 9 — P1: Budget & Contact Portal 🔲
 
