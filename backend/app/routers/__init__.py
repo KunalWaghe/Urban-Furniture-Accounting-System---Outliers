@@ -10,7 +10,9 @@ from app.routers.journal_entries import router as journal_entry_router
 from app.routers.payments import router as payment_router
 from app.routers.sales_orders import router as sales_order_router
 from app.routers.customer_invoices import router as customer_invoice_router
+from app.routers.reports import router as report_router
 
+# '__all__' defines the public module symbol exports when imported via 'from app.routers import *'
 __all__ = [
     "auth_router",
     "user_router",
@@ -24,5 +26,6 @@ __all__ = [
     "payment_router",
     "sales_order_router",
     "customer_invoice_router",
+    "report_router",
 ]
 

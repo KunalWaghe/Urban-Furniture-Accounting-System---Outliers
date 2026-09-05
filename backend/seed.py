@@ -30,6 +30,7 @@ from app.services.vendor_bill_service import create_bill_from_po
 from app.services.sales_order_service import create_sales_order, confirm_sales_order
 from app.services.customer_invoice_service import create_invoice_from_so
 from app.services import payment_service
+from app.services import report_service
 from app.schemas.purchase_order import POCreate, POLineCreate
 from app.schemas.sales_order import SOCreate, SOLineCreate
 from app.core.security import hash_password
@@ -507,6 +508,33 @@ def seed_phase4_payment_data(db):
         print(f"  [PAID INVOICE] Invoice {open_invoice.invoice_number} -> Payment {pay_inv_resp.payment_number} (INR {pay_inv_resp.amount:,.2f}) -> JE {pay_inv_resp.journal_entry_number}")
 
 
+# Computes and displays financial health verification via Profit & Loss and Balance Sheet
+def verify_phase5_reports(db):
+    """
+    Generate and display Phase 5 accounting reports to verify system consistency:
+    - Profit and Loss: Revenue, Expenses, Net Income
+    - Balance Sheet: Assets, Liabilities, Capital, and double-entry equilibrium confirmation
+    """
+    print("\n--- Verifying Phase 5 Financial Reports (P&L and Balance Sheet) ---")
+
+    # Generate current year / all-time Profit and Loss statement
+    pl = report_service.get_profit_loss(db)
+    print(f"  [P&L] Total Income:   INR {pl.income.total:,.2f}")
+    print(f"  [P&L] Total Expenses: INR {pl.expenses.total:,.2f}")
+    print(f"  [P&L] Net Income:     INR {pl.net_income:,.2f}")
+
+    # Generate Balance Sheet snapshot
+    bs = report_service.get_balance_sheet(db)
+    print(f"  [BALANCE SHEET] Total Assets:                   INR {bs.assets.total:,.2f}")
+    print(f"  [BALANCE SHEET] Total Liabilities:              INR {bs.liabilities.total:,.2f}")
+    print(f"  [BALANCE SHEET] Total Capital (inc. Retained):  INR {bs.capital.total:,.2f}")
+    print(f"  [BALANCE SHEET] Liabilities + Capital:          INR {bs.total_liabilities_and_capital:,.2f}")
+    print(f"  [BALANCE SHEET] Ledger Balanced (Audit Pass):   {bs.is_balanced}")
+
+    if not bs.is_balanced:
+        raise RuntimeError(f"Audit failure: Balance sheet is unbalanced! Assets={bs.assets.total} != Liab+Cap={bs.total_liabilities_and_capital}")
+
+
 def run_seed():
     """Main seed orchestrator."""
     Base.metadata.create_all(bind=engine)
@@ -530,7 +558,10 @@ def run_seed():
         # 6. Phase 4 Inbound & Outbound Payments
         seed_phase4_payment_data(db)
 
-        print("\n[SUCCESS] Master & Dummy data seeded successfully!")
+        # 7. Phase 5 Report Verification (P&L and Balance Sheet)
+        verify_phase5_reports(db)
+
+        print("\n[SUCCESS] Master, Dummy data, & Financial Reports verified successfully!")
     finally:
         db.close()
 

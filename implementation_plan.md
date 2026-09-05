@@ -202,86 +202,30 @@ Same shape as `vendor_bill.py`:
 
 ---
 
-## Phase 5 — Reports (Balance Sheet + P&L)
+## Phase 5 — Reports (Balance Sheet + P&L) [COMPLETED]
 
-> This is the "wow" moment in the demo. Both reports query `journal_items` table — no new models needed.
+> Built financial reporting services, Pydantic schemas, API endpoints, deterministic seed verification, and automated tests. Both reports query the `journal_items` ledger table directly with double-entry balance validation.
 
 ### [NEW] `app/services/report_service.py`
 
-**Core helper — `get_account_balance(db, account_id, year?)`:**
-```python
-def get_account_balance(db: Session, account_id: int, year: Optional[int] = None) -> float:
-    """
-    For Asset/Expense accounts: sum(debit) - sum(credit)
-    For Liability/Income/Capital accounts: sum(credit) - sum(debit)
-    """
-    query = db.query(
-        func.coalesce(func.sum(JournalItem.debit), 0),
-        func.coalesce(func.sum(JournalItem.credit), 0),
-    ).join(JournalEntry).filter(
-        JournalItem.account_id == account_id,
-        JournalEntry.is_posted == True,
-    )
-    if year:
-        query = query.filter(extract('year', JournalEntry.date) == year)
+- Implemented `get_account_balance(db, account_id, year)` evaluating natural debit/credit sign conventions (Asset/Expense: Debit - Credit; Liability/Income/Capital: Credit - Debit).
+- Implemented `get_profit_loss(db, year)` compiling Income and Expense categories and deriving Net Income.
+- Implemented `get_balance_sheet(db, year)` aggregating Assets, Liabilities, and Capital, injecting Net Income as "Retained Earnings", and auditing `is_balanced` (Assets == Liabilities + Capital).
 
-    total_debit, total_credit = query.one()
-    account = db.get(Account, account_id)
+### [NEW] `app/schemas/report.py`
 
-    if account.type in ("asset", "expense"):
-        return round(total_debit - total_credit, 2)
-    else:  # liability, income, capital
-        return round(total_credit - total_debit, 2)
-```
+- Defined `ReportLine`, `ReportSection`, `ProfitLossReport`, and `BalanceSheetReport` schemas with field descriptions and validation constraints.
 
-**Profit & Loss endpoint — `GET /api/v1/reports/profit-loss?year=2026`:**
-```python
-{
-    "year": 2026,
-    "income": {
-        "lines": [{"account_code": "4010", "account_name": "Sales Income", "balance": 50000}],
-        "total": 50000
-    },
-    "expenses": {
-        "lines": [{"account_code": "5010", "account_name": "Purchase Expense", "balance": 30000}],
-        "total": 30000
-    },
-    "net_income": 20000
-}
-```
-Logic: Query all accounts where `type == "income"`, sum balances → Income total. Same for `type == "expense"` → Expense total. `net_income = income_total - expense_total`.
+### [NEW] `app/routers/reports.py` & `app/main.py`
 
-**Balance Sheet endpoint — `GET /api/v1/reports/balance-sheet?year=2026`:**
-```python
-{
-    "year": 2026,
-    "assets": {
-        "lines": [...],  # Cash, Bank, Debtors
-        "total": 70000
-    },
-    "liabilities": {
-        "lines": [...],  # Creditors
-        "total": 20000
-    },
-    "capital": {
-        "lines": [...],  # Owner Capital + Retained Earnings (net_income)
-        "total": 50000
-    },
-    "is_balanced": true  # assets == liabilities + capital
-}
-```
-Logic: Group accounts by type. For `capital`, include **net income from P&L** as "Retained Earnings" line to make the equation balance.
+- Mounted `GET /api/v1/reports/profit-loss?year=`
+- Mounted `GET /api/v1/reports/balance-sheet?year=`
+- Registered `report_router` in `app/routers/__init__.py` and included with prefix `/api/v1/reports`.
 
-**Edge cases:**
-- ⚠️ Year filter: if no year passed, use current year (or all-time — decide and be consistent)
-- ⚠️ Accounts with zero balance: still include them so the report looks complete
-- ⚠️ `is_balanced` flag: `Total Assets == Total Liabilities + Total Capital` — if this is false, something posted wrong. Include it as a debug signal
-- ✅ Only sum `is_posted == True` journal entries (ignore drafts)
+### [MODIFY] `seed.py` & `backend/tests/test_reports.py`
 
-### [NEW] `app/routers/reports.py`
-
-- `GET /api/v1/reports/profit-loss?year=`
-- `GET /api/v1/reports/balance-sheet?year=`
+- Updated `seed.py` with `verify_phase5_reports(db)` asserting automated ledger equilibrium during seed run.
+- Added comprehensive unit and integration test suite (`tests/test_reports.py`) covering report schemas, balance sheet equilibrium, fiscal year filtering, zero-balance account inclusion, and dynamic transaction reflections.
 
 ---
 
