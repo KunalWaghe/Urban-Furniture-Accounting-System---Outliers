@@ -41,6 +41,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Backend
 
+- [x] **P0-BE-04** — Chart of Accounts & Journals seed + endpoints · Kunal · 5 Sep, 1:25 PM — Evidence: `tests/test_accounts_and_journals.py` PASSED (5 account types & 4 journals seeded and fetchable) · Integrated & Verified
 - [x] **P0-BE-03** — Contact & Product models + CRUD endpoints · Kunal · 5 Sep, 12:45 PM — Evidence: `tests/test_contacts.py` & `test_products.py` PASSED · Integrated & Verified
 - [x] **P0-BE-02** — User model + JWT Auth endpoints (register/login/me) · Kunal · 5 Sep, 11:35 AM — Evidence: `tests/test_auth.py` PASSED + live HTTP verified · Integrated & Verified
 - [x] **P0-BE-01** — FastAPI scaffold + PostgreSQL setup · Kunal · 5 Sep, 11:25 AM — Evidence: `GET /health` returns 200 `connected` · Integrated & Verified
@@ -64,7 +65,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Backend
 
-- [ ] **P0-BE-04** — Chart of Accounts & Journals seed + endpoints · Kunal · 30m · Depends: P0-BE-01 · Started 12:45 PM — Contract: `GET /api/v1/accounts`, `GET /api/v1/journals` · Done when: 5 account types & 4 journals seeded and fetchable
+- [ ] **P0-BE-05** — Purchase Order model & create/confirm endpoints · Kunal · 45m · Depends: P0-BE-03 · Started 1:25 PM — Contract: `POST/GET /api/v1/purchase-orders`, `PATCH /confirm` · Done when: PO created in draft, confirmed changes status
 
 ### Frontend
 

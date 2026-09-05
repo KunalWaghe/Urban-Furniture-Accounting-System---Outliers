@@ -15,7 +15,10 @@ def create_product(db: Session, req: ProductCreate) -> Product:
     """Create a new product."""
     product = Product(
         name=req.name,
+        product_type=req.product_type,
+        category=req.category,
         price=req.price,
+        cost=req.cost,
         tax_percent=req.tax_percent,
         description=req.description,
         is_active=True,
@@ -39,6 +42,7 @@ def get_products(
         query = query.filter(
             or_(
                 Product.name.ilike(search_term),
+                Product.category.ilike(search_term),
                 Product.description.ilike(search_term),
             )
         )
@@ -63,7 +67,7 @@ def update_product(db: Session, product_id: int, req: ProductUpdate) -> Product:
     """Update an existing product."""
     product = get_product_by_id(db, product_id)
 
-    for field in ["name", "price", "tax_percent", "description", "is_active"]:
+    for field in ["name", "product_type", "category", "price", "cost", "tax_percent", "description", "is_active"]:
         val = getattr(req, field)
         if val is not None:
             setattr(product, field, val)

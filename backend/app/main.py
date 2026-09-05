@@ -5,7 +5,7 @@ Wires together:
 - CORS middleware (allows frontend at localhost:3000)
 - Global error handlers (standard error envelope)
 - Health check endpoint (proves DB connectivity)
-- Router includes (added as each P0-BE task is completed)
+- Router includes (auth, contacts, products, accounts, journals)
 """
 
 from contextlib import asynccontextmanager
@@ -23,7 +23,13 @@ from app.core.exceptions import (
     generic_exception_handler,
 )
 from app.models import Base
-from app.routers import auth_router, contact_router, product_router
+from app.routers import (
+    auth_router,
+    contact_router,
+    product_router,
+    account_router,
+    journal_router,
+)
 
 
 @asynccontextmanager
@@ -33,10 +39,14 @@ async def lifespan(app: FastAPI):
     
     On startup: verify database connectivity and ensure tables exist.
     """
-    # Startup: verify DB connection & create tables
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
+            conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS product_type VARCHAR(50) DEFAULT 'goods'"))
+            conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS category VARCHAR(100)"))
+            conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS cost NUMERIC(10, 2)"))
+            conn.execute(text("ALTER TABLE journals ADD COLUMN IF NOT EXISTS default_account_id INTEGER REFERENCES accounts(id)"))
+            conn.commit()
         Base.metadata.create_all(bind=engine)
         print(f"[OK] Database connected & models synchronized: {settings.DATABASE_URL.split('@')[1]}")
     except Exception as e:
@@ -61,7 +71,6 @@ app = FastAPI(
 )
 
 # --- CORS Middleware ---
-# Allows the Next.js frontend (localhost:3000) to call this API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -71,7 +80,6 @@ app.add_middleware(
 )
 
 # --- Global Error Handlers ---
-# These ensure ALL errors follow the standard error envelope
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
@@ -80,15 +88,7 @@ app.add_exception_handler(Exception, generic_exception_handler)
 # --- Health Check ---
 @app.get("/health", tags=["System"])
 def health_check():
-    """
-    Health check endpoint.
-    
-    Verifies:
-    1. The API process is running
-    2. The database is reachable
-    
-    Returns 200 with status info, or 500 if DB is down.
-    """
+    """Health check endpoint — verifies process and DB reachability."""
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
@@ -119,4 +119,5 @@ def root():
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
 app.include_router(contact_router, prefix="/api/v1/contacts", tags=["Contacts"])
 app.include_router(product_router, prefix="/api/v1/products", tags=["Products"])
-
+app.include_router(account_router, prefix="/api/v1/accounts", tags=["Chart of Accounts"])
+app.include_router(journal_router, prefix="/api/v1/journals", tags=["Journals"])
