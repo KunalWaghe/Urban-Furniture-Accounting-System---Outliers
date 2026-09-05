@@ -18,6 +18,7 @@ import type { FormEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
+import { HTTP_STATUS } from "@/lib/constants";
 import type { LoginRequest } from "@/lib/types";
 
 import { useAuth } from "../auth-context";
@@ -126,7 +127,7 @@ export function useLoginForm() {
    */
   function handleLoginError(error: unknown) {
     if (error instanceof ApiError) {
-      if (error.status === 422 && error.fields) {
+      if (error.status === HTTP_STATUS.UNPROCESSABLE_ENTITY && error.fields) {
         const apiErrors = mapApiFieldsToLoginErrors(error.fields);
         setErrors((prev) => ({ ...prev, ...apiErrors }));
         setNotice({
@@ -141,7 +142,7 @@ export function useLoginForm() {
         return;
       }
 
-      if (error.status === 401) {
+      if (error.status === HTTP_STATUS.UNAUTHORIZED) {
         setNotice({
           kind: "error",
           title: "Invalid credentials",
@@ -151,7 +152,7 @@ export function useLoginForm() {
         return;
       }
 
-      if (error.status === 403) {
+      if (error.status === HTTP_STATUS.FORBIDDEN) {
         setNotice({
           kind: "error",
           title: "Account Inactive",

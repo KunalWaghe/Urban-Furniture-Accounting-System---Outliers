@@ -363,7 +363,7 @@ export async function createInvoiceFromSo(soId: number): Promise<CustomerInvoice
       }
     );
     if (res?.invoice) {
-      markSalesOrderInvoiced(soId);
+      await markSalesOrderInvoiced(soId);
       return mapCustomerInvoiceApiRecord(res.invoice);
     }
   } catch {
@@ -413,7 +413,7 @@ export async function createInvoiceFromSo(soId: number): Promise<CustomerInvoice
   };
 
   saveLocalInvoices([newInvoice, ...all]);
-  markSalesOrderInvoiced(soId);
+  await markSalesOrderInvoiced(soId);
 
   return mapCustomerInvoiceApiRecord(newInvoice);
 }

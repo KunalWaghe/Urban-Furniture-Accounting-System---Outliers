@@ -3,6 +3,7 @@
  *
  * Route: `/sales-orders/[id]`
  */
+import { notFound } from "next/navigation";
 import { SalesOrderDetailPage } from "@/features/sales-orders/sales-order-detail-page";
 
 interface PageProps {
@@ -11,5 +12,11 @@ interface PageProps {
 
 export default async function SalesOrderDetailRoute({ params }: PageProps) {
   const { id } = await params;
-  return <SalesOrderDetailPage soId={Number(id)} />;
+  const numericId = Number(id);
+
+  if (!Number.isFinite(numericId) || numericId <= 0) {
+    notFound();
+  }
+
+  return <SalesOrderDetailPage soId={numericId} />;
 }

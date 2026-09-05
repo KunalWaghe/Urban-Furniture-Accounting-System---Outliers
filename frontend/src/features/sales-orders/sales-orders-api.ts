@@ -5,10 +5,14 @@
  * Attempts to hit `/api/v1/sales-orders`, falling back gracefully to persistent local storage
  * until backend Sales Order endpoints are deployed by the backend engineer.
  *
+ * Error handling: backend-unavailable errors (network failure, 404 on route) fall
+ * through to local storage; all other API errors (4xx validation, 5xx) are re-thrown
+ * so the UI can display them.
+ *
  * Used by: sales orders list, SO detail/form pages, customer invoice creation.
  */
 
-import { apiFetch } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import type { Account, Contact, ContactListResponse, Product, ProductListResponse, SalesOrder } from "@/lib/types";
 
@@ -74,6 +78,19 @@ export interface SalesOrderInput {
 
 const STORAGE_KEY = "urban_furniture_sales_orders_v1";
 
+/**
+ * Returns `true` when the error indicates the backend route simply doesn't
+ * exist (network failure or 404 on the route). Any other error (validation,
+ * auth, server error) should propagate to the UI.
+ */
+function isBackendUnavailable(err: unknown): boolean {
+  // Network failure / connection refused
+  if (err instanceof TypeError) return true;
+  // Backend returned 404 for the SO route itself (route not deployed)
+  if (err instanceof ApiError && err.status === 404) return true;
+  return false;
+}
+
 /** Converts backend status strings to frontend display labels. */
 function mapSoStatus(status: string): SalesOrder["status"] {
   switch (status.toLowerCase()) {
@@ -94,6 +111,7 @@ export function mapSalesOrder(so: SalesOrderApi): SalesOrder {
   return {
     id: String(so.id),
     order_number: so.so_number,
+    contact_id: so.customer_id,
     customer_id: so.customer_id,
     customer_name: so.customer_name ?? "Customer",
     order_date: formatDate(so.order_date),
@@ -243,8 +261,9 @@ export async function fetchSalesOrdersPage(
         pages: res.pages,
       };
     }
-  } catch {
-    // Fall back to local store
+  } catch (err) {
+    if (!isBackendUnavailable(err)) throw err;
+    // Backend not deployed — fall back to local store
   }
 
   const all = getLocalSalesOrders();
@@ -307,8 +326,9 @@ export async function fetchSalesOrderApi(id: number): Promise<SalesOrderApi> {
   try {
     const res = await apiFetch<SalesOrderApi>(`/api/v1/sales-orders/${id}`, { auth: true });
     if (res?.id) return res;
-  } catch {
-    // Fall back to local store
+  } catch (err) {
+    if (!isBackendUnavailable(err)) throw err;
+    // Backend not deployed — fall back to local store
   }
 
   const all = getLocalSalesOrders();
@@ -338,8 +358,9 @@ export async function createSalesOrder(input: SalesOrderInput): Promise<SalesOrd
       body: input,
     });
     if (res?.id) return mapSalesOrder(res);
-  } catch {
-    // Fall back to local creation
+  } catch (err) {
+    if (!isBackendUnavailable(err)) throw err;
+    // Backend not deployed — fall back to local creation
   }
 
   // Resolve customer name and products from live APIs
@@ -349,21 +370,23 @@ export async function createSalesOrder(input: SalesOrderInput): Promise<SalesOrd
     const cust = customers.find((c) => c.id === input.customer_id);
     if (cust) customerName = cust.name;
   } catch {
-    // Ignore error
+    // Non-critical — fall back to generic name
   }
 
   const products = await fetchProducts().catch(() => []);
   const accounts = await fetchIncomeAccounts().catch(() => []);
 
   const all = getLocalSalesOrders();
-  const nextId = all.length > 0 ? Math.max(...all.map((o) => o.id)) + 1 : 101;
-  const nextNumber = `SO-${String(nextId).padStart(4, "0")}`;
+  // Timestamp-based ID avoids multi-tab race conditions and V8 spread limits
+  const nextId = Date.now();
+  const nextSeq = all.length + 1;
+  const nextNumber = `SO-${String(nextSeq).padStart(4, "0")}`;
 
   let totalAmount = 0;
   const lines: SalesOrderLineApi[] = input.lines.map((l, idx) => {
     const prod = products.find((p) => p.id === l.product_id);
     const acc = accounts.find((a) => a.id === l.account_id);
-    const subtotal = round(l.quantity * l.unit_price, 2);
+    const subtotal = roundCurrency(l.quantity * l.unit_price);
     totalAmount += subtotal;
     return {
       id: idx + 1,
@@ -385,7 +408,7 @@ export async function createSalesOrder(input: SalesOrderInput): Promise<SalesOrd
     customer_id: input.customer_id,
     customer_name: customerName,
     status: "draft",
-    total: round(totalAmount, 2),
+    total: roundCurrency(totalAmount),
     order_date: input.order_date || now,
     created_at: now,
     lines,
@@ -405,8 +428,9 @@ export async function confirmSalesOrder(id: number): Promise<SalesOrder> {
       auth: true,
     });
     if (res?.id) return mapSalesOrder(res);
-  } catch {
-    // Fall back to local update
+  } catch (err) {
+    if (!isBackendUnavailable(err)) throw err;
+    // Backend not deployed — fall back to local update
   }
 
   const all = getLocalSalesOrders();
@@ -422,8 +446,20 @@ export async function confirmSalesOrder(id: number): Promise<SalesOrder> {
 
 /**
  * Updates an SO status to 'invoiced' when an invoice is generated.
+ * Attempts backend PATCH first; falls back to local-only if unavailable.
  */
-export function markSalesOrderInvoiced(soId: number): void {
+export async function markSalesOrderInvoiced(soId: number): Promise<void> {
+  try {
+    await apiFetch(`/api/v1/sales-orders/${soId}/status`, {
+      method: "PATCH",
+      auth: true,
+      body: { status: "invoiced" },
+    });
+  } catch (err) {
+    if (!isBackendUnavailable(err)) throw err;
+    // Backend not deployed — fall back to local update
+  }
+
   const all = getLocalSalesOrders();
   const index = all.findIndex((o) => o.id === soId || String(o.id) === String(soId));
   if (index !== -1) {
@@ -432,11 +468,14 @@ export function markSalesOrderInvoiced(soId: number): void {
   }
 }
 
+// TODO: paginate or implement search-as-you-type for large catalogs
+const PICKER_LIMIT = 500;
+
 /**
  * GET /api/v1/contacts — active customers for the SO form customer picker.
  */
 export async function fetchCustomers(): Promise<Contact[]> {
-  const res = await apiFetch<ContactListResponse>("/api/v1/contacts?is_active=true&limit=100", { auth: true });
+  const res = await apiFetch<ContactListResponse>(`/api/v1/contacts?is_active=true&limit=${PICKER_LIMIT}`, { auth: true });
   return (res.data ?? []).filter((c) => c.type === "customer" || c.type === "both");
 }
 
@@ -444,7 +483,7 @@ export async function fetchCustomers(): Promise<Contact[]> {
  * GET /api/v1/products — active products for SO line item dropdowns.
  */
 export async function fetchProducts(): Promise<Product[]> {
-  const res = await apiFetch<ProductListResponse>("/api/v1/products?is_active=true&limit=100", { auth: true });
+  const res = await apiFetch<ProductListResponse>(`/api/v1/products?is_active=true&limit=${PICKER_LIMIT}`, { auth: true });
   return res.data ?? [];
 }
 
@@ -452,10 +491,15 @@ export async function fetchProducts(): Promise<Product[]> {
  * GET /api/v1/accounts — income accounts for SO line sales account dropdown.
  */
 export async function fetchIncomeAccounts(): Promise<Account[]> {
-  const res = await apiFetch<{ data: Account[] }>("/api/v1/accounts?is_active=true&limit=100", { auth: true });
+  const res = await apiFetch<{ data: Account[] }>(`/api/v1/accounts?is_active=true&limit=${PICKER_LIMIT}`, { auth: true });
   return (res.data ?? []).filter((a) => a.type === "income");
 }
 
-function round(val: number, decimals = 2): number {
-  return Number(Math.round(Number(val + "e" + decimals)) + "e-" + decimals);
+/**
+ * Rounds to 2 decimal places using integer-cent arithmetic.
+ * The EPSILON nudge corrects IEEE 754 float representation bias
+ * (e.g. 1.255 * 100 = 125.49999... → rounds to 125 without it).
+ */
+function roundCurrency(val: number): number {
+  return Math.round((val + Number.EPSILON) * 100) / 100;
 }

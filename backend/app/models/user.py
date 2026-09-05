@@ -3,7 +3,8 @@ User database model.
 """
 
 from typing import Optional
-from sqlalchemy import String, Integer, Boolean, ForeignKey
+from datetime import datetime
+from sqlalchemy import String, Integer, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 
@@ -26,3 +27,5 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(50), nullable=False, default="invoicing_user")
     contact_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    reset_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    reset_token_expiry: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)

@@ -115,3 +115,40 @@ class UserProfileResponse(BaseModel):
     is_active: bool
 
     model_config = {"from_attributes": True}
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Schema for forgot password request."""
+    email: EmailStr = Field(..., description="User email address")
+
+
+class ForgotPasswordResponse(BaseModel):
+    """Schema for forgot password response."""
+    message: str
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    """Schema for reset password request."""
+    token: str = Field(..., description="Password reset token from email")
+    new_password: str = Field(..., description="New password (> 8 chars, 1 uppercase, 1 lowercase, 1 special char)")
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if len(v) > 128:
+            raise ValueError("Password must not exceed 128 characters")
+        if len(v) <= 8:
+            raise ValueError("Password must have more than 8 characters")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r"[^a-zA-Z0-9]", v):
+            raise ValueError("Password must contain at least one special character")
+        return v
+
+
+class ResetPasswordResponse(BaseModel):
+    """Schema for reset password response."""
+    message: str
