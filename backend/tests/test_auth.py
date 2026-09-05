@@ -16,6 +16,8 @@ def setup_db():
     yield
 
 
+import uuid
+
 def test_auth_register_and_login_flow():
     with TestClient(app) as client:
         test_email = "riya@urbanfurniture.com"
