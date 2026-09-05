@@ -1,71 +1,124 @@
-# Frontend Logic — Sourabh
+# Frontend Logic & Behavioral Specification — Sourabh
 
-This file explains behavior. Keep CSS and component-library details in code; capture user flows, states, validation, permissions, and API mapping here.
+This document defines the behavioral logic, state handling, golden paths, validation rules, screen inventory, and API mappings for the Urban Furniture Accounting System frontend.
 
-## Golden path
+---
 
-| Step | Route/surface | User action | API call | Success state | Failure recovery |
+## Golden Path (P0 Demo Walkthrough)
+
+| Step | Route/Surface | User Action | API Call | Success State | Failure Recovery |
 |---:|---|---|---|---|---|
-| 1 | TBD | TBD | TBD | TBD | TBD |
+| **1** | `/login` | Enter credentials (`admin@urbanfurniture.com` / `password123`) | `POST /api/v1/auth/login` | Token stored in `localStorage` & AuthContext; redirect to `/dashboard` | Display inline validation / error toast; keep credentials input |
+| **2** | `/dashboard` | View accounting health KPIs (Cash, Bank, AP, AR, Net Profit) | `GET /api/v1/reports/balance-sheet`, `GET /api/v1/reports/pnl` | Summary cards show live financial metrics | Show fallback skeleton / retry button if data fetch fails |
+| **3** | `/contacts` | Verify/Create Vendor "Azure Furniture" | `GET /api/v1/contacts`, `POST /api/v1/contacts` | Vendor appears in list with badge `Vendor` | Inline field error on duplicate name/invalid email |
+| **4** | `/products` | Verify/Create Product "Wooden Chair" (₹2,500, Tax 18%) | `GET /api/v1/products`, `POST /api/v1/products` | Product appears in table with price and tax rates | Modal remains open with error details; user can fix inputs |
+| **5** | `/purchase-orders` | Click "New PO", select Azure Furniture, add 10x Wooden Chair, click "Create PO" | `POST /api/v1/purchase-orders` | PO created in `draft` state; auto-navigates to `/purchase-orders/:id` | Line-item validation error displayed (e.g. qty > 0) |
+| **6** | `/purchase-orders/:id` | Review draft PO and click "Confirm Order" | `PATCH /api/v1/purchase-orders/:id/confirm` | PO status transitions to `confirmed`; "Create Bill" button unlocks | Error banner if order cannot be confirmed |
+| **7** | `/purchase-orders/:id` | Click "Create Vendor Bill" | `POST /api/v1/purchase-orders/:id/create-bill` | Vendor Bill generated; status updates to `billed`; Journal Entry created in Purchase Journal | Error toast; disable button once clicked to avoid duplicates |
+| **8** | `/purchase-orders/:id` | Click "Register Payment", select Bank Journal, enter amount, confirm | `POST /api/v1/payments` | Bill status transitions to `paid`; Outbound Payment Journal Entry created; modal closes | Prevent overpayment beyond bill total; show inline message |
+| **9** | `/sales-orders` | Click "New SO", select Customer "Nimesh Pathak", add 5x Wooden Chair (with 18% GST), click "Create SO" | `POST /api/v1/sales-orders` | SO created in `draft`; auto-navigates to `/sales-orders/:id` | Form highlights empty customer or invalid quantities |
+| **10** | `/sales-orders/:id` | Click "Confirm Order" | `PATCH /api/v1/sales-orders/:id/confirm` | SO status transitions to `confirmed`; "Generate Invoice" button unlocks | Status badge updates, error banner on failure |
+| **11** | `/sales-orders/:id` | Click "Generate Invoice" | `POST /api/v1/sales-orders/:id/create-invoice` | Customer Invoice generated; status updates to `invoiced`; Journal Entry created (Debit AR, Credit Sales + Tax) | Disable repeat clicks; handle duplicate error gracefully |
+| **12** | `/sales-orders/:id` | Click "Record Payment", select Bank Journal, confirm full payment | `POST /api/v1/payments` | Invoice status transitions to `paid`; Inbound Payment Journal Entry created (Debit Bank, Credit AR) | Disable payment submission if amount <= 0 or > invoice total |
+| **13** | `/journal-entries` | Inspect General Ledger entries | `GET /api/v1/journal-entries` | All automated entries listed; Debit column equals Credit column; balance confirmed | Show empty state if no entries; refresh button available |
+| **14** | `/reports/balance-sheet` | Review live Balance Sheet | `GET /api/v1/reports/balance-sheet` | Assets (Bank + AR) exactly balance Liabilities (AP) + Capital/Retained Earnings | Display real-time computed totals with visual balanced indicator |
+| **15** | `/reports/pnl` | Review Profit & Loss statement | `GET /api/v1/reports/pnl` | Income (Sales) minus Expenses (COGS/Purchases) computes Net Profit | Display grouped revenues, costs, and bottom-line margin |
 
-## Screen inventory
+---
 
-| Priority | Screen | Job to be done | Required states | Status |
-|---|---|---|---|---|
-| P0 | TBD | TBD | loading / empty / error / success | Planned |
+## Screen Inventory
 
-## State ownership
+| Priority | Screen | Route | Job to be Done | Required States | Status |
+|---|---|---|---|---|---|
+| **P0** | Login | `/login` | Authenticate user via JWT | idle / submitting / error / success | Planned |
+| **P0** | App Shell & Dashboard | `/dashboard` | Provide overview of accounts, quick links to transactions & reports | loading / empty / error / success | Planned |
+| **P0** | Contact Master | `/contacts` | List, search, and create customers and vendors | loading / empty / error / success | Planned |
+| **P0** | Product Master | `/products` | List, search, and create products with pricing and tax rates | loading / empty / error / success | Planned |
+| **P0** | Chart of Accounts | `/accounts` | Display hierarchy of Asset, Liability, Capital, Income, Expense accounts | loading / empty / error / success | Planned |
+| **P0** | Purchase Orders List | `/purchase-orders` | View list of POs, filter by status, quick action to create | loading / empty / error / success | Planned |
+| **P0** | Purchase Order Detail | `/purchase-orders/[id]` | Track PO status, convert to Bill, record vendor payment, inspect journal links | loading / mutating / error / success | Planned |
+| **P0** | Sales Orders List | `/sales-orders` | View list of SOs, filter by status, quick action to create | loading / empty / error / success | Planned |
+| **P0** | Sales Order Detail | `/sales-orders/[id]` | Track SO status, generate Invoice, record customer payment, inspect journal links | loading / mutating / error / success | Planned |
+| **P0** | Journal Entries | `/journal-entries` | Audit all double-entry ledger records, verify debit = credit balance | loading / empty / error / success | Planned |
+| **P0** | Balance Sheet | `/reports/balance-sheet` | Display live snapshot of Assets, Liabilities, and Capital | loading / empty / error / success | Planned |
+| **P0** | Profit & Loss (P&L) | `/reports/pnl` | Display real-time Income, Expenses, and Net Profit | loading / empty / error / success | Planned |
+| **P1** | Budget vs Actual | `/reports/budget` | Display budget limits vs actual utilization linked to analytic accounts | loading / empty / error / success | Queued |
+| **P1** | Contact Portal | `/portal` | Restricted self-service portal for contacts to view invoices and pay | loading / unauth / error / success | Queued |
 
-| State | Owner | Persistence | Why |
+---
+
+## State Ownership & Data Flow
+
+| State Scope | Owner | Persistence | Rationale |
 |---|---|---|---|
-| Auth/session | TBD | TBD | TBD |
-| Remote entities | API/server-state cache | Bounded cache | Backend remains source of truth |
-| Filters/search | URL where shareable | URL | Back/forward and share links work |
-| Form draft | Form/local state | None unless required | Avoid stale global drafts |
+| **Auth & Session** | React Context (`useAuth`) | `localStorage` (JWT token & user object) | Survives page reloads; accessible globally by router & API client |
+| **Remote Entities** | TanStack Query Cache | Memory (bounded TTL, automatic invalidation) | Backend remains source of truth; no stale local clones |
+| **Filters, Search, Tabs** | URL Search Params (`useSearchParams`) | URL (`?status=draft&page=1`) | Browser history works; shareable links; survives refreshes |
+| **Form Drafts & Line Items** | React Hook Form + Local State | Ephemeral component state | Clean form state lifecycle; avoids dirty drafts leaking across routes |
+| **UI Interaction Flags** | Component State (`useState`) | None | Dialog open/close, dropdown toggles, active tabs |
 
-## Form and validation logic
+---
 
-| Field/action | Client validation | Backend remains authoritative for | Error presentation |
+## Form and Validation Logic
+
+| Form / Action | Client Validation (Zod) | Backend Authority | Error Presentation |
 |---|---|---|---|
-| TBD | TBD | permissions, invariants, conflicts | TBD |
+| **Login** | Non-empty email (valid format), non-empty password | Password verification, account active check | Inline field error; invalid credential banner |
+| **Contact Creation** | Name required (min 2 chars), valid email, valid 10-digit mobile, valid type (`customer`, `vendor`, `both`) | Duplicate email/mobile check, DB persistence | Inline field error under matching inputs |
+| **Product Creation** | Name required, sales price >= 0, tax percent between 0% and 100% | Valid account references, uniqueness | Inline field error, disable submit until valid |
+| **PO / SO Creation** | Contact selected, at least 1 line item, quantity > 0, unit price > 0 | Inventory availability, current pricing, tax rules | Table row error for invalid lines; banner for missing contact |
+| **Convert PO to Bill** | PO must be in `confirmed` status; cannot already have bill | One-bill-per-PO invariant, PO state validation | Button disabled if already billed; error toast on 409 conflict |
+| **Generate Invoice** | SO must be in `confirmed` status; cannot already have invoice | One-invoice-per-SO invariant, SO state validation | Button disabled if already invoiced; error toast on 409 conflict |
+| **Record Payment** | Payment method (`bank` or `cash`) selected, amount > 0 and <= unpaid balance | Overpayment check, atomic journal entry creation | Cap input max value to remaining balance; inline validation |
 
-## API-to-UI error mapping
+---
 
-| API code | UI response |
-|---|---|
-| `VALIDATION_ERROR` | Inline field errors and focus first invalid field |
-| `UNAUTHENTICATED` | Preserve safe intent and request sign-in |
-| `FORBIDDEN` | Disable/replace action and explain why |
-| `NOT_FOUND` | Remove stale item or navigate to safe parent |
-| `CONFLICT` | Explain stale/duplicate action and refresh data |
-| `RATE_LIMITED` | Show retry time; prevent request spam |
-| `INTERNAL_ERROR` | Keep user input where safe; show retry and request ID |
+## API-to-UI Error Mapping
 
-## Interaction invariants
+All API endpoints return standard errors in the agreed envelope:
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human readable explanation",
+    "fields": { "field_name": "Specific problem" },
+    "request_id": "req_xyz"
+  }
+}
+```
 
-- [ ] A mutation cannot be double-submitted while pending.
-- [ ] Destructive actions require explicit confirmation or a reversible undo.
-- [ ] UI role checks improve experience but never replace backend authorization.
-- [ ] Loading indicators do not erase previously useful data during background refresh.
-- [ ] Empty state tells the user the next useful action.
-- [ ] Keyboard focus moves to errors/dialogs intentionally.
+| API Code | HTTP | UI Presentation & Action |
+|---|:---:|---|
+| `VALIDATION_ERROR` | 422 | Map `fields` object directly to React Hook Form field errors, scroll to and focus first invalid input. |
+| `UNAUTHENTICATED` | 401 | Clear stale token, show toast "Session expired. Please log in again.", redirect to `/login?redirect=...`. |
+| `FORBIDDEN` | 403 | Show access denied banner: "You do not have permission for this action." Disable unauthorized actions. |
+| `NOT_FOUND` | 404 | Show 404 empty state card with button: "Back to list". |
+| `CONFLICT` | 409 | Display conflict dialog (e.g. "Bill already generated for this PO"), trigger TanStack Query refetch to sync UI. |
+| `JOURNAL_UNBALANCED` | 422 | Urgent warning banner: "Transaction rejected: Debits must equal Credits." Highlight discrepancies. |
+| `PAYMENT_EXCEEDS_AMOUNT` | 422 | Inline error under Payment Amount: "Payment exceeds remaining balance." Reset to maximum allowed. |
+| `RATE_LIMITED` | 429 | Display cooldown toast: "Too many requests. Please wait a few seconds before trying again." |
+| `INTERNAL_ERROR` | 500 | Display error card with "Retry" button and display `request_id` for reporting. Keep user form inputs intact. |
 
-## Performance/scaling behavior
+---
 
-**Large lists:** TBD pagination/virtualization rule  
-**Search:** TBD debounce and cancellation rule  
-**Cache freshness:** TBD per query; do not use one global TTL  
-**Optimistic updates:** only where conflict/rollback behavior is clear  
-**Asset strategy:** TBD
+## Interaction Invariants
 
-## Frontend test checklist
+- [x] **No Duplicate Mutations:** Submit and action buttons disable immediately with a spinner once clicked until the network request resolves.
+- [x] **Destructive Actions Guarded:** Any delete, cancel, or draft voiding requires an explicit confirmation modal.
+- [x] **No Ghost Bills / Invoices:** "Convert to Bill" and "Generate Invoice" buttons dynamically disappear or change to "View Bill" / "View Invoice" once created.
+- [x] **Live Arithmetic Parity:** Modifying line-item quantity or price immediately updates Subtotal, GST/Tax, and Grand Total on screen.
+- [x] **Ledger Debit/Credit Balance Check:** Journal entry view flags any imbalance in red with `∑ Debit - ∑ Credit = Difference`.
+- [x] **Non-Blocking Background Fetching:** Table pagination or status filtering shows a slim progress indicator without unmounting previous table rows.
+- [x] **Empty States Guide Next Action:** Blank tables display an actionable CTA (e.g. "No contacts yet — Add Contact").
 
-- [ ] Golden path at laptop width.
-- [ ] Golden path at phone width.
-- [ ] Keyboard-only golden path.
-- [ ] Slow request and server failure.
-- [ ] Empty dataset.
-- [ ] Invalid input.
-- [ ] Expired/absent session.
-- [ ] Duplicate click/submission.
+---
 
+## Performance & Scaling Behavior
+
+- **Tabular Data:** Server-side pagination (`limit=25`, `offset=0`) on contacts, products, orders, and journal entries.
+- **Search Inputs:** Debounced at 300ms using `useDebounce` to prevent query hammering on backend endpoints.
+- **Query Caching:**
+  - Master data (Contacts, Products, Accounts): `staleTime = 5 minutes`
+  - Transaction lists (POs, SOs, Journal Entries): `staleTime = 30 seconds`, invalidated immediately upon creation or status patch
+  - Financial reports: `staleTime = 0` (always fetch latest balances when viewed)
+- **Code Splitting:** Dynamic imports for modal dialogs and heavy charting libraries in reports.

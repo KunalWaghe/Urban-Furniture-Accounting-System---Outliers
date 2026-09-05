@@ -36,6 +36,8 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ## NOW — maximum two rows (one per owner)
 
+| P0-FE-01 | P0 | Sourabh | Next.js 14 App Router + Tailwind + shadcn shell + Query/Auth provider | 30m | None | — | App runs, Sidebar/Header renders, theme active, Query/Auth mounted | — |
+| P0-BE-01 | P0 | Kunal | FastAPI scaffold + PostgreSQL + Base setup | 30m | None | — | Healthcheck endpoint responds 200, DB connects | — |
 | ID | Pri | Owner | Task | Est. | Depends on | Contract | Acceptance Condition | Started |
 |---|---|---|---|---:|---|---|---|---|
 | P0-FE-01 | P0 | Sourabh | Next.js setup + Tailwind + shadcn shell | 30m | None | — | App runs, Navbar/Sidebar renders, theme active | — |
@@ -127,6 +129,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 | 5 Sep, 10:00 AM | A-01 | Both | Evaluated 3 problem statements; selected Urban Furniture (85% feasibility) | `docs/PROBLEM_SELECTION.md` | Decision artifact |
 | 5 Sep, 10:05 AM | A-02 | Both | Completed full Analysis-Hour deliverable & API Contract | `brain/.../analysis_hour_deliverable.md` | Architecture locked |
 | 5 Sep, 10:20 AM | A-03 | Both | Locked atomic task board with P0/P1/Bonus splits | `docs/TASK_BOARD.md` | Task board locked |
+| 5 Sep, 10:45 AM | A-04 | Both | Locked Frontend & Backend Architecture ADRs, Logic & Screen Inventory | `docs/frontend/ARCHITECTURE_DECISIONS.md`, `docs/frontend/LOGIC.md` | Architecture locked |
 | 5 Sep, 11:25 AM | P0-BE-01 | Kunal | FastAPI scaffold + PostgreSQL setup | `GET /health` returns 200 `connected` | Integrated & Verified |
 | 5 Sep, 11:35 AM | P0-BE-02 | Kunal | User model + JWT Auth endpoints (register/login/me) | `tests/test_auth.py` PASSED + Live HTTP verified | Integrated & Verified |
 
