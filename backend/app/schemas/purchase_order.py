@@ -23,6 +23,11 @@ class POCreate(BaseModel):
     lines: List[POLineCreate] = Field(..., min_length=1, description="Line items for the PO")
 
 
+class POUpdate(POCreate):
+    """Complete replacement payload for a draft Purchase Order."""
+
+
+
 class POLineResponse(BaseModel):
     """Schema for Purchase Order Line item response."""
     id: int
@@ -60,4 +65,3 @@ class POListResponse(BaseModel):
     page: int = 1
     limit: int = 20
     pages: int = 1
-

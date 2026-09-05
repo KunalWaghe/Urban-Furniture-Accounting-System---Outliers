@@ -27,6 +27,8 @@ import {
   fetchExpenseAccounts,
   fetchProducts,
   fetchVendors,
+  updatePurchaseOrder,
+  type PurchaseOrderApi,
 } from "@/features/purchase-orders/purchase-orders-api";
 import { formatINR } from "@/lib/format";
 
@@ -62,14 +64,21 @@ function lineTotal(line: LineRow): number {
  * Form page for creating a new purchase order with vendor, date, and line items.
  * Supports "Save as Draft" or "Confirm" on submit.
  */
-export function PurchaseOrderFormPage() {
+export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: PurchaseOrderApi }) {
   const router = useRouter();
   const today = new Date().toISOString().slice(0, 10);
+  const isEditing = Boolean(initialOrder);
 
   // ── Form state (local — not synced to URL or server until submit) ────────
-  const [vendorId, setVendorId] = useState<number | null>(null);
-  const [poDate, setPoDate] = useState(today);
-  const [lines, setLines] = useState<LineRow[]>([emptyLine()]);
+  const [vendorId, setVendorId] = useState<number | null>(initialOrder?.vendor_id ?? null);
+  const [poDate, setPoDate] = useState(initialOrder?.order_date.slice(0, 10) ?? today);
+  const [lines, setLines] = useState<LineRow[]>(() => initialOrder?.lines.length ? initialOrder.lines.map((line) => ({
+    key: String(line.id),
+    productId: String(line.product_id),
+    accountId: line.account_id ? String(line.account_id) : "",
+    quantity: String(line.quantity),
+    unitPrice: String(line.unit_price),
+  })) : [emptyLine()]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -151,11 +160,13 @@ export function PurchaseOrderFormPage() {
     setSubmitting(true);
 
     try {
-      const created = await createPurchaseOrder(buildPayload());
-      if (!asDraft) {
-        await confirmPurchaseOrder(Number(created.id));
+      const saved = isEditing
+        ? await updatePurchaseOrder(initialOrder!.id, buildPayload())
+        : await createPurchaseOrder(buildPayload());
+      if (!isEditing && !asDraft) {
+        await confirmPurchaseOrder(Number(saved.id));
       }
-      router.push(`/purchase-orders/${created.id}`);
+      router.push(`/purchase-orders/${saved.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save purchase order");
       setSubmitting(false);
@@ -181,8 +192,8 @@ export function PurchaseOrderFormPage() {
       </Link>
 
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text">New Purchase Order</h1>
-        <p className="mt-1 text-sm text-text-muted">Create a draft purchase order, then save or confirm it.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-text">{isEditing ? `Edit ${initialOrder?.po_number}` : "New Purchase Order"}</h1>
+        <p className="mt-1 text-sm text-text-muted">{isEditing ? "Update this draft purchase order before confirming it." : "Create a draft purchase order, then save or confirm it."}</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -312,11 +323,11 @@ export function PurchaseOrderFormPage() {
           {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
           <div className="mt-6 flex flex-col gap-2">
-            <Button type="button" disabled={submitting} onClick={() => void handleSave(false)}>
+            {!isEditing && <Button type="button" disabled={submitting} onClick={() => void handleSave(false)}>
               {submitting ? "Saving…" : "Confirm"}
-            </Button>
-            <Button type="button" variant="outline" disabled={submitting} onClick={() => void handleSave(true)}>
-              Save as Draft
+            </Button>}
+            <Button type="button" variant={isEditing ? "default" : "outline"} disabled={submitting} onClick={() => void handleSave(true)}>
+              {submitting ? "Saving…" : isEditing ? "Save Changes" : "Save as Draft"}
             </Button>
             <Link
               href="/purchase-orders"

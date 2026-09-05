@@ -11,7 +11,7 @@ from app.models.purchase_order import PurchaseOrder, PurchaseOrderLine
 from app.models.contact import Contact
 from app.models.product import Product
 from app.models.account import Account
-from app.schemas.purchase_order import POCreate, POResponse, POLineResponse
+from app.schemas.purchase_order import POCreate, POResponse, POLineResponse, POUpdate
 from app.core.exceptions import NotFoundException, ValidationException, ConflictException
 
 
@@ -132,6 +132,65 @@ def get_purchase_order(db: Session, po_id: int) -> POResponse:
         raise NotFoundException("PurchaseOrder", po_id)
 
     return _build_po_response(po)
+
+
+def update_purchase_order(db: Session, po_id: int, po_in: POUpdate) -> POResponse:
+    """Replace a draft Purchase Order and its lines atomically."""
+    po = db.scalar(
+        select(PurchaseOrder)
+        .options(joinedload(PurchaseOrder.lines))
+        .where(PurchaseOrder.id == po_id)
+    )
+    if not po:
+        raise NotFoundException("PurchaseOrder", po_id)
+    if po.status != "draft":
+        raise ValidationException(f"Cannot edit Purchase Order in status '{po.status}'")
+
+    vendor = db.scalar(select(Contact).where(Contact.id == po_in.vendor_id))
+    if not vendor:
+        raise NotFoundException("Contact", po_in.vendor_id)
+
+    default_account = db.scalar(select(Account).where(Account.code == "5010"))
+    default_account_id = default_account.id if default_account else None
+    replacement_lines = []
+    total_amount = 0.0
+
+    for line_in in po_in.lines:
+        product = db.scalar(select(Product).where(Product.id == line_in.product_id))
+        if not product:
+            raise NotFoundException("Product", line_in.product_id)
+
+        account_id = line_in.account_id or default_account_id
+        if account_id:
+            account = db.scalar(select(Account).where(Account.id == account_id))
+            if not account:
+                raise NotFoundException("Account", account_id)
+
+        subtotal = round(line_in.quantity * line_in.unit_price, 2)
+        total_amount += subtotal
+        replacement_lines.append(
+            PurchaseOrderLine(
+                product_id=line_in.product_id,
+                account_id=account_id,
+                analytic_account_id=line_in.analytic_account_id,
+                quantity=line_in.quantity,
+                unit_price=line_in.unit_price,
+                subtotal=subtotal,
+            )
+        )
+
+    try:
+        po.vendor_id = po_in.vendor_id
+        po.order_date = po_in.order_date or datetime.now(timezone.utc)
+        po.total = round(total_amount, 2)
+        po.lines.clear()
+        po.lines.extend(replacement_lines)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return get_purchase_order(db, po_id)
 
 
 import math
@@ -271,4 +330,3 @@ def cancel_purchase_order(db: Session, po_id: int) -> POResponse:
         raise
 
     return get_purchase_order(db, po_id)
-

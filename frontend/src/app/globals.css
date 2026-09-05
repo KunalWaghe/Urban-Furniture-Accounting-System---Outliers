@@ -173,3 +173,22 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  /*
+   * GSAP owns transform and opacity while these elements enter. Several of the
+   * cards also use Tailwind's transition-all for hover states; allowing that
+   * CSS transition to re-tween every GSAP frame creates a delayed start and a
+   * fast catch-up at the end. Keep hover transitions, but exclude the
+   * GSAP-controlled properties.
+   */
+  .partner-logo,
+  .workflow-card,
+  .bento-card,
+  .telemetry-stat-box,
+  .security-badge,
+  .kpi-mock-card,
+  .audit-mock-item {
+    transition-property: color, background-color, border-color, box-shadow, translate, scale;
+  }
+}

@@ -1,0 +1,5 @@
+import { PublicInfoPage } from "@/components/public-info-page";
+
+export default function PrivacyPolicyPage() {
+  return <PublicInfoPage eyebrow="Legal" title="Privacy Policy" intro="This project does not define a production privacy policy. The following application notice identifies the main data categories handled by the demo and the controls that must be finalized by the deployment owner." sections={[{ heading: "Data handled", body: "The application may process account details, contact information, product data, orders, invoices, payments, and journal records needed to operate accounting workflows." }, { heading: "Use and access", body: "Data is used to provide the authenticated application features. Access should be limited through user roles and deployment-level database and infrastructure controls." }, { heading: "Production notice", body: "Obtain legal and privacy review for retention, deletion, subprocessors, data residency, and any customer or employee data before production deployment." }]} />;
+}

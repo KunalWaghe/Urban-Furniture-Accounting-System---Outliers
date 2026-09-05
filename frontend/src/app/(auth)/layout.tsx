@@ -38,15 +38,15 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               environment
             </p>
             <div className="flex items-center justify-center gap-4 text-xs text-text-muted">
-              <a href="#" className="transition-colors hover:text-text">
+              <a href="/security-policy" className="transition-colors hover:text-text">
                 Security Policy
               </a>
               <span>&middot;</span>
-              <a href="#" className="transition-colors hover:text-text">
+              <a href="/terms" className="transition-colors hover:text-text">
                 Terms
               </a>
               <span>&middot;</span>
-              <a href="#" className="transition-colors hover:text-text">
+              <a href="/support" className="transition-colors hover:text-text">
                 Support
               </a>
             </div>

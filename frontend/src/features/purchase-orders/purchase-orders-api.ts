@@ -178,6 +178,16 @@ export async function createPurchaseOrder(input: PurchaseOrderInput): Promise<Pu
   return mapPurchaseOrder(po);
 }
 
+/** PATCH /api/v1/purchase-orders/:id — updates a draft purchase order. */
+export async function updatePurchaseOrder(id: number, input: PurchaseOrderInput): Promise<PurchaseOrder> {
+  const po = await apiFetch<PurchaseOrderApi>(`/api/v1/purchase-orders/${id}`, {
+    method: "PATCH",
+    auth: true,
+    body: input,
+  });
+  return mapPurchaseOrder(po);
+}
+
 /**
  * PATCH /api/v1/purchase-orders/:id/confirm — locks a draft PO for billing.
  *

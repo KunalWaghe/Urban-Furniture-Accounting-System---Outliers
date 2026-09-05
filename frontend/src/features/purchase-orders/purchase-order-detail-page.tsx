@@ -157,7 +157,7 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
                 <CheckCircle2 className="h-4 w-4 mr-1.5" />
                 Confirm Order
               </Button>
-              <Button variant="outline" disabled title="Edit coming soon">
+              <Button variant="outline" onClick={() => router.push(`/purchase-orders/${poId}/edit`)}>
                 <Pencil className="h-4 w-4" />
                 Edit
               </Button>

@@ -1,0 +1,5 @@
+import { PublicInfoPage } from "@/components/public-info-page";
+
+export default function SecurityPolicyPage() {
+  return <PublicInfoPage eyebrow="Security & governance" title="Security Policy" intro="Urban Furniture Accounting is designed around authenticated access, role-aware navigation, and auditable double-entry transactions. Deployment-specific controls remain the responsibility of the operating organization." sections={[{ heading: "Access control", body: "Accounts use authenticated sessions and server-side role checks. Sensitive accounting actions should be performed only by authorized administrators and accounting users." }, { heading: "Auditability", body: "Financial mutations create traceable records through the accounting journal flow. Operators should review journal entries and report outputs as part of their normal close process." }, { heading: "Operational responsibility", body: "Configure production secrets, database backups, network controls, retention, and monitoring for your deployment environment. Do not use demo credentials in production." }]} />;
+}

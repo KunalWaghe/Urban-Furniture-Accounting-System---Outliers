@@ -199,7 +199,7 @@ export function SignupForm({
                     className="ml-2 block text-xs leading-normal text-text-muted"
                   >
                     I agree to the{" "}
-                    <a href="#" className="text-primary-600 hover:underline">
+                    <a href="/terms" className="text-primary-600 hover:underline">
                       Terms of Service
                     </a>{" "}
                     and acknowledge the operational compliance guidelines.

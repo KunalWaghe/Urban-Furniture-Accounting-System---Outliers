@@ -5,7 +5,6 @@
  *
  * What this file does:
  * - Renders login_id, password, remember-me, and submit button
- * - Includes demo account quick-fill buttons for development
  * - Delegates all logic to `useLoginForm` hook
  *
  * State consumed (from hook, not owned here):
@@ -28,7 +27,7 @@ import { PasswordInput } from "./password-input";
 import { TextField } from "./text-field";
 
 /**
- * Full login form with demo accounts, validation display, and sign-up link.
+ * Full login form with validation display and sign-up link.
  *
  * All form state and submit logic live in `useLoginForm` — this component
  * only wires inputs to the hook and renders UI.
@@ -42,36 +41,6 @@ export function LoginForm() {
         {form.notice && (
           <AuthAlert {...form.notice} onDismiss={form.dismissNotice} />
         )}
-
-        {/* Dev helper: one-click fill for demo accounts */}
-        <div className="mb-5 rounded-xl border border-primary-200 bg-primary-50/60 p-3.5 text-xs text-text-muted">
-          <div className="flex items-center justify-between font-semibold text-text-main">
-            <span>Demo Accounts</span>
-            <span className="text-[10px] font-normal uppercase tracking-wider text-primary-700 bg-primary-100 px-1.5 py-0.5 rounded">Quick Fill</span>
-          </div>
-          <div className="mt-2 flex flex-col gap-1.5 sm:flex-row sm:items-center">
-            <button
-              type="button"
-              onClick={() => {
-                form.setField("login_id", "admin");
-                form.setField("password", "Admin@123");
-              }}
-              className="flex-1 rounded-lg border border-primary-200 bg-surface px-2.5 py-1.5 text-left font-mono text-xs hover:border-primary-400 transition cursor-pointer"
-            >
-              <span className="font-sans font-semibold text-primary-700">Admin:</span> admin / Admin@123
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                form.setField("login_id", "accountant");
-                form.setField("password", "Accountant@123");
-              }}
-              className="flex-1 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-left font-mono text-xs hover:border-primary-400 transition cursor-pointer"
-            >
-              <span className="font-sans font-semibold text-text-main">Accountant:</span> accountant / Accountant@123
-            </button>
-          </div>
-        </div>
 
         <form className="space-y-4" onSubmit={form.handleSubmit} noValidate>
           <TextField

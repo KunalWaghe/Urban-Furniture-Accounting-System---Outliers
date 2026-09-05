@@ -12,7 +12,6 @@ import { useMemo, useState, type ReactNode } from "react"
 import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react"
 
 import { EmptyState } from "@/components/empty-state"
-import { LoadingSpinner } from "@/components/loading-spinner"
 import { SkeletonTable } from "@/components/skeleton-table"
 import { TablePagination } from "@/components/ui/table-pagination"
 

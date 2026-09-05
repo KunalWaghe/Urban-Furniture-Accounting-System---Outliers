@@ -1,0 +1,5 @@
+import { PublicInfoPage } from "@/components/public-info-page";
+
+export default function TermsPage() {
+  return <PublicInfoPage eyebrow="Legal" title="Terms of Service" intro="These product terms are a concise application notice for the Urban Furniture Accounting demo and should be replaced with organization-approved legal terms before production use." sections={[{ heading: "Authorized use", body: "Use the application only for legitimate accounting, purchasing, sales, reporting, and administrative workflows that your organization has authorized." }, { heading: "Data responsibility", body: "Verify contacts, products, orders, payments, and accounting entries before posting or relying on them. Maintain appropriate backups and access controls for your deployment." }, { heading: "Production readiness", body: "This project includes demonstration and hackathon functionality. Complete security review, operational configuration, and legal approval before using it with production data." }]} />;
+}

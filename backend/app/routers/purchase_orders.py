@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, require_roles
-from app.schemas.purchase_order import POCreate, POResponse, POListResponse
+from app.schemas.purchase_order import POCreate, POUpdate, POResponse, POListResponse
 from app.schemas.vendor_bill import CreateBillResponse
 from app.services import purchase_order_service, vendor_bill_service
 
@@ -55,6 +55,12 @@ def get_purchase_order(po_id: int, db: Session = Depends(get_db)):
     return purchase_order_service.get_purchase_order(db, po_id)
 
 
+@router.patch("/{po_id}", response_model=POResponse, status_code=status.HTTP_200_OK)
+def update_purchase_order(po_id: int, req: POUpdate, db: Session = Depends(get_db)):
+    """Replace a draft Purchase Order before it is confirmed or billed."""
+    return purchase_order_service.update_purchase_order(db, po_id, req)
+
+
 @router.patch("/{po_id}/confirm", response_model=POResponse, status_code=status.HTTP_200_OK)
 def confirm_purchase_order(po_id: int, db: Session = Depends(get_db)):
     """Confirm a Purchase Order (draft -> confirmed)."""
@@ -71,4 +77,3 @@ def create_bill_from_purchase_order(po_id: int, db: Session = Depends(get_db)):
 def cancel_purchase_order(po_id: int, db: Session = Depends(get_db)):
     """Cancel a Purchase Order (draft/confirmed -> cancelled). Blocked if already billed."""
     return purchase_order_service.cancel_purchase_order(db, po_id)
-

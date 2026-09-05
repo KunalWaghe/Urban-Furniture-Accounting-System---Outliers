@@ -62,6 +62,7 @@
 - [x] 5A.1 · BE · Purchase Order model & create/confirm endpoints (P0-BE-05)
 - [x] 5A.2 · FE · PO list page wired to `GET /api/v1/purchase-orders` (P0-FE-15)
 - [x] 5A.3 · FE · PO create form (draft) + confirm action + detail page (P0-FE-05)
+  - Draft PO edit is available at `/purchase-orders/:id/edit` and uses `PATCH /api/v1/purchase-orders/:id`.
 
 ### 5B — Journal Engine + Vendor Bill
 
@@ -172,7 +173,7 @@
 - Purchase and sales integration gates remain open until the complete live golden paths are run against the configured database.
 - Budget and portal frontend integration is now aligned: budget dates/responsible person fields, `PATCH /cancel`, report response normalization, and the ownership-checked `/self-service/my-invoices` list/payment routes are wired.
 - Sales Order invoice generation no longer calls the nonexistent generic status route; the live create-invoice endpoint remains the source of truth for the status transition.
-- Dashboard date filtering and both CSV export controls are wired. Remaining frontend work is browser QA/accessibility polish, PO detail Edit (blocked by a missing backend update endpoint), and replacing auth footer/terms placeholder links.
+- Dashboard date filtering and both CSV export controls are wired. Remaining frontend work is browser QA/accessibility polish; the PO draft edit flow and auth/legal/support links are now implemented.
 
 ## Step 9 — P1: Budget & Contact Portal 🔲
 

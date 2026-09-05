@@ -67,6 +67,7 @@ This document is the authoritative boundary between Frontend and Backend. Lock e
 | **P0** | `POST /api/v1/purchase-orders` | Create Purchase Order (in `draft`) | Admin / Invoicing | **Contract Locked** |
 | **P0** | `GET /api/v1/purchase-orders` | List Purchase Orders | Any internal | **Contract Locked** |
 | **P0** | `GET /api/v1/purchase-orders/:id` | Purchase Order detail | Any internal | **Contract Locked** |
+| **P0** | `PATCH /api/v1/purchase-orders/:id` | Replace a draft Purchase Order before confirmation | Admin / Invoicing | **Contract Locked** |
 | **P0** | `PATCH /api/v1/purchase-orders/:id/confirm` | Confirm PO (`draft` -> `confirmed`) | Admin / Invoicing | **Contract Locked** |
 | **P0** | `POST /api/v1/purchase-orders/:id/create-bill` | Convert PO to Vendor Bill + auto Journal Entry | Admin / Invoicing | **Contract Locked** |
 | **P0** | `GET /api/v1/vendor-bills/:id` | Vendor Bill detail | Any internal | **Contract Locked** |
@@ -618,6 +619,12 @@ Create a Purchase Order in `draft` status.
   ]
 }
 ```
+
+#### `PATCH /api/v1/purchase-orders/:id`
+
+Replace the vendor, order date, and line items on a draft Purchase Order. Confirmed, billed, and cancelled orders cannot be edited.
+
+The request body uses the same shape as `POST /api/v1/purchase-orders`; the response is the updated `POResponse`.
 
 #### `PATCH /api/v1/purchase-orders/:id/confirm`
 

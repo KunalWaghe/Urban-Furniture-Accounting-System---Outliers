@@ -38,7 +38,7 @@ This document defines the behavioral logic, state handling, golden paths, valida
 | **P0** | Product Master | `/products` | List-first CRUD for products, type/category/pricing, with list ↔ kanban and form views | loading / empty / error / success / archived | Implemented; browser QA pending |
 | **P0** | Chart of Accounts | `/chart-of-accounts` | Display hierarchy of Asset, Liability, Bank, Cash, Capital, Income, Expense, Other Expense | loading / empty / error / success | Implemented; browser QA pending |
 | **P0** | Purchase Orders List | `/purchase-orders` | View list of POs, filter by status, quick action to create | loading / empty / error / success | Implemented with live API |
-| **P0** | Purchase Order Detail | `/purchase-orders/[id]` | Track PO status, convert to Bill, record vendor payment, inspect journal links | loading / mutating / error / success | Implemented; Edit action and browser QA pending |
+| **P0** | Purchase Order Detail | `/purchase-orders/[id]`, `/purchase-orders/[id]/edit` | Track PO status, edit drafts, convert to Bill, record vendor payment, inspect journal links | loading / mutating / error / success | Implemented; browser QA pending |
 | **P0** | Sales Orders List | `/sales-orders` | View list of SOs, filter by status, quick action to create | loading / empty / error / success | Implemented with live-first adapter |
 | **P0** | Sales Order Detail | `/sales-orders/[id]` | Track SO status, generate Invoice, record customer payment, inspect journal links | loading / mutating / error / success | Implemented; browser QA pending |
 | **P0** | Journal Entries | `/journal-entries` | Audit all double-entry ledger records, verify debit = credit balance | loading / empty / error / success | Implemented; browser QA pending |

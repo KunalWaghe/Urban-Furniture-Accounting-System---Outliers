@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Shield,
   Layers,
-  Sparkles,
   Lock,
   Building2,
   FileSpreadsheet,
@@ -22,7 +21,6 @@ import {
   Database,
   Users,
   CheckCheck,
-  Cpu,
   BarChart3,
   Boxes,
   Truck,
@@ -48,87 +46,91 @@ export default function LandingPage() {
   const heroCardRef = useRef<HTMLDivElement>(null);
 
   const [matchVerified, setMatchVerified] = useState(true);
-  const [liveReconcileCount, setLiveReconcileCount] = useState(48200);
+  const [liveReconcileCount, setLiveReconcileCount] = useState(7080);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Respect the OS preference and leave every section in its normal visible state.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
-      // 1. Hero Text, Badge & Card Staggered Blur-Appearing Timeline
+      // 1. Hero entrance. Avoid blur on large/complex surfaces: animating it
+      // forces expensive re-rasterization and makes the first frames look stuck.
       const heroTl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
       heroTl
         .fromTo(
           heroBadgeRef.current,
-          { opacity: 0, y: -25, scale: 0.9, filter: "blur(12px)" },
-          { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.8, delay: 0.05 }
+          { opacity: 0, y: -18, scale: 0.96 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.55, delay: 0.05 }
         )
         .fromTo(
           heroTitleRef.current,
-          { opacity: 0, y: 35, filter: "blur(18px)", scale: 0.98 },
-          { opacity: 1, y: 0, filter: "blur(0px)", scale: 1, duration: 1.1, ease: "power3.out" },
+          { opacity: 0, y: 28, scale: 0.985 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "power3.out" },
           "-=0.5"
         )
         .fromTo(
           heroSubtitleRef.current,
-          { opacity: 0, y: 25, filter: "blur(14px)" },
-          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.85 },
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.6 },
           "-=0.6"
         )
         .fromTo(
           heroCtaRef.current,
-          { opacity: 0, y: 20, filter: "blur(10px)", scale: 0.95 },
-          { opacity: 1, y: 0, filter: "blur(0px)", scale: 1, duration: 0.75 },
+          { opacity: 0, y: 16, scale: 0.97 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.5 },
           "-=0.5"
         )
         .fromTo(
           heroTrustRef.current,
-          { opacity: 0, y: 15, filter: "blur(8px)" },
-          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.7 },
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.45 },
           "-=0.4"
         )
         .fromTo(
           heroCardRef.current,
-          { opacity: 0, y: 60, scale: 0.94, filter: "blur(22px)" },
-          { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1.2, ease: "power3.out" },
+          { opacity: 0, y: 48, scale: 0.97 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.75, ease: "power2.out" },
           "-=0.5"
         )
-        // Stagger entrance of the 4 KPI cards inside the hero mockup with blur reveal
+        // Stagger the dashboard detail after its shell is established.
         .fromTo(
           ".kpi-mock-card",
-          { opacity: 0, y: 25, scale: 0.92, filter: "blur(10px)" },
+          { opacity: 0, y: 18, scale: 0.97 },
           {
             opacity: 1,
             y: 0,
             scale: 1,
-            filter: "blur(0px)",
-            duration: 0.7,
-            stagger: 0.1,
-            ease: "back.out(1.4)"
+            duration: 0.4,
+            stagger: 0.06,
+            ease: "power2.out"
           },
-          "-=0.6"
+          "-=0.35"
         )
-        // Stagger table rows inside mockup with blur reveal
+        // Stagger table rows inside the mockup.
         .fromTo(
           ".table-mock-row",
-          { opacity: 0, x: -20, filter: "blur(8px)" },
-          { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.6, stagger: 0.08, ease: "power2.out" },
-          "-=0.5"
+          { opacity: 0, x: -14 },
+          { opacity: 1, x: 0, duration: 0.35, stagger: 0.05, ease: "power2.out" },
+          "-=0.28"
         )
-        // Stagger 3-way audit items with blur reveal
+        // Stagger journal integrity items.
         .fromTo(
           ".audit-mock-item",
-          { opacity: 0, x: 20, filter: "blur(8px)" },
-          { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.6, stagger: 0.08, ease: "power2.out" },
-          "-=0.5"
+          { opacity: 0, x: 14 },
+          { opacity: 1, x: 0, duration: 0.35, stagger: 0.05, ease: "power2.out" },
+          "-=0.25"
         )
         // Floating chips reveal
         .fromTo(
           [".floating-chip-left", ".floating-chip-right"],
-          { opacity: 0, scale: 0.8, filter: "blur(8px)" },
-          { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.6, stagger: 0.15 },
-          "-=0.4"
+          { opacity: 0, scale: 0.92 },
+          { opacity: 1, scale: 1, duration: 0.35, stagger: 0.08, ease: "power2.out" },
+          "-=0.2"
         );
 
       // Continuous Floating effect for tolerance and GL chips
@@ -158,8 +160,8 @@ export default function LandingPage() {
           opacity: 0,
           y: 20,
           scale: 0.9,
-          duration: 0.6,
-          stagger: 0.1,
+          duration: 0.4,
+          stagger: 0.06,
           ease: "power2.out",
           scrollTrigger: {
             trigger: "#partners-section",
@@ -178,8 +180,8 @@ export default function LandingPage() {
         {
           opacity: 0,
           y: 30,
-          duration: 0.8,
-          ease: "power3.out",
+          duration: 0.55,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: "#workflows-section",
             start: "top 85%",
@@ -194,9 +196,9 @@ export default function LandingPage() {
           opacity: 0,
           y: 50,
           scale: 0.95,
-          duration: 0.8,
-          stagger: 0.2,
-          ease: "power3.out",
+          duration: 0.55,
+          stagger: 0.12,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: "#workflows-cards",
             start: "top 82%",
@@ -210,8 +212,8 @@ export default function LandingPage() {
         {
           opacity: 0,
           x: -25,
-          duration: 0.6,
-          stagger: 0.12,
+          duration: 0.4,
+          stagger: 0.07,
           ease: "power2.out",
           scrollTrigger: {
             trigger: "#workflows-cards",
@@ -230,8 +232,8 @@ export default function LandingPage() {
         {
           opacity: 0,
           y: 30,
-          duration: 0.8,
-          ease: "power3.out",
+          duration: 0.55,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: "#bento-section",
             start: "top 85%",
@@ -244,11 +246,11 @@ export default function LandingPage() {
         ".bento-card",
         {
           opacity: 0,
-          y: 45,
-          scale: 0.92,
-          duration: 0.65,
-          stagger: 0.09,
-          ease: "back.out(1.3)",
+          y: 32,
+          scale: 0.96,
+          duration: 0.45,
+          stagger: 0.055,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: "#bento-grid",
             start: "top 82%",
@@ -258,15 +260,17 @@ export default function LandingPage() {
       );
 
       // 5. Analytical Cost Center Widget & Progress Bar Animation
-      gsap.fromTo(
+      // Set initial state immediately to prevent invisible elements
+      gsap.set(["#telemetry-widget", ".telemetry-stat-box"], { opacity: 1, y: 0, scale: 1 });
+
+      gsap.from(
         "#telemetry-widget",
-        { opacity: 0, y: 45, scale: 0.96 },
         {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.9,
-          ease: "power3.out",
+          opacity: 0,
+          y: 32,
+          scale: 0.98,
+          duration: 0.55,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: "#telemetry-section",
             start: "top 80%",
@@ -276,16 +280,15 @@ export default function LandingPage() {
       );
 
       // Stagger stat boxes inside telemetry widget
-      gsap.fromTo(
+      gsap.from(
         ".telemetry-stat-box",
-        { opacity: 0, y: 20, scale: 0.95 },
         {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.6,
-          stagger: 0.12,
-          ease: "back.out(1.2)",
+          opacity: 0,
+          y: 20,
+          scale: 0.95,
+          duration: 0.4,
+          stagger: 0.07,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: "#telemetry-widget",
             start: "top 75%",
@@ -325,14 +328,16 @@ export default function LandingPage() {
       );
 
       // 6. Security Section Entrance
-      gsap.fromTo(
+      // Set initial state immediately to prevent invisible elements
+      gsap.set([".security-header-content", ".security-badge"], { opacity: 1, y: 0, scale: 1 });
+
+      gsap.from(
         ".security-header-content",
-        { opacity: 0, y: 30 },
         {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          ease: "power3.out",
+          opacity: 0,
+          y: 30,
+          duration: 0.55,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: "#security-section",
             start: "top 85%",
@@ -341,16 +346,15 @@ export default function LandingPage() {
         }
       );
 
-      gsap.fromTo(
+      gsap.from(
         ".security-badge",
-        { opacity: 0, y: 25, scale: 0.92 },
         {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.5,
-          stagger: 0.08,
-          ease: "back.out(1.2)",
+          opacity: 0,
+          y: 25,
+          scale: 0.92,
+          duration: 0.4,
+          stagger: 0.05,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: "#security-section",
             start: "top 80%",
@@ -360,15 +364,17 @@ export default function LandingPage() {
       );
 
       // 7. CTA Banner Entrance
-      gsap.fromTo(
+      // Set initial state immediately to prevent invisible element
+      gsap.set("#cta-banner", { opacity: 1, y: 0, scale: 1 });
+
+      gsap.from(
         "#cta-banner",
-        { opacity: 0, y: 40, scale: 0.94 },
         {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.85,
-          ease: "power3.out",
+          opacity: 0,
+          y: 40,
+          scale: 0.94,
+          duration: 0.55,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: "#cta-banner",
             start: "top 85%",
@@ -378,13 +384,10 @@ export default function LandingPage() {
       );
     }, containerRef);
 
-    // Refresh trigger calculations after DOM renders
-    const refreshTimer = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 150);
+    // Immediate refresh to calculate trigger positions
+    ScrollTrigger.refresh();
 
     return () => {
-      clearTimeout(refreshTimer);
       ctx.revert();
     };
   }, []);
@@ -393,14 +396,13 @@ export default function LandingPage() {
     setMatchVerified(false);
     setTimeout(() => {
       setMatchVerified(true);
-      setLiveReconcileCount((prev) => prev + 5000);
     }, 400);
   };
 
   return (
     <div
       ref={containerRef}
-      className="min-h-screen bg-surface-container-low font-sans text-foreground antialiased selection:bg-primary-container selection:text-on-primary-container relative"
+      className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-primary-container selection:text-on-primary-container relative"
     >
       {/* Existing App SiteHeader Navbar */}
       <SiteHeader />
@@ -424,9 +426,9 @@ export default function LandingPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
-              <span className="font-semibold text-primary">Enterprise Accounting &amp; Multi-Entity ERP</span>
+              <span className="font-semibold text-primary">Documented accounting workflow</span>
               <span className="text-muted-foreground">•</span>
-              <span className="text-muted-foreground">v4.8 Release</span>
+              <span className="text-muted-foreground">Local development release</span>
             </div>
 
             {/* Headline */}
@@ -434,7 +436,7 @@ export default function LandingPage() {
               ref={heroTitleRef}
               className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground max-w-4xl leading-[1.12]"
             >
-              Accounting &amp; ERP built for <br className="hidden sm:inline" />
+              Accounting built for <br className="hidden sm:inline" />
               <span className="text-primary bg-clip-text">furniture businesses</span>
             </h1>
 
@@ -443,7 +445,7 @@ export default function LandingPage() {
               ref={heroSubtitleRef}
               className="mt-5 text-base sm:text-lg text-muted-foreground max-w-2xl font-normal leading-relaxed"
             >
-              Manage sales orders, vendor procurement, automated 3-way matching, and double-entry bookkeeping in one unified, real-time telemetry dashboard. Built specifically for furniture mills, makers, and commercial distributors.
+              Set up contacts and products, run purchase and sales transactions, record payments, and inspect balanced double-entry journals with Balance Sheet, P&amp;L, and budget reporting in one workspace.
             </p>
 
             {/* CTA Cluster */}
@@ -456,7 +458,7 @@ export default function LandingPage() {
                   href="/dashboard"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-primary hover:bg-primary-700 text-white shadow-md hover:shadow-lg transition-all active:scale-98"
                 >
-                  <span>Go to ERP Dashboard</span>
+                  <span>Open dashboard</span>
                   <ArrowRight className="w-4.5 h-4.5" />
                 </Link>
               ) : (
@@ -464,7 +466,7 @@ export default function LandingPage() {
                   href="/signup"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-primary hover:bg-primary-700 text-white shadow-md hover:shadow-lg transition-all active:scale-98"
                 >
-                  <span>Get Started Free</span>
+                  <span>Create account</span>
                   <ArrowRight className="w-4.5 h-4.5" />
                 </Link>
               )}
@@ -483,15 +485,15 @@ export default function LandingPage() {
               className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground font-medium"
             >
               <span className="inline-flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> No credit card required
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Public signup creates an Accountant account
               </span>
               <span className="text-muted-foreground/40">•</span>
               <span className="inline-flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> GAAP double-entry standards
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Debits must equal credits
               </span>
               <span className="text-muted-foreground/40">•</span>
               <span className="inline-flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Real-time GL auto-posting
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Reports calculated from journal entries
               </span>
             </div>
 
@@ -501,12 +503,12 @@ export default function LandingPage() {
               <div className="floating-chip-left hidden lg:flex absolute -top-4 left-6 z-20 items-center gap-2 px-3.5 py-1.5 rounded-full bg-card border border-border shadow-md">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <span className="text-xs font-semibold text-foreground">
-                  Automated Tolerance Match ≤ 0.5%
+                  Balanced journal entries
                 </span>
               </div>
               <div className="floating-chip-right hidden lg:flex absolute -top-4 right-6 z-20 items-center gap-2 px-3.5 py-1.5 rounded-full bg-card border border-border shadow-md">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                <span className="text-xs font-semibold text-primary">Real-time GL Posting Active</span>
+                <span className="text-xs font-semibold text-primary">Accounting workflow preview</span>
               </div>
 
               {/* Chrome Frame */}
@@ -522,17 +524,17 @@ export default function LandingPage() {
                     <div className="h-4 w-px bg-border mx-1"></div>
                     <Layers className="w-4 h-4 text-muted-foreground" />
                     <span className="text-xs font-medium text-foreground">
-                      Urban ERP Workspace • <span className="text-muted-foreground">[FY 2025-26 Multi-Entity]</span>
+                      Urban Furniture Accounting • <span className="text-muted-foreground">Documented demo flow</span>
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[11px] font-semibold inline-flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Production Multi-Tenant
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Illustrative data
                     </span>
                     <button
-                      onClick={() => setLiveReconcileCount((c) => c + 100)}
+                      onClick={() => setLiveReconcileCount(7080)}
                       className="p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface-container transition-colors cursor-pointer"
-                      title="Refresh Telemetry"
+                      title="Reset preview values"
                     >
                       <RefreshCw className="w-4 h-4" />
                     </button>
@@ -546,37 +548,37 @@ export default function LandingPage() {
                     {/* KPI 1 */}
                     <div className="kpi-mock-card bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-primary/40 transition-all hover:shadow-md hover:-translate-y-1">
                       <div className="flex items-center justify-between text-muted-foreground mb-1">
-                        <span className="text-xs font-medium">Total Ledger Revenue</span>
+                        <span className="text-xs font-medium">Sales invoice total</span>
                         <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                           <TrendingUp className="w-4 h-4" />
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-foreground mt-1">₹14.2M</div>
+                      <div className="text-2xl font-bold text-foreground mt-1">₹7,080</div>
                       <div className="flex items-center gap-1 mt-2 text-xs text-emerald-600 font-medium">
                         <ArrowUpRight className="w-3.5 h-3.5" />
-                        <span>+18.4% vs last quarter</span>
+                        <span>5 chairs + 18% tax</span>
                       </div>
                     </div>
 
                     {/* KPI 2 */}
                     <div className="kpi-mock-card bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-amber-400/40 transition-all hover:shadow-md hover:-translate-y-1">
                       <div className="flex items-center justify-between text-muted-foreground mb-1">
-                        <span className="text-xs font-medium">Accounts Payable</span>
+                        <span className="text-xs font-medium">Vendor bill</span>
                         <div className="w-7 h-7 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center">
                           <Receipt className="w-4 h-4" />
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-foreground mt-1">₹34,500.00</div>
+                      <div className="text-2xl font-bold text-foreground mt-1">₹5,000</div>
                       <div className="flex items-center gap-1.5 mt-2 text-xs text-amber-600 font-medium">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        <span>2 bills pending 3-way match</span>
+                        <span>Azure Furniture</span>
                       </div>
                     </div>
 
                     {/* KPI 3 */}
                     <div className="kpi-mock-card bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-blue-400/40 transition-all hover:shadow-md hover:-translate-y-1">
                       <div className="flex items-center justify-between text-muted-foreground mb-1">
-                        <span className="text-xs font-medium">Active Purchase Orders</span>
+                        <span className="text-xs font-medium">Purchase order</span>
                         <div className="w-7 h-7 rounded-full bg-blue-500/10 text-blue-600 flex items-center justify-center">
                           <ShoppingBag className="w-4 h-4" />
                         </div>
@@ -593,32 +595,32 @@ export default function LandingPage() {
                     {/* KPI 4 */}
                     <div className="kpi-mock-card bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-emerald-400/40 transition-all hover:shadow-md hover:-translate-y-1">
                       <div className="flex items-center justify-between text-muted-foreground mb-1">
-                        <span className="text-xs font-medium">Budget Headroom</span>
+                        <span className="text-xs font-medium">Report check</span>
                         <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
                           <PieChart className="w-4 h-4" />
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-foreground mt-1">₹8,600.00</div>
+                      <div className="text-2xl font-bold text-foreground mt-1">Balanced</div>
                       <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-600 font-medium">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        <span>PRJ-FURN-26 cap intact</span>
+                        <span>Assets = Liabilities + Capital</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Mini Split Preview: Tables & Match Inspection */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-                    {/* Left: Order Ledger Telemetry Table */}
+                    {/* Left: Transaction preview table */}
                     <div className="lg:col-span-7 bg-card rounded-xl p-5 border border-border shadow-xs hover:shadow-md transition-all">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2.5">
-                          <span className="text-base font-bold text-foreground">Order Ledger Telemetry</span>
+                          <span className="text-base font-bold text-foreground">Transaction preview</span>
                           <span className="px-2.5 py-0.5 rounded-full bg-surface-container text-muted-foreground text-[11px] font-semibold">
-                            Live sync
+                            Illustrative data
                           </span>
                         </div>
                         <span className="text-xs text-primary font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer">
-                          <FileSpreadsheet className="w-3.5 h-3.5" /> Export CSV
+                          <FileSpreadsheet className="w-3.5 h-3.5" /> Journal preview
                         </span>
                       </div>
                       <div className="overflow-x-auto">
@@ -628,7 +630,7 @@ export default function LandingPage() {
                               <th className="py-2.5 px-3 rounded-l-lg">Order Ref</th>
                               <th className="py-2.5 px-3">Client / SKU Group</th>
                               <th className="py-2.5 px-3">Amount</th>
-                              <th className="py-2.5 px-3">GL Posting</th>
+                              <th className="py-2.5 px-3">Journal status</th>
                               <th className="py-2.5 px-3 text-right rounded-r-lg">Status</th>
                             </tr>
                           </thead>
@@ -636,15 +638,15 @@ export default function LandingPage() {
                             <tr className="table-mock-row hover:bg-surface-container-low transition-colors">
                               <td className="py-3 px-3 font-semibold text-foreground">SO-0892</td>
                               <td className="py-3 px-3">
-                                <div className="font-medium text-foreground">Nordic Living Studio</div>
-                                <div className="text-[11px] text-muted-foreground">60x Ergonomic Oak Desks</div>
+                                <div className="font-medium text-foreground">Nimesh Pathak</div>
+                                <div className="text-[11px] text-muted-foreground">5 Office Chairs</div>
                               </td>
                               <td className="py-3 px-3 font-semibold text-foreground">
                                 ₹{liveReconcileCount.toLocaleString()}.00
                               </td>
                               <td className="py-3 px-3">
                                 <span className="text-emerald-600 inline-flex items-center gap-1 font-medium">
-                                  <CheckCircle2 className="w-3.5 h-3.5" /> GL-Posted
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> Journal balanced
                                 </span>
                               </td>
                               <td className="py-3 px-3 text-right">
@@ -654,38 +656,38 @@ export default function LandingPage() {
                               </td>
                             </tr>
                             <tr className="table-mock-row hover:bg-surface-container-low transition-colors">
-                              <td className="py-3 px-3 font-semibold text-foreground">SO-0891</td>
+                              <td className="py-3 px-3 font-semibold text-foreground">PO-0001</td>
                               <td className="py-3 px-3">
-                                <div className="font-medium text-foreground">Apex Hospitality Suites</div>
-                                <div className="text-[11px] text-muted-foreground">120x Velvet Lounge Chairs</div>
+                                <div className="font-medium text-foreground">Azure Furniture</div>
+                                <div className="text-[11px] text-muted-foreground">10 Wooden Chairs</div>
                               </td>
-                              <td className="py-3 px-3 font-semibold text-foreground">₹112,000.00</td>
+                              <td className="py-3 px-3 font-semibold text-foreground">₹5,000.00</td>
                               <td className="py-3 px-3">
                                 <span className="text-blue-600 inline-flex items-center gap-1 font-medium">
-                                  <Sparkles className="w-3.5 h-3.5" /> Pending Rec
+                                  <Receipt className="w-3.5 h-3.5" /> Vendor bill
                                 </span>
                               </td>
                               <td className="py-3 px-3 text-right">
                                 <span className="px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-[11px] font-semibold">
-                                  Dispatched
+                                  Paid
                                 </span>
                               </td>
                             </tr>
                             <tr className="table-mock-row hover:bg-surface-container-low transition-colors">
-                              <td className="py-3 px-3 font-semibold text-foreground">SO-0890</td>
+                              <td className="py-3 px-3 font-semibold text-foreground">JE-0001</td>
                               <td className="py-3 px-3">
-                                <div className="font-medium text-foreground">Linear Architecture Ltd</div>
-                                <div className="text-[11px] text-muted-foreground">Bespoke Millwork Package</div>
+                                <div className="font-medium text-foreground">Purchase journal</div>
+                                <div className="text-[11px] text-muted-foreground">Expense → Accounts Payable</div>
                               </td>
-                              <td className="py-3 px-3 font-semibold text-foreground">₹64,500.00</td>
+                              <td className="py-3 px-3 font-semibold text-foreground">₹5,000.00</td>
                               <td className="py-3 px-3">
                                 <span className="text-emerald-600 inline-flex items-center gap-1 font-medium">
-                                  <CheckCircle2 className="w-3.5 h-3.5" /> GL-Posted
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> Balanced
                                 </span>
                               </td>
                               <td className="py-3 px-3 text-right">
                                 <span className="px-2.5 py-1 rounded-full bg-surface-container text-muted-foreground text-[11px] font-semibold">
-                                  Completed
+                                  Posted
                                 </span>
                               </td>
                             </tr>
@@ -694,17 +696,17 @@ export default function LandingPage() {
                       </div>
                     </div>
 
-                    {/* Right: Automated 3-Way Audit Card */}
+                    {/* Right: Double-entry integrity card */}
                     <div className="lg:col-span-5 bg-card rounded-xl p-5 border border-border shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-base font-bold text-foreground">Automated 3-Way Audit</span>
+                          <span className="text-base font-bold text-foreground">Double-entry integrity</span>
                           <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold inline-flex items-center gap-1">
-                            <ShieldCheck className="w-3.5 h-3.5" /> Matched 100%
+                            <ShieldCheck className="w-3.5 h-3.5" /> Debits = credits
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground mb-4">
-                          Cross-verifying PO vs Goods Receipt vs Supplier Invoicing before check run.
+                          Each documented transaction creates a journal entry whose total debits equal total credits.
                         </p>
                         <div className="space-y-2.5">
                           {/* PO item */}
@@ -713,22 +715,22 @@ export default function LandingPage() {
                               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                               <div>
                                 <div className="text-xs font-semibold text-foreground">Purchase Order PO-0001</div>
-                                <div className="text-[11px] text-muted-foreground">Teak Slabs • Qty: 200 cu.ft</div>
+                                <div className="text-[11px] text-muted-foreground">Azure Furniture • 10 Wooden Chairs</div>
                               </div>
                             </div>
                             <span className="text-xs font-bold text-foreground">₹5,000.00</span>
                           </div>
-                          {/* GRN item */}
+                          {/* Vendor bill item */}
                           <div className="audit-mock-item flex items-center justify-between p-3 rounded-lg bg-surface-container-low border border-border/60 transition-all hover:bg-card">
                             <div className="flex items-center gap-2.5">
-                              <Boxes className="w-4 h-4 text-emerald-600" />
+                              <Receipt className="w-4 h-4 text-emerald-600" />
                               <div>
-                                <div className="text-xs font-semibold text-foreground">Goods Receipt GRN-0142</div>
-                                <div className="text-[11px] text-muted-foreground">Yard Inspection Passed • Qty: 200</div>
+                                <div className="text-xs font-semibold text-foreground">Vendor Bill</div>
+                                <div className="text-[11px] text-muted-foreground">Purchase Expense → Accounts Payable</div>
                               </div>
                             </div>
                             <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold">
-                              0 Variance
+                              Posted
                             </span>
                           </div>
                           {/* Invoice item */}
@@ -736,8 +738,8 @@ export default function LandingPage() {
                             <div className="flex items-center gap-2.5">
                               <Receipt className="w-4 h-4 text-emerald-600" />
                               <div>
-                                <div className="text-xs font-semibold text-foreground">Vendor Invoice INV-8821</div>
-                                <div className="text-[11px] text-muted-foreground">Azure Timber Mills • Tax Audited</div>
+                                <div className="text-xs font-semibold text-foreground">Bank Payment</div>
+                                <div className="text-[11px] text-muted-foreground">Accounts Payable → Bank</div>
                               </div>
                             </div>
                             <span className="text-xs font-bold text-foreground">₹5,000.00</span>
@@ -749,13 +751,13 @@ export default function LandingPage() {
                       <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-primary text-xs font-medium">
                           <Zap className="w-4 h-4" />
-                          <span>Ready for AP Settlement</span>
+                          <span>Verify journal balance</span>
                         </div>
                         <button
                           onClick={handleAuthorizeRelease}
                           className="px-3.5 py-1.5 rounded-full bg-primary hover:bg-primary-700 text-white text-xs font-semibold transition-all shadow-xs active:scale-95 cursor-pointer"
                         >
-                          {matchVerified ? "Authorize Release" : "Processing..."}
+                          {matchVerified ? "Verify balance" : "Checking..."}
                         </button>
                       </div>
                     </div>
@@ -770,28 +772,24 @@ export default function LandingPage() {
         <section id="partners-section" className="w-full bg-card border-y border-border py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <p className="text-xs uppercase tracking-widest text-muted-foreground text-center font-semibold mb-6">
-              Trusted by 450+ furniture manufacturers, timber mills, and retail chains nationwide
+              Built around the documented Urban Furniture accounting workflow
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-8 items-center justify-items-center opacity-85">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center opacity-85">
               <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-all duration-300 hover:scale-105">
                 <TreePine className="w-5 h-5 text-primary" />
-                <span>Modern Timber</span>
+                <span>Contacts &amp; Products</span>
               </div>
               <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-all duration-300 hover:scale-105">
                 <Factory className="w-5 h-5 text-primary" />
-                <span>Azure Woodworks</span>
+                <span>Purchase flow</span>
               </div>
               <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-all duration-300 hover:scale-105">
                 <Armchair className="w-5 h-5 text-primary" />
-                <span>Nordic Furnishings</span>
+                <span>Sales flow</span>
               </div>
               <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-all duration-300 hover:scale-105">
                 <Truck className="w-5 h-5 text-primary" />
-                <span>FleetLogistics</span>
-              </div>
-              <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground col-span-2 md:col-span-1 hover:text-primary transition-all duration-300 hover:scale-105">
-                <Cpu className="w-5 h-5 text-primary" />
-                <span>Apex Millworks</span>
+                <span>Reports &amp; budgets</span>
               </div>
             </div>
           </div>
@@ -801,13 +799,13 @@ export default function LandingPage() {
         <section id="workflows-section" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="workflow-header flex flex-col items-center text-center mb-12">
             <span className="px-3.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/40 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
-              Continuous Accounting Engine
+              Linked accounting flow
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground max-w-2xl tracking-tight">
-              From Order to Ledger — Zero Manual Reconciliation
+              From order to ledger — a linked accounting flow
             </h2>
             <p className="mt-3 text-base text-muted-foreground max-w-xl">
-              Every movement of lumber, finished cabinet, showroom invoice, or raw component immediately writes an auditable transaction to your chart of accounts.
+              Follow the two documented transaction paths: purchases become vendor bills and payments; sales become customer invoices and payments. Each posting stays balanced.
             </p>
           </div>
 
@@ -823,11 +821,11 @@ export default function LandingPage() {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-foreground">Sales &amp; Revenue Pipeline</h3>
-                      <span className="text-xs text-muted-foreground">Direct dispatch to receivable recognition</span>
+                      <span className="text-xs text-muted-foreground">Sales order to customer payment</span>
                     </div>
                   </div>
                   <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
-                    Automated
+                    Documented flow
                   </span>
                 </div>
 
@@ -842,11 +840,11 @@ export default function LandingPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-foreground">Sales Order SO-0892</span>
                         <span className="text-[11px] font-semibold text-muted-foreground bg-card px-2 py-0.5 rounded-md border border-border">
-                          Quote Confirmed
+                          Confirmed
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                        Client commitment booked; reservations locked in factory floor inventory allocation.
+                        Create a sales order for a customer and add products, quantities, prices, and percentage tax.
                       </p>
                     </div>
                   </div>
@@ -858,13 +856,13 @@ export default function LandingPage() {
                     </div>
                     <div className="bg-surface-container-low p-4 rounded-xl border border-border/60 hover:bg-card transition-all">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-foreground">Warehouse Dispatch &amp; Invoice INV-2026</span>
+                        <span className="text-xs font-bold text-foreground">Customer Invoice</span>
                         <span className="text-[11px] font-semibold text-primary bg-blue-100 dark:bg-blue-950/40 px-2 py-0.5 rounded-md">
-                          Auto-Generated
+                          Auto-created
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                        Barcodes scanned on loading dock; e-Way bill issued and GST invoice transmitted electronically.
+                        Generate an invoice from the confirmed sales order. The system calculates tax and creates the sales journal entry.
                       </p>
                     </div>
                   </div>
@@ -876,13 +874,13 @@ export default function LandingPage() {
                     </div>
                     <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/40 hover:bg-card transition-all">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-foreground">Bank Settlement &amp; Auto-Credit</span>
+                        <span className="text-xs font-bold text-foreground">Record Payment</span>
                         <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-card px-2 py-0.5 rounded-md border border-emerald-200">
-                          Reconciled
+                          Paid
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                        Direct bank feed matches payment payload, clearing Accounts Receivable and writing to GL Account #1010.
+                        Record the customer payment through Cash or Bank; the payment journal debits the selected account and credits Accounts Receivable.
                       </p>
                     </div>
                   </div>
@@ -892,7 +890,7 @@ export default function LandingPage() {
               <div className="mt-8 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
                 <span className="font-medium text-foreground flex items-center gap-1.5">
                   <FileCheck className="w-4 h-4 text-primary" />
-                  Journal: DR AR ₹48,200 | CR Sales ₹48,200
+                  Journal: DR AR ₹7,080 | CR Sales ₹6,000 + Tax ₹1,080
                 </span>
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               </div>
@@ -908,11 +906,11 @@ export default function LandingPage() {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-foreground">Procurement &amp; Accounts Payable</h3>
-                      <span className="text-xs text-muted-foreground">PO intake, 3-way matching, and disbursements</span>
+                      <span className="text-xs text-muted-foreground">Purchase order to vendor payment</span>
                     </div>
                   </div>
                   <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
-                    Fraud-Proof
+                    Documented flow
                   </span>
                 </div>
 
@@ -927,11 +925,11 @@ export default function LandingPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-foreground">Purchase Order PO-0001</span>
                         <span className="text-[11px] font-semibold text-muted-foreground bg-card px-2 py-0.5 rounded-md border border-border">
-                          Encumbrance ₹5,000
+                          Draft • ₹5,000
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                        Committed raw materials hold budget allocation inside PRJ-FURN-26 without double-booking.
+                        Create and confirm a purchase order for a vendor and add the products being purchased.
                       </p>
                     </div>
                   </div>
@@ -943,13 +941,13 @@ export default function LandingPage() {
                     </div>
                     <div className="bg-surface-container-low p-4 rounded-xl border border-border/60 hover:bg-card transition-all">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-foreground">Intake Goods Receipt GRN-0142</span>
+                        <span className="text-xs font-bold text-foreground">Vendor Bill</span>
                         <span className="text-[11px] font-semibold text-primary bg-blue-100 dark:bg-blue-950/40 px-2 py-0.5 rounded-md">
-                          Physical Intake
+                          Auto-created
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                        Timber receiving dock logs actual cubic feet and moisture reading before stock sign-off.
+                        Create a vendor bill from the purchase order. The system posts Purchase Expense against Accounts Payable.
                       </p>
                     </div>
                   </div>
@@ -961,13 +959,13 @@ export default function LandingPage() {
                     </div>
                     <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/40 hover:bg-card transition-all">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-foreground">3-Way Match &amp; Settlement</span>
+                        <span className="text-xs font-bold text-foreground">Record Payment</span>
                         <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-card px-2 py-0.5 rounded-md border border-emerald-200">
-                          Zero Discrepancy
+                          Paid
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                        Vendor Bill compared against PO and GRN automatically; approved for scheduled ACH release.
+                        Record the vendor payment through Bank or Cash; the payment journal debits Accounts Payable and credits the selected account.
                       </p>
                     </div>
                   </div>
@@ -977,7 +975,7 @@ export default function LandingPage() {
               <div className="mt-8 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
                 <span className="font-medium text-foreground flex items-center gap-1.5">
                   <FileCheck className="w-4 h-4 text-primary" />
-                  Journal: DR Expense #5100 | CR AP #2100
+                  Journal: DR Purchase Expense ₹5,000 | CR AP ₹5,000
                 </span>
                 <CheckCheck className="w-4 h-4 text-emerald-600" />
               </div>
@@ -985,18 +983,18 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Bento-Style Feature Grid (8 Core Enterprise Modules) */}
+        {/* Core feature grid */}
         <section id="bento-section" className="w-full bg-surface-container py-20 border-t border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bento-header flex flex-col items-center text-center mb-14">
               <span className="px-3.5 py-1 rounded-full bg-card border border-border text-primary text-xs font-semibold uppercase tracking-wider mb-3">
-                Bespoke Suite
+                Core capabilities
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground max-w-2xl tracking-tight">
-                Engineered for Furniture Enterprise Complexity
+                The accounting flows documented for Urban Furniture
               </h2>
               <p className="mt-3 text-base text-muted-foreground max-w-2xl">
-                From multi-warehouse lumber valuation to contract design billing milestones, Urban Furniture unifies every operational vector.
+                Keep the product promise focused: manage master data, process purchases and sales, post balanced journals, and review the resulting reports.
               </p>
             </div>
 
@@ -1007,13 +1005,13 @@ export default function LandingPage() {
                   <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-primary flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <BarChart3 className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-2">Unified Executive Command</h3>
+                  <h3 className="text-base font-bold text-foreground mb-2">Dashboard overview</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Live telemetry tracking blended revenue, real-time operating cash runway, pending purchase encumbrances, and branch performance.
+                    Review Cash, Bank, Receivables, Payables, Net Profit, and transaction-derived budget metrics from one dashboard.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
-                  <span>Executive cockpit</span>
+                  <span>KPI summary</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -1024,13 +1022,13 @@ export default function LandingPage() {
                   <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <Receipt className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-2">Sales Order &amp; Invoicing</h3>
+                  <h3 className="text-base font-bold text-foreground mb-2">Sales &amp; customer invoices</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Convert confirmed showroom estimates to full GST-compliant invoices in 1-click. Automatic overdue payment triggers and portal links.
+                    Confirm sales orders, calculate percentage-based tax, generate customer invoices, and record incoming payments.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
-                  <span>Automated dunning</span>
+                  <span>SO → invoice → payment</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -1041,13 +1039,13 @@ export default function LandingPage() {
                   <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-primary flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-2">Automated 3-Way Match</h3>
+                  <h3 className="text-base font-bold text-foreground mb-2">Purchases &amp; vendor bills</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Eliminate invoice errors and overbilling. Cross-audit PO contracts, warehouse physical receipt manifests, and vendor invoices systematically.
+                    Create and confirm purchase orders, create linked vendor bills, and record outgoing payments with journal entries.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
-                  <span>Fraud elimination</span>
+                  <span>PO → bill → payment</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -1058,13 +1056,13 @@ export default function LandingPage() {
                   <div className="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <FileSpreadsheet className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-2">Native Double-Entry GL</h3>
+                  <h3 className="text-base font-bold text-foreground mb-2">Balanced double-entry ledger</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Enterprise-grade ledger architecture. Automatically creates balanced debit and credit entries with full cryptographic provenance.
+                    Transaction posting creates debit and credit lines, and journal entry validation prevents an unbalanced entry from being saved.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
-                  <span>GAAP compliant</span>
+                  <span>Debit = credit</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -1075,13 +1073,13 @@ export default function LandingPage() {
                   <div className="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <PieChart className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-2">Budgets &amp; Cost Centers</h3>
+                  <h3 className="text-base font-bold text-foreground mb-2">Budgets &amp; analytic accounts</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Enforce strict project ceilings on bespoke client jobs and factory lines. Visual headroom alerts prevent PO commitments that breach caps.
+                    Define planned amounts, link analytic accounts, and compare committed and achieved amounts in the budget report.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
-                  <span>Variance detection</span>
+                  <span>Planned vs actual</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -1092,13 +1090,13 @@ export default function LandingPage() {
                   <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-primary flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <TrendingUp className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-2">Real-Time Statements</h3>
+                  <h3 className="text-base font-bold text-foreground mb-2">Financial reports</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Generate audited Balance Sheets, P&amp;L by showroom branch, Trial Balances, and multi-currency foreign exchange revaluations on demand.
+                    Generate Balance Sheet, Profit &amp; Loss, and Budget reports from posted journal entries, with report totals and equation checks.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
-                  <span>Instant closing</span>
+                  <span>Reports on demand</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -1109,13 +1107,13 @@ export default function LandingPage() {
                   <div className="w-11 h-11 rounded-2xl bg-surface-container-high text-primary flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <Boxes className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-2">Master Data Governance</h3>
+                  <h3 className="text-base font-bold text-foreground mb-2">Master data</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Catalog vendor reliability index scores, raw lumber species grading, upholstery textile stocks, finished furniture SKUs, and credit terms.
+                    Maintain Contacts, Products, Chart of Accounts, Journals, analytic accounts, and budgets used by the transaction flows.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
-                  <span>BOM synchronization</span>
+                  <span>List and form views</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -1126,13 +1124,13 @@ export default function LandingPage() {
                   <div className="w-11 h-11 rounded-2xl bg-surface-container-highest text-foreground flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <Lock className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-2">Role-Based Governance</h3>
+                  <h3 className="text-base font-bold text-foreground mb-2">Role-based access</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Isolate responsibilities between showroom floor clerks, yard dispatchers, certified CPAs, and external auditors with immutable event logs.
+                    Use Admin, Accountant (Invoicing User), and Contact roles. Contact users get a restricted portal view for their own invoices.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
-                  <span>SOC2 Type II</span>
+                  <span>Server-side role checks</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -1140,7 +1138,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Budget & Double-Entry Ledger Audit Widget */}
+        {/* Budget & double-entry preview */}
         <section id="telemetry-section" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div id="telemetry-widget" className="bg-card rounded-2xl border border-border shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
             {/* Header Banner */}
@@ -1149,25 +1147,25 @@ export default function LandingPage() {
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Analytical Cost Center Telemetry
+                    Budget and journal preview
                   </span>
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mt-1">
-                  Furniture Project (PRJ-FURN-26)
+                  Illustrative budget example
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Auditable analytical accounting linked directly to general ledger commitments.
+                  Budget reports compare planned, committed, and achieved amounts for an analytic account.
                 </p>
               </div>
               <div className="flex items-center gap-3">
                 <span className="px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4" /> Within Approved Budget Cap
+                  <CheckCircle2 className="w-4 h-4" /> Example report status
                 </span>
                 <Link
                   href="/login"
                   className="px-4 py-1.5 rounded-full bg-card hover:bg-surface-container text-foreground text-xs font-semibold border border-border shadow-xs transition-colors"
                 >
-                  Audit Trail
+                    Sign in to view reports
                 </Link>
               </div>
             </div>
@@ -1178,27 +1176,27 @@ export default function LandingPage() {
               <div className="lg:col-span-7 space-y-6">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="telemetry-stat-box p-4 rounded-xl bg-surface-container-low border border-border/60 hover:bg-card transition-all">
-                    <span className="text-xs text-muted-foreground font-medium">Total Budget</span>
-                    <div className="text-xl font-bold text-foreground mt-1">₹50,000.00</div>
-                    <span className="text-[11px] text-muted-foreground">100% Base Cap</span>
+                    <span className="text-xs text-muted-foreground font-medium">Planned amount</span>
+                    <div className="text-xl font-bold text-foreground mt-1">Configured</div>
+                    <span className="text-[11px] text-muted-foreground">Budget definition</span>
                   </div>
                   <div className="telemetry-stat-box p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 hover:bg-card transition-all">
-                    <span className="text-xs text-muted-foreground font-medium">Total Committed</span>
-                    <div className="text-xl font-bold text-primary mt-1">₹47,000.00</div>
-                    <span className="text-[11px] text-primary font-semibold">94% Allocated</span>
+                    <span className="text-xs text-muted-foreground font-medium">Committed</span>
+                    <div className="text-xl font-bold text-primary mt-1">Derived</div>
+                    <span className="text-[11px] text-primary font-semibold">From transactions</span>
                   </div>
                   <div className="telemetry-stat-box p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 hover:bg-card transition-all">
-                    <span className="text-xs text-muted-foreground font-medium">Free Headroom</span>
-                    <div className="text-xl font-bold text-emerald-600 mt-1">₹3,000.00</div>
-                    <span className="text-[11px] text-emerald-600 font-semibold">Safe Margin</span>
+                    <span className="text-xs text-muted-foreground font-medium">Amount to achieve</span>
+                    <div className="text-xl font-bold text-emerald-600 mt-1">Calculated</div>
+                    <span className="text-[11px] text-emerald-600 font-semibold">Report metric</span>
                   </div>
                 </div>
 
                 {/* Segmented Progress Bar */}
                 <div className="p-5 rounded-xl bg-surface-container-low border border-border/60">
                   <div className="flex justify-between text-xs text-muted-foreground mb-2.5 font-medium">
-                    <span>Encumbrance Distribution Breakdown</span>
-                    <span className="font-bold text-foreground">₹47,000 / ₹50,000 Utilized</span>
+                    <span>Example utilization breakdown</span>
+                    <span className="font-bold text-foreground">Illustrative values</span>
                   </div>
                   <div className="w-full h-3.5 bg-surface-container-highest rounded-full overflow-hidden flex">
                     <div
@@ -1216,19 +1214,19 @@ export default function LandingPage() {
                     <div className="flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span>
                       <span className="text-foreground">
-                        Historical Commitments: <strong>₹42,000 (84%)</strong>
+                        Committed: <strong>84% example</strong>
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
                       <span className="text-foreground">
-                        PO-0001 (Oak Timber): <strong>₹5,000 (10%)</strong>
+                        Achieved: <strong>10% example</strong>
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-surface-container-highest inline-block border border-border"></span>
                       <span className="text-muted-foreground">
-                        Unallocated: <strong>₹3,000 (6%)</strong>
+                        Remaining: <strong>6% example</strong>
                       </span>
                     </div>
                   </div>
@@ -1238,7 +1236,7 @@ export default function LandingPage() {
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-surface-container border border-border text-foreground">
                   <Shield className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                   <p className="text-xs leading-relaxed text-foreground">
-                    <strong className="font-semibold">Enforced Hard Cap Protection:</strong> System will automatically reject any additional Purchase Requisition exceeding ₹3,000.00 without secondary approval from Financial Controller (CFO Office).
+                    <strong className="font-semibold">Budget visibility:</strong> The budget report exposes committed, achieved, achieved percentage, amount to achieve, and revision links for configured budgets.
                   </p>
                 </div>
               </div>
@@ -1247,13 +1245,13 @@ export default function LandingPage() {
               <div className="lg:col-span-5 bg-surface-container-low rounded-xl p-5 border border-border flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-bold text-foreground">Journal Entry #JE-9042</span>
+                    <span className="text-sm font-bold text-foreground">Purchase journal entry preview</span>
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold">
-                      Balanced 100%
+                      Balanced
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground mb-4">
-                    Automatic GAAP ledger posting triggered by PO-0001 Intake completion.
+                    Example posting created from the documented purchase flow: Purchase Expense to Accounts Payable.
                   </p>
                   <div className="bg-card rounded-xl border border-border/60 overflow-hidden shadow-xs">
                     <table className="w-full text-left text-xs">
@@ -1267,16 +1265,16 @@ export default function LandingPage() {
                       <tbody className="divide-y divide-border/60">
                         <tr>
                           <td className="py-2.5 px-3">
-                            <div className="font-semibold text-foreground">#5100 Direct Materials</div>
-                            <div className="text-[11px] text-muted-foreground">PRJ-FURN-26 Timber Slabs</div>
+                            <div className="font-semibold text-foreground">5010 Purchase Expense</div>
+                            <div className="text-[11px] text-muted-foreground">10 Wooden Chairs</div>
                           </td>
                           <td className="py-2.5 px-3 text-right font-semibold text-foreground">₹5,000.00</td>
                           <td className="py-2.5 px-3 text-right text-muted-foreground">—</td>
                         </tr>
                         <tr>
                           <td className="py-2.5 px-3">
-                            <div className="font-semibold text-foreground">#2100 Accounts Payable</div>
-                            <div className="text-[11px] text-muted-foreground">Azure Timber Mills (Net 30)</div>
+                            <div className="font-semibold text-foreground">2010 Accounts Payable</div>
+                            <div className="text-[11px] text-muted-foreground">Azure Furniture</div>
                           </td>
                           <td className="py-2.5 px-3 text-right text-muted-foreground">—</td>
                           <td className="py-2.5 px-3 text-right font-semibold text-foreground">₹5,000.00</td>
@@ -1292,55 +1290,55 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-muted-foreground text-xs">
                   <span className="flex items-center gap-1">
-                    <Lock className="w-3.5 h-3.5 text-emerald-600" /> Hash: #88c2f1
+                    <Lock className="w-3.5 h-3.5 text-emerald-600" /> Balanced by journal validation
                   </span>
-                  <span>Audited in Real-Time</span>
+                  <span>Review in Journal Entries</span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Security & Enterprise Governance Section */}
+        {/* Access & accounting controls */}
         <section id="security-section" className="w-full bg-card border-y border-border py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-surface-container-low rounded-2xl p-6 sm:p-10 border border-border">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
                 <div className="security-header-content max-w-xl">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/40 text-primary text-xs font-semibold mb-3">
-                    <ShieldCheck className="w-4 h-4" /> Bank-Grade Double-Entry Ledger Environment
+                    <ShieldCheck className="w-4 h-4" /> Access and accounting controls
                   </div>
                   <h3 className="text-2xl font-bold text-foreground tracking-tight mb-2">
-                    Complete Audit Resilience for High-Volume Furniture Operations
+                    Clear controls for everyday accounting work
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Built for commercial furniture groups managing multiple legal entities, retail showrooms, contract divisions, and mill factories. Maintain spotless compliance through regulatory cycles.
+                    Authenticated access, server-side role checks, and balanced journal validation support the documented purchase, sales, payment, and reporting flows. Deployment-specific security controls remain the responsibility of the operating organization.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Shield className="w-5 h-5 text-emerald-600" />
-                    <span className="text-xs font-semibold text-foreground">SOC2 Type II</span>
+                    <span className="text-xs font-semibold text-foreground">Authenticated access</span>
                   </div>
                   <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Database className="w-5 h-5 text-emerald-600" />
-                    <span className="text-xs font-semibold text-foreground">Continuous Backups</span>
+                    <span className="text-xs font-semibold text-foreground">Server-side role checks</span>
                   </div>
                   <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Building2 className="w-5 h-5 text-emerald-600" />
-                    <span className="text-xs font-semibold text-foreground">Multi-Entity Ledger</span>
+                    <span className="text-xs font-semibold text-foreground">Balanced journals</span>
                   </div>
                   <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Lock className="w-5 h-5 text-emerald-600" />
-                    <span className="text-xs font-semibold text-foreground">Immutable Audit Log</span>
+                    <span className="text-xs font-semibold text-foreground">Linked source documents</span>
                   </div>
                   <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Zap className="w-5 h-5 text-emerald-600" />
-                    <span className="text-xs font-semibold text-foreground">99.99% SLA Uptime</span>
+                    <span className="text-xs font-semibold text-foreground">Input validation</span>
                   </div>
                   <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Users className="w-5 h-5 text-emerald-600" />
-                    <span className="text-xs font-semibold text-foreground">SAML / Okta SSO</span>
+                    <span className="text-xs font-semibold text-foreground">Restricted portal view</span>
                   </div>
                 </div>
               </div>
@@ -1356,41 +1354,41 @@ export default function LandingPage() {
             <div className="absolute -left-24 -top-24 w-96 h-96 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
 
             <span className="px-3.5 py-1 rounded-full bg-white/15 text-white text-xs font-semibold uppercase tracking-wider mb-4 backdrop-blur-sm">
-              Zero Risk Deployment
+              Start with the documented workflow
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold max-w-2xl mb-3 tracking-tight">
               Ready to modernize your furniture business financials?
             </h2>
             <p className="text-sm sm:text-base text-white/90 max-w-xl mb-8 leading-relaxed font-normal">
-              Eliminate inventory reconciliation gaps, automate 3-way invoice matching, and post error-free double-entry journals in under 14 days.
+              Create an Accountant account, then move from master data to purchase or sales transactions, payments, journals, and reports.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3.5 z-10 w-full sm:w-auto">
               <Link
                 href="/signup"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full text-sm font-semibold bg-white text-primary hover:bg-surface-container-high transition-all shadow-md active:scale-98"
               >
-                <span>Start Free 14-Day Trial</span>
+                <span>Create an Accountant account</span>
                 <ArrowRight className="w-4.5 h-4.5" />
               </Link>
               <Link
                 href="/login"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full text-sm font-semibold bg-white/15 hover:bg-white/25 text-white border border-white/20 transition-all active:scale-98"
               >
-                <span>Book a Solution Architect</span>
+                <span>Sign in to the workspace</span>
               </Link>
             </div>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-white/80 text-xs font-medium">
-              <span>No credit card required</span>
+              <span>Public signup assigns the Accountant role</span>
               <span>•</span>
-              <span>Custom ERP data migration available</span>
+              <span>Admin creates other user roles</span>
               <span>•</span>
-              <span>Live support within 15 min</span>
+              <span>Contact users see their own invoices</span>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Clean Material Enterprise Footer */}
+      {/* Footer */}
       <footer className="w-full bg-card border-t border-border pt-16 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-border">
@@ -1403,35 +1401,35 @@ export default function LandingPage() {
                 <span className="text-lg font-bold text-foreground">Urban Furniture</span>
               </div>
               <p className="text-xs text-muted-foreground max-w-sm leading-relaxed">
-                Unified financial telemetry and inventory ERP designed exclusively for modern furniture manufacturers, retailers, and contract designers. Auditable, compliant, and precision-engineered.
+                A focused accounting workspace for Urban Furniture: master data, purchase and sales flows, payments, balanced journals, budgets, and financial reports.
               </p>
               <div className="flex items-center gap-2 mt-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> SOC2 Type II Certified
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Role-aware access
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/40 text-primary text-[11px] font-semibold">
-                  GAAP Compliant
+                  Double-entry validation
                 </span>
               </div>
             </div>
 
             {/* Col 1: ERP Modules */}
             <div className="flex flex-col gap-3 text-xs">
-              <span className="font-bold text-foreground uppercase tracking-wider text-[11px]">ERP Modules</span>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                BOM Costing Engine
+              <span className="font-bold text-foreground uppercase tracking-wider text-[11px]">Core areas</span>
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="#bento-section">
+                Contacts &amp; Products
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                Showroom PoS Sync
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="#bento-section">
+                Purchase Orders
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                Ledger Reconciliation
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="#bento-section">
+                Vendor Bills &amp; Payments
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                Supply Chain Telemetry
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="#bento-section">
+                Sales Orders &amp; Invoices
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                Multi-Warehouse Valuation
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="#bento-section">
+                Journals &amp; Reports
               </a>
             </div>
 
@@ -1440,52 +1438,52 @@ export default function LandingPage() {
               <span className="font-bold text-foreground uppercase tracking-wider text-[11px]">
                 Security &amp; Governance
               </span>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                Audit Logs &amp; Traceability
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="#security-section">
+                Journal traceability
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="#security-section">
                 Role-Based Access (RBAC)
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                Continuous Backups
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="#security-section">
+                Input validation
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                Encryption Standards
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="#security-section">
+                Authenticated sessions
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                Enterprise SLA
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="#security-section">
+                Deployment controls
               </a>
             </div>
 
             {/* Col 3: Legal & Trust */}
             <div className="flex flex-col gap-3 text-xs">
               <span className="font-bold text-foreground uppercase tracking-wider text-[11px]">Legal &amp; Trust</span>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="/privacy-policy">
                 Privacy Policy
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="/terms">
                 Terms of Service
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                Compliance Matrix
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="/security-policy">
+                Security Policy
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                DPA &amp; GDPR
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="/security-policy">
+                Privacy Policy
               </a>
-              <a className="text-muted-foreground hover:text-primary transition-colors" href="#">
-                Subprocessors
+              <a className="text-muted-foreground hover:text-primary transition-colors" href="/security-policy">
+                Terms of Service
               </a>
             </div>
           </div>
 
           {/* Footer Sub-bar */}
           <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-            <p>© 2025 Urban Furniture Technologies, Inc. All accounting metrics calculated in real-time. All rights reserved.</p>
+            <p>Urban Furniture Accounting System · Local development release</p>
             <div className="flex items-center gap-6">
-              <span className="flex items-center gap-1.5 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Production Systems Normal
+                <span className="flex items-center gap-1.5 font-medium">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Demo workflow ready
               </span>
-              <span>256-bit TLS v1.3</span>
+              <span>See Security Policy for deployment responsibilities</span>
             </div>
           </div>
         </div>
