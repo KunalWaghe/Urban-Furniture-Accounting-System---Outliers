@@ -31,7 +31,7 @@ import { Button } from "@/components/ui/button";
 import { formatDate, formatINR, todayDate } from "@/lib/format";
 
 import {
-  confirmVendorBill,
+
   fetchVendorBill,
   payVendorBill,
   type PaymentInput,
@@ -51,7 +51,6 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
   const queryClient = useQueryClient();
 
   // ── Dialog / modal visibility ─────────────────────────────────────────────
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   // ── Payment form state (local until payMutation submits) ─────────────────
@@ -66,15 +65,6 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
     queryFn: () => fetchVendorBill(billId),
   });
 
-  // ── Mutation: confirm draft bill (posts to ledger) ───────────────────────
-  const confirmMutation = useMutation({
-    mutationFn: () => confirmVendorBill(billId),
-    onSuccess: () => {
-      setConfirmDialogOpen(false);
-      void queryClient.invalidateQueries({ queryKey: ["vendor-bill", billId] });
-      void queryClient.invalidateQueries({ queryKey: ["vendor-bills"] });
-    },
-  });
 
   // ── Mutation: register payment (bank or cash disbursement) ───────────────
   const payMutation = useMutation({
@@ -164,12 +154,7 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
-          {isDraft && (
-            <Button onClick={() => setConfirmDialogOpen(true)} disabled={confirmMutation.isPending}>
-              <CheckCircle2 className="h-4 w-4" />
-              {confirmMutation.isPending ? "Confirming…" : "Confirm Bill"}
-            </Button>
-          )}
+
 
           {isConfirmed && (
             <Button
@@ -195,21 +180,7 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
       </div>
 
       {/* Accounting State Banner */}
-      {isDraft && (
-        <div className="rounded-xl border border-amber-200/80 bg-amber-50/70 p-4 text-sm text-amber-900 shadow-xs dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300">
-          <div className="flex items-start gap-3">
-            <Clock className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
-            <div>
-              <p className="font-semibold">Draft Vendor Bill</p>
-              <p className="text-xs text-amber-800 dark:text-amber-400 mt-0.5">
-                Confirming this bill locks line pricing and auto-posts the double-entry accounting journal:{" "}
-                <span className="font-mono font-semibold">Dr 5010 Purchase Expense</span> /{" "}
-                <span className="font-mono font-semibold">Cr 2010 Accounts Payable (Creditors)</span>.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {isConfirmed && (
         <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/70 p-4 text-sm text-emerald-900 shadow-xs dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">

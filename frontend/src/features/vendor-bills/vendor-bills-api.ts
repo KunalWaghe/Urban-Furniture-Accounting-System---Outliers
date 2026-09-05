@@ -185,7 +185,7 @@ function mapVendorBillApiRecord(raw: VendorBillApiRecord): VendorBill {
 export async function fetchVendorBillsPage(params: VendorBillsParams = {}): Promise<VendorBillListResult> {
   const query = new URLSearchParams();
   if (params.page) query.set("page", String(params.page));
-  if (params.limit) query.set("limit", String(params.limit));
+  query.set("limit", String(params.limit ?? 10));
   if (params.search?.trim()) query.set("search", params.search.trim());
   if (params.status && params.status !== "all") {
     const backendStatus = params.status === "Confirmed" ? "open" : params.status.toLowerCase();
@@ -248,17 +248,6 @@ export async function createBillFromPo(poId: number): Promise<VendorBill> {
     }
   );
   return mapVendorBillApiRecord(res.bill);
-}
-
-/**
- * Confirms a vendor bill. Currently re-fetches the bill because the backend
- * auto-posts on creation; no separate confirm endpoint is called yet.
- *
- * @param billId - Bill ID to confirm.
- */
-export async function confirmVendorBill(billId: string): Promise<VendorBill> {
-  // Backend automatically posts/confirms bill on creation
-  return fetchVendorBill(billId);
 }
 
 /**

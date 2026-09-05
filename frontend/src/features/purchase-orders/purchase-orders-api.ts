@@ -202,20 +202,20 @@ export async function confirmPurchaseOrder(id: number): Promise<PurchaseOrder> {
   return mapPurchaseOrder(po);
 }
 
-export interface CreateVendorBillResponse {
-  bill: {
-    id: number;
-    bill_number: string;
-  };
-  journal_entry: unknown;
-}
-
-export async function createBillFromPo(id: number): Promise<CreateVendorBillResponse> {
-  return apiFetch<CreateVendorBillResponse>(`/api/v1/purchase-orders/${id}/create-bill`, {
-    method: "POST",
+/**
+ * PATCH /api/v1/purchase-orders/:id/cancel — cancels a draft or confirmed PO.
+ *
+ * @param id - Numeric purchase order ID.
+ * @returns Updated PO with Cancelled status.
+ */
+export async function cancelPurchaseOrder(id: number): Promise<PurchaseOrder> {
+  const po = await apiFetch<PurchaseOrderApi>(`/api/v1/purchase-orders/${id}/cancel`, {
+    method: "PATCH",
     auth: true,
   });
+  return mapPurchaseOrder(po);
 }
+
 
 export async function fetchVendors(): Promise<Contact[]> {
   const res = await apiFetch<ContactListResponse>("/api/v1/contacts?is_active=true&limit=100", { auth: true });

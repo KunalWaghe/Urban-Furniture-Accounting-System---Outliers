@@ -93,16 +93,7 @@ export async function fetchPayments(params?: {
   });
 }
 
-// Generates a Vendor Bill from a confirmed Purchase Order and posts initial Journal Entry
-export async function createBillFromPo(poId: number | string): Promise<{
-  bill: VendorBillApi;
-  journal_entry: unknown;
-}> {
-  return apiFetch(`/api/v1/purchase-orders/${poId}/create-bill`, {
-    method: "POST",
-    auth: true,
-  });
-}
+
 
 // Retrieves detailed vendor bill record by its ID
 export async function fetchVendorBill(

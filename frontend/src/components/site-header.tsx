@@ -2,7 +2,7 @@
  * SiteHeader — top navigation bar for the ERP layout.
  *
  * Provides module dropdown menus (Sales, Purchase, Account, Reports),
- * global search with ⌘K shortcut, theme toggle, user info, and mobile drawer nav.
+ * global search, theme toggle, user info, and mobile drawer nav.
  *
  * Role-based filtering hides admin-only links from non-admin users.
  */
@@ -59,7 +59,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     items: [
       { label: "Sales Orders", href: "/sales-orders", description: "Customer orders & fulfillment status" },
       { label: "Sales Invoices", href: "/sales-invoices", description: "Commercial invoicing & customer dues" },
-      { label: "Payments / Receipts", href: "/payments", description: "Customer receipts & accounts receivable" },
+      { label: "Payments / Receipts", href: "/payments?type=customer", description: "Customer receipts & accounts receivable" },
     ],
   },
   {
@@ -69,7 +69,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     items: [
       { label: "Purchase Orders", href: "/purchase-orders", description: "Supplier purchase orders & goods receipt" },
       { label: "Purchase Bills", href: "/vendor-bills", description: "Vendor bills & accounts payable" },
-      { label: "Payments", href: "/payments", description: "Bank & cash vendor disbursements" },
+      { label: "Payments", href: "/payments?type=vendor", description: "Bank & cash vendor disbursements" },
     ],
   },
   {
@@ -205,14 +205,9 @@ export function SiteHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Keyboard shortcut: ⌘K or Ctrl+K to focus search, ESC to close all menus
+  // ESC closes open menus and blurs search
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-        setIsSearchFocused(true);
-      }
       if (e.key === "Escape") {
         setActiveDropdown(null);
         setIsSearchFocused(false);
@@ -328,7 +323,7 @@ export function SiteHeader() {
             })}
           </nav>
 
-          {/* Global Search Bar with ⌘K */}
+          {/* Global Search Bar */}
           <div className="relative w-44 lg:w-64">
             <input
               ref={searchInputRef}
@@ -341,12 +336,9 @@ export function SiteHeader() {
                 setActiveDropdown(null);
               }}
               placeholder="Search orders, bills, accounts..."
-              className="w-full rounded-2xl border border-border/80 bg-surface-muted/60 py-1.5 pl-8 pr-11 text-xs text-text placeholder:text-text-muted transition-all focus:border-primary-500 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary-500/20 shadow-xs"
+              className="w-full rounded-2xl border border-border/80 bg-surface-muted/60 py-1.5 pl-8 pr-3 text-xs text-text placeholder:text-text-muted transition-all focus:border-primary-500 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary-500/20 shadow-xs"
             />
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-text-muted pointer-events-none" />
-            <kbd className="absolute right-2 top-1.5 hidden sm:flex items-center gap-0.5 rounded border border-border/80 bg-surface px-1.5 py-0.5 text-[10px] font-medium text-text-muted shadow-xs pointer-events-none">
-              <span>⌘</span>K
-            </kbd>
 
             {/* Quick Search Autocomplete Dropdown */}
             {isSearchFocused && searchQuery.trim().length > 0 && (

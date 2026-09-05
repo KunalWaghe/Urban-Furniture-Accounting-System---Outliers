@@ -218,13 +218,6 @@ export async function createInvoiceFromSo(soId: number): Promise<CustomerInvoice
   return mapCustomerInvoiceApiRecord(response.invoice);
 }
 
-/**
- * The backend creates customer invoices directly in their posted/open state.
- * There is intentionally no local "confirm" mutation to fabricate a state.
- */
-export async function confirmCustomerInvoice(_invoiceId: string): Promise<CustomerInvoice> {
-  throw new Error("Customer invoices are confirmed by the server when they are created.");
-}
 
 /**
  * Records a persisted receipt, then re-reads the invoice as the source of

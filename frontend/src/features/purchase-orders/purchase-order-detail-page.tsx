@@ -32,12 +32,12 @@ import { PaymentModal } from "@/components/payment-modal";
 import { PoStatusBadge } from "@/features/purchase-orders/po-status-badge";
 import {
   confirmPurchaseOrder,
-  createBillFromPo,
   fetchPurchaseOrderApi,
   mapPurchaseOrder,
 } from "@/features/purchase-orders/purchase-orders-api";
+import { createBillFromPo } from "@/features/vendor-bills/vendor-bills-api";
 import { formatDate, formatINR } from "@/lib/format";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
 
 interface PurchaseOrderDetailPageProps {
   poId: number;
@@ -379,9 +379,16 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
       )}
 
       {confirmMutation.isError && (
-        <p className="text-sm text-red-600">
-          {confirmMutation.error instanceof Error ? confirmMutation.error.message : "Confirm failed"}
-        </p>
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900 shadow-sm dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-300">
+          <p className="font-semibold mb-1">Confirmation Failed</p>
+          <p>
+            {confirmMutation.error instanceof ApiError && confirmMutation.error.status === 409
+              ? "Budget exceeded: Confirming this PO exceeds the allocated budget for one or more accounts. Please review line items or request a budget increase."
+              : confirmMutation.error instanceof Error
+              ? confirmMutation.error.message
+              : "An unexpected error occurred while confirming the purchase order."}
+          </p>
+        </div>
       )}
 
       {createBillMutation.isError && (

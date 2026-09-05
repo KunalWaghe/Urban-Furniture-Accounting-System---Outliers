@@ -251,16 +251,6 @@ export interface PurchaseOrder {
   items: PurchaseOrderItem[];
 }
 
-/** A vendor bill with payment tracking. */
-export interface VendorBill {
-  id: string;
-  bill_number: string;
-  vendor_name: string;
-  due_date: string;
-  amount: number;
-  amount_paid?: number;
-  payment_status: "Unpaid" | "Scheduled" | "Paid" | "Partially Paid";
-}
 
 /** Budget vs actual metrics for a single cost center. */
 export interface BudgetMetric {
