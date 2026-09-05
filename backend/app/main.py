@@ -24,6 +24,7 @@ from app.core.exceptions import (
 )
 from app.models import Base
 from app.services.accounting_service import seed_accounting_defaults
+from app.services.auth_service import ensure_demo_users
 from app.routers import (
     auth_router,
     user_router,
@@ -104,11 +105,12 @@ async def lifespan(app: FastAPI):
                 """))
             conn.commit()
 
-        # Seed default Chart of Accounts and Journals at application startup
+        print("\n--- Seeding demo login accounts on startup ---")
         with SessionLocal() as db:
             seed_accounting_defaults(db)
+            ensure_demo_users(db)
 
-        print("[OK] Database connected, models synchronized, and accounting defaults seeded")
+        print("[OK] Database connected, models synchronized, accounting defaults and demo users seeded")
     except Exception as e:
         print(f"[ERROR] Database connection/startup failed: {e}")
         raise

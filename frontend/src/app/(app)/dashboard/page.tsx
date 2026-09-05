@@ -60,6 +60,8 @@ import { SearchableContactSelect } from "@/components/searchable-contact-select"
 import { PaymentModal } from "@/components/payment-modal";
 import { DashboardKpiCards } from "@/features/dashboard/dashboard-kpi-cards";
 import { Button } from "@/components/ui/button";
+import { DASHBOARD_RECENT_LIMIT } from "@/lib/constants";
+import { formatINR } from "@/lib/format";
 
 function csvValue(value: unknown): string {
   const text = String(value ?? "");
@@ -267,6 +269,21 @@ export default function AppDashboardPage() {
     });
   }, [dateFilteredSalesOrders, salesFilterStatus, salesSearchQuery]);
 
+  const recentSalesOrders = useMemo(
+    () => filteredSalesOrders.slice(0, DASHBOARD_RECENT_LIMIT),
+    [filteredSalesOrders]
+  );
+
+  const recentPurchaseOrders = useMemo(
+    () => dateFilteredPurchaseOrders.slice(0, DASHBOARD_RECENT_LIMIT),
+    [dateFilteredPurchaseOrders]
+  );
+
+  const recentVendorBills = useMemo(
+    () => dateFilteredVendorBills.slice(0, DASHBOARD_RECENT_LIMIT),
+    [dateFilteredVendorBills]
+  );
+
   // Sales Stat Computations
   const salesStats = useMemo(() => {
     const totalCount = dateFilteredSalesOrders.length;
@@ -350,10 +367,7 @@ export default function AppDashboardPage() {
         await queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
         setSelectedPurchaseOrder(null);
         showToast(
-          `Vendor Bill ${newBill.bill_number} created for ${po.vendor_name} ($${newBill.total_amount.toLocaleString(
-            "en-US",
-            { minimumFractionDigits: 2 }
-          )})`
+          `Vendor Bill ${newBill.bill_number} created for ${po.vendor_name} (${formatINR(newBill.total_amount)})`
         );
         setPurchaseActiveTab("bills");
       } catch (err) {
@@ -476,7 +490,7 @@ export default function AppDashboardPage() {
             <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2 text-[11px]">
               <span className="text-text-muted">Total Gross</span>
               <span className="font-semibold text-text font-mono">
-                ${salesStats.totalGross.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                {formatINR(salesStats.totalGross)}
               </span>
             </div>
           </div>
@@ -502,7 +516,7 @@ export default function AppDashboardPage() {
             <div className="mt-2 flex items-center justify-between border-t border-emerald-200/40 pt-2 text-[11px] dark:border-emerald-900/40">
               <span className="text-emerald-700/70 dark:text-emerald-500">Realized Revenue</span>
               <span className="font-semibold text-emerald-800 dark:text-emerald-300 font-mono">
-                ${salesStats.realizedRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                {formatINR(salesStats.realizedRevenue)}
               </span>
             </div>
           </div>
@@ -528,7 +542,7 @@ export default function AppDashboardPage() {
             <div className="mt-2 flex items-center justify-between border-t border-amber-200/40 pt-2 text-[11px] dark:border-amber-900/40">
               <span className="text-amber-700/70 dark:text-amber-500">Pipeline Value</span>
               <span className="font-semibold text-amber-800 dark:text-amber-300 font-mono">
-                ${salesStats.pipelineValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                {formatINR(salesStats.pipelineValue)}
               </span>
             </div>
           </div>
@@ -618,7 +632,7 @@ export default function AppDashboardPage() {
                 Recent Sales Orders
               </span>
               <span className="text-[11px] font-normal text-text-muted">
-                (Click row to inspect order details)
+                (Up to {DASHBOARD_RECENT_LIMIT} most recent · click row for details)
               </span>
             </div>
             <div className="flex items-center gap-2.5 text-xs">
@@ -657,7 +671,7 @@ export default function AppDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border bg-surface">
-                {filteredSalesOrders.map((order) => {
+                {recentSalesOrders.map((order) => {
                   const initials = order.customer_name
                     .split(" ")
                     .map((n) => n[0])
@@ -715,7 +729,7 @@ export default function AppDashboardPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-right font-mono font-bold text-text">
-                        ${order.total_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                        {formatINR(order.total_amount)}
                       </td>
                       <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                         <button
@@ -730,7 +744,7 @@ export default function AppDashboardPage() {
                   );
                 })}
 
-                {filteredSalesOrders.length === 0 && (
+                {recentSalesOrders.length === 0 && (
                   <tr>
                     <td colSpan={7} className="py-8 text-center text-text-muted">
                       No sales orders found matching your filter.
@@ -810,7 +824,7 @@ export default function AppDashboardPage() {
             <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2 text-[11px]">
               <span className="text-text-muted">Total Committed</span>
               <span className="font-semibold text-text font-mono">
-                ${purchaseStats.totalCommitted.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                {formatINR(purchaseStats.totalCommitted)}
               </span>
             </div>
           </div>
@@ -834,7 +848,7 @@ export default function AppDashboardPage() {
             <div className="mt-2 flex items-center justify-between border-t border-blue-200/40 pt-2 text-[11px] dark:border-blue-900/40">
               <span className="text-blue-700/70 dark:text-blue-500">Authorized Payables</span>
               <span className="font-semibold text-blue-800 dark:text-blue-300 font-mono">
-                ${purchaseStats.authorizedPayables.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                {formatINR(purchaseStats.authorizedPayables)}
               </span>
             </div>
           </div>
@@ -860,7 +874,7 @@ export default function AppDashboardPage() {
             <div className="mt-2 flex items-center justify-between border-t border-amber-200/40 pt-2 text-[11px] dark:border-amber-900/40">
               <span className="text-amber-700/70 dark:text-amber-500">Under Review</span>
               <span className="font-semibold text-amber-800 dark:text-amber-300 font-mono">
-                ${purchaseStats.underReview.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                {formatINR(purchaseStats.underReview)}
               </span>
             </div>
           </div>
@@ -879,7 +893,7 @@ export default function AppDashboardPage() {
                 }`}
             >
               <FileText className="h-3.5 w-3.5" />
-              <span>Recent Purchase Orders ({dateFilteredPurchaseOrders.length})</span>
+              <span>Recent Purchase Orders ({recentPurchaseOrders.length})</span>
             </button>
             <button
               type="button"
@@ -891,7 +905,7 @@ export default function AppDashboardPage() {
                 }`}
             >
               <Receipt className="h-3.5 w-3.5" />
-              <span>Vendor Bills ({dateFilteredVendorBills.length})</span>
+              <span>Vendor Bills ({recentVendorBills.length})</span>
             </button>
           </div>
 
@@ -922,7 +936,7 @@ export default function AppDashboardPage() {
                 </span>
               </div>
               <span className="text-xs text-text-muted">
-                {dateFilteredPurchaseOrders.length} orders pending action
+                Showing {recentPurchaseOrders.length} most recent orders
               </span>
             </div>
 
@@ -945,7 +959,7 @@ export default function AppDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border bg-surface">
-                  {dateFilteredPurchaseOrders.map((po) => {
+                  {recentPurchaseOrders.map((po) => {
                     const initials = po.vendor_name
                       .split(" ")
                       .map((n) => n[0])
@@ -995,7 +1009,7 @@ export default function AppDashboardPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-right font-mono font-bold text-text">
-                          ${po.total_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          {formatINR(po.total_amount)}
                         </td>
                         <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1.5">
@@ -1038,10 +1052,7 @@ export default function AppDashboardPage() {
                 </span>
               </div>
               <span className="font-mono text-xs text-text-muted">
-                Total Payables: $
-                {dateFilteredVendorBills
-                  .reduce((sum, b) => sum + b.amount, 0)
-                  .toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                Total Payables: {formatINR(recentVendorBills.reduce((sum, b) => sum + b.amount, 0))}
               </span>
             </div>
 
@@ -1059,7 +1070,7 @@ export default function AppDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border bg-surface">
-                  {dateFilteredVendorBills.map((bill) => (
+                  {recentVendorBills.map((bill) => (
                     <tr
                       key={bill.id}
                       className="transition-colors hover:bg-surface-muted/70"
@@ -1070,10 +1081,10 @@ export default function AppDashboardPage() {
                       <td className="px-4 py-3 font-medium text-text">{bill.vendor_name}</td>
                       <td className="px-4 py-3 font-mono text-text-muted">{bill.due_date}</td>
                       <td className="px-4 py-3 text-right font-mono font-bold text-text">
-                        ${bill.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                        {formatINR(bill.amount)}
                       </td>
                       <td className="px-4 py-3 text-right font-mono font-medium text-emerald-600 dark:text-emerald-400">
-                        ${(bill.amount_paid ?? (bill.payment_status === "Paid" ? bill.amount : 0)).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                        {formatINR(bill.amount_paid ?? (bill.payment_status === "Paid" ? bill.amount : 0))}
                       </td>
                       <td className="px-4 py-3">
                         {bill.payment_status === "Unpaid" && (
@@ -1215,7 +1226,7 @@ export default function AppDashboardPage() {
                   {budgetMetric.budget_count}
                 </span>
                 <span className="text-xs font-bold text-blue-600 dark:text-blue-500">
-                  ${budgetMetric.budget_cap.toLocaleString("en-US")}
+                  {formatINR(budgetMetric.budget_cap)}
                 </span>
               </div>
               <div className="mt-2 flex items-center justify-between border-t border-blue-200/40 pt-2 text-[11px] dark:border-blue-900/40">
@@ -1239,7 +1250,7 @@ export default function AppDashboardPage() {
                   {budgetMetric.committed_count}
                 </span>
                 <span className="text-xs font-bold text-text-muted">
-                  ${budgetMetric.committed_amount.toLocaleString("en-US")}
+                  {formatINR(budgetMetric.committed_amount)}
                 </span>
               </div>
               <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2 text-[11px]">
@@ -1259,7 +1270,7 @@ export default function AppDashboardPage() {
                 </span>
               </span>
               <span className="font-mono text-xs font-medium text-text-muted">
-                Committed: ${(budgetMetric.committed_amount / 1000).toFixed(1)}k / Cap: $
+                Committed: ₹{(budgetMetric.committed_amount / 1000).toFixed(1)}k / Cap: ₹
                 {(budgetMetric.budget_cap / 1000).toFixed(1)}k ({budgetMetric.committed_percent}%)
               </span>
             </div>
@@ -1408,10 +1419,10 @@ export default function AppDashboardPage() {
                             {item.quantity}
                           </td>
                           <td className="px-3 py-2.5 text-right font-mono">
-                            ${item.unit_price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                            {formatINR(item.unit_price)}
                           </td>
                           <td className="px-3 py-2.5 text-right font-mono font-bold text-text">
-                            ${item.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                            {formatINR(item.total)}
                           </td>
                         </tr>
                       ))}
@@ -1428,7 +1439,7 @@ export default function AppDashboardPage() {
                 <div className="text-right">
                   <span className="text-xs text-text-muted">Total Order Amount: </span>
                   <span className="text-base font-bold text-text font-mono">
-                    ${selectedSalesOrder.total_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    {formatINR(selectedSalesOrder.total_amount)}
                   </span>
                 </div>
               </div>
@@ -1547,10 +1558,10 @@ export default function AppDashboardPage() {
                             {item.quantity}
                           </td>
                           <td className="px-3 py-2.5 text-right font-mono">
-                            ${item.unit_cost.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                            {formatINR(item.unit_cost)}
                           </td>
                           <td className="px-3 py-2.5 text-right font-mono font-bold text-text">
-                            ${item.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                            {formatINR(item.total)}
                           </td>
                         </tr>
                       ))}
@@ -1566,7 +1577,7 @@ export default function AppDashboardPage() {
                 <div className="text-right">
                   <span className="text-xs text-text-muted">Total Order Cost: </span>
                   <span className="text-base font-bold text-text font-mono">
-                    ${selectedPurchaseOrder.total_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    {formatINR(selectedPurchaseOrder.total_amount)}
                   </span>
                 </div>
               </div>
@@ -1639,9 +1650,7 @@ export default function AppDashboardPage() {
           }
           onSuccess={(payment) => {
             showToast(
-              `Payment ${payment.payment_number} ($${payment.amount.toFixed(
-                2
-              )}) recorded for Bill ${selectedBillForPayment.bill_number}! Journal Entry auto-posted.`
+              `Payment ${payment.payment_number} (${formatINR(payment.amount)}) recorded for Bill ${selectedBillForPayment.bill_number}! Journal Entry auto-posted.`
             );
             refetchAll();
             queryClient.invalidateQueries({ queryKey: ["vendor-bills"] });
@@ -1794,7 +1803,7 @@ function CreateSalesOrderModal({
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name} — ${Number(p.price).toFixed(2)} ({p.category || "Furniture"})
+                  {p.name} — {formatINR(Number(p.price))} ({p.category || "Furniture"})
                 </option>
               ))}
             </select>
@@ -1830,15 +1839,15 @@ function CreateSalesOrderModal({
           <div className="rounded-xl bg-surface-muted p-3 space-y-1 text-text-muted">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span className="font-mono text-text">${subtotal.toFixed(2)}</span>
+              <span className="font-mono text-text">{formatINR(subtotal)}</span>
             </div>
             <div className="flex justify-between">
               <span>Tax ({taxPercent}%):</span>
-              <span className="font-mono text-text">${(totalAmount - subtotal).toFixed(2)}</span>
+              <span className="font-mono text-text">{formatINR(totalAmount - subtotal)}</span>
             </div>
             <div className="flex justify-between border-t border-border pt-1 font-bold text-text">
               <span>Total Gross:</span>
-              <span className="font-mono text-primary-600">${totalAmount.toFixed(2)}</span>
+              <span className="font-mono text-primary-600">{formatINR(totalAmount)}</span>
             </div>
           </div>
 
@@ -2027,7 +2036,7 @@ function CreatePurchaseOrderModal({
               >
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name} {p.category ? `(${p.category})` : ""} - ₹{(p.cost ?? p.price).toLocaleString("en-IN")}
+                    {p.name} {p.category ? `(${p.category})` : ""} — {formatINR(p.cost ?? p.price)}
                   </option>
                 ))}
               </select>
@@ -2065,7 +2074,7 @@ function CreatePurchaseOrderModal({
           <div className="rounded-xl bg-surface-muted p-3 flex justify-between font-bold text-text">
             <span>Total Committed PO Cost:</span>
             <span className="font-mono text-indigo-600">
-              ₹{totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+              {formatINR(totalAmount)}
             </span>
           </div>
 

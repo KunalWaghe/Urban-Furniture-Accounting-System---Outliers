@@ -41,45 +41,20 @@ from app.schemas.purchase_order import POCreate, POLineCreate
 from app.schemas.sales_order import SOCreate, SOLineCreate
 from app.schemas.budget import BudgetCreate
 from app.core.security import hash_password
+from app.services import auth_service
 
 
 def seed_users(db):
-    """Seed demo admin and accountant accounts."""
-    users_data = [
-        {
-            "login_id": "admin",
-            "email": "admin@urbanfurniture.com",
-            "name": "System Administrator",
-            "role": "admin",
-            "password_hash": hash_password("Admin@123"),
-            "is_active": True,
-        },
-        {
-            "login_id": "admin001",
-            "email": "admin001@urbanfurniture.com",
-            "name": "System Administrator",
-            "role": "admin",
-            "password_hash": hash_password("Admin@123"),
-            "is_active": True,
-        },
-        {
-            "login_id": "accountant",
-            "email": "accountant@urbanfurniture.com",
-            "name": "Senior Accountant",
-            "role": "invoicing_user",
-            "password_hash": hash_password("Accountant@123"),
-            "is_active": True,
-        },
-    ]
+    """
+    Seed demo admin and accountant accounts.
 
-    for ud in users_data:
-        user = db.query(User).filter(User.email == ud["email"]).first()
-        if not user:
-            db.add(User(**ud))
-        else:
-            for k, v in ud.items():
-                setattr(user, k, v)
-    db.commit()
+    Canonical demo credentials (same list used on backend startup):
+    - login_id: admin      | password: Admin@123      | role: admin
+    - login_id: admin001   | password: Admin@123      | role: admin
+    - login_id: accountant | password: Accountant@123 | role: invoicing_user
+    """
+    print("\n--- Seeding demo login accounts ---")
+    auth_service.ensure_demo_users(db)
 
 
 def seed_contacts_and_products(db):

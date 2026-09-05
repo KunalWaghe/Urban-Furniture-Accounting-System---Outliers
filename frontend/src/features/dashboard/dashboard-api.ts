@@ -13,6 +13,7 @@ import {
   type VendorBill as ApiVendorBill,
 } from "@/features/vendor-bills/vendor-bills-api";
 import { apiFetch } from "@/lib/api";
+import { DASHBOARD_RECENT_LIMIT } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
 import type {
   Contact,
@@ -64,7 +65,7 @@ export async function fetchDashboardJournals(): Promise<Journal[]> {
 /** Fetch recent sales orders from the live API. */
 export async function fetchDashboardSalesOrders(): Promise<SalesOrder[]> {
   const { orders } = await fetchSalesOrdersPage({
-    limit: 100,
+    limit: DASHBOARD_RECENT_LIMIT,
     sort_by: "created_at",
     sort_order: "desc",
   });
@@ -74,7 +75,7 @@ export async function fetchDashboardSalesOrders(): Promise<SalesOrder[]> {
 /** Fetch recent purchase orders from the backend API. */
 export async function fetchDashboardPurchaseOrders(): Promise<PurchaseOrder[]> {
   const { orders } = await fetchPurchaseOrdersPage({
-    limit: 100,
+    limit: DASHBOARD_RECENT_LIMIT,
     sort_by: "created_at",
     sort_order: "desc",
   });
@@ -84,7 +85,7 @@ export async function fetchDashboardPurchaseOrders(): Promise<PurchaseOrder[]> {
 /** Fetch recent vendor bills from the backend API. */
 export async function fetchDashboardVendorBills(): Promise<ApiVendorBill[]> {
   const res = await fetchVendorBillsPage({
-    limit: 100,
+    limit: DASHBOARD_RECENT_LIMIT,
     sort_by: "created_at",
     sort_order: "desc",
   });

@@ -395,6 +395,9 @@ export const API_CONSTANTS = {
   RETRY_DELAY: 1000, // 1 second
 } as const;
 
+/** Max recent records shown on dashboard sales/purchase cards. */
+export const DASHBOARD_RECENT_LIMIT = 5;
+
 // ============================================================================
 // Query Keys
 // ============================================================================

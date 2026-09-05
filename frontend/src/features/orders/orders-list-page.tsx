@@ -32,6 +32,7 @@ import {
 
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { formatINR } from "@/lib/format";
 import { usePaginatedPurchaseOrders, useSalesOrders } from "./queries";
 import type { PurchaseOrder, SalesOrder } from "@/lib/types";
 
@@ -43,14 +44,6 @@ interface OrdersListPageProps {
 }
 
 const PAGE_SIZE = 10;
-
-/** Formats a number as USD (sales) or INR (purchase). */
-function currency(value: number, isPurchase = false) {
-  if (isPurchase) {
-    return `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
-  }
-  return `$${value.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
-}
 
 /** Type guard: sales orders have `order_number`, purchase orders have `po_number`. */
 function isSalesOrder(order: Order): order is SalesOrder {
@@ -256,7 +249,7 @@ export function OrdersListPage({ kind }: OrdersListPageProps) {
           )}
           <div className="rounded-xl border border-border bg-surface px-4 py-3 text-right shadow-sm">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">Total order value</p>
-            <p className="mt-1 font-mono text-lg font-bold text-text">{currency(totalValue, !isSales)}</p>
+            <p className="mt-1 font-mono text-lg font-bold text-text">{formatINR(totalValue)}</p>
           </div>
         </div>
       </div>
@@ -429,7 +422,7 @@ export function OrdersListPage({ kind }: OrdersListPageProps) {
                         <td className="px-5 py-4 font-medium text-text">{partner}</td>
                         <td className="whitespace-nowrap px-5 py-4 text-text-muted">{date}</td>
                         <td className="px-5 py-4"><OrderStatus status={order.status} /></td>
-                        <td className="whitespace-nowrap px-5 py-4 text-right font-mono font-semibold text-text">{currency(order.total_amount, !isSales)}</td>
+                        <td className="whitespace-nowrap px-5 py-4 text-right font-mono font-semibold text-text">{formatINR(order.total_amount)}</td>
                         <td className="px-5 py-4 text-right">
                           {isSales ? (
                             <button
@@ -584,14 +577,14 @@ function OrderDetails({
                       )}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right text-text-muted">{item.quantity}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono font-semibold text-text">{currency(item.total, isPurchase)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono font-semibold text-text">{formatINR(item.total)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
             <div className="flex items-center justify-between border-t border-border bg-surface-muted/60 px-4 py-3 text-sm font-semibold">
               <span>Total amount</span>
-              <span className="font-mono">{currency(order.total_amount, isPurchase)}</span>
+              <span className="font-mono">{formatINR(order.total_amount)}</span>
             </div>
           </div>
         </div>

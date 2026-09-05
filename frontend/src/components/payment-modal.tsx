@@ -265,7 +265,7 @@ export function PaymentModal({
               Automated Double-Entry Posting:
             </p>
             <p className="mt-0.5 text-indigo-700/90 dark:text-indigo-400/90">
-              Dr 2010 Accounts Payable · Cr {paymentMethod === "bank" ? "1020 Bank Account" : "1010 Cash"} (${numAmount > 0 ? numAmount.toFixed(2) : "0.00"})
+              Dr 2010 Accounts Payable · Cr {paymentMethod === "bank" ? "1020 Bank Account" : "1010 Cash"} ({formatINR(numAmount > 0 ? numAmount : 0)})
             </p>
           </div>
 

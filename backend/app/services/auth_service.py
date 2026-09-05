@@ -23,6 +23,79 @@ ROLE_MAP = {
     "contact": "contact",
 }
 
+RESERVED_LOGIN_IDS = frozenset({"admin", "admin001", "administrator", "accountant"})
+
+DEMO_USERS = (
+    {
+        "login_id": "admin",
+        "email": "admin@urbanfurniture.com",
+        "name": "System Administrator",
+        "role": "admin",
+        "password": "Admin@123",
+    },
+    {
+        "login_id": "admin001",
+        "email": "admin001@urbanfurniture.com",
+        "name": "System Administrator",
+        "role": "admin",
+        "password": "Admin@123",
+    },
+    {
+        "login_id": "accountant",
+        "email": "accountant@urbanfurniture.com",
+        "name": "Senior Accountant",
+        "role": "invoicing_user",
+        "password": "Accountant@123",
+    },
+)
+
+
+def ensure_demo_users(db: Session) -> None:
+    """
+    Guarantee canonical demo login accounts exist with expected roles and passwords.
+
+    Upserts by login_id first, then email, so `admin` / `Admin@123` keeps working
+    even if prior tests or manual edits changed login_id or password_hash.
+    """
+    for demo in DEMO_USERS:
+        login_id = demo["login_id"]
+        email = demo["email"]
+
+        user = db.query(User).filter(User.login_id == login_id).first()
+        if not user:
+            user = db.query(User).filter(User.email == email).first()
+
+        conflict = (
+            db.query(User)
+            .filter(User.login_id == login_id, User.id != (user.id if user else -1))
+            .first()
+        )
+        if conflict:
+            conflict.login_id = f"{conflict.login_id}_legacy_{conflict.id}"
+
+        if not user:
+            user = User(
+                login_id=login_id,
+                email=email,
+                name=demo["name"],
+                role=demo["role"],
+                password_hash=hash_password(demo["password"]),
+                is_active=True,
+            )
+            db.add(user)
+            print(f"  [SEEDED USER] login_id={login_id} role={demo['role']} password={demo['password']}")
+            continue
+
+        user.login_id = login_id
+        user.email = email
+        user.name = demo["name"]
+        user.role = demo["role"]
+        user.password_hash = hash_password(demo["password"])
+        user.is_active = True
+        print(f"  [SEEDED USER] login_id={login_id} role={demo['role']} password={demo['password']}")
+
+    db.commit()
+
 
 def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
     """Register a new user with unique Login ID and Email (Public signup creates contact/portal role)."""
@@ -37,6 +110,13 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
             )
 
     assigned_role = "contact"
+
+    normalized_login_id = req.login_id.strip().lower()
+    if normalized_login_id in RESERVED_LOGIN_IDS:
+        raise ConflictException(
+            code="LOGIN_ID_RESERVED",
+            message=f"Login ID '{req.login_id}' is reserved and cannot be used for public signup",
+        )
 
     # 1. Check if Login ID is already taken
     existing_login = db.query(User).filter(User.login_id == req.login_id).first()
