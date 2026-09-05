@@ -28,25 +28,65 @@ import type {
   SalesOrder,
   PurchaseOrder,
   VendorBill,
-  BudgetMetric,
 } from "@/lib/types";
+import { buildDashboardDataFromBackend } from "@/features/dashboard/dashboard-api";
+import { useContacts, useProducts } from "@/features/dashboard/queries";
+import { useQueryClient } from "@tanstack/react-query";
 import {
-  fetchDashboardContacts,
-  fetchDashboardProducts,
-  buildDashboardDataFromBackend,
-} from "@/features/dashboard/dashboard-api";
+  createPurchaseOrder,
+  confirmPurchaseOrder,
+} from "@/features/purchase-orders/purchase-orders-api";
 
 export default function AppDashboardPage() {
-  // Backend Data State
-  const [loading, setLoading] = useState(true);
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const queryClient = useQueryClient();
+  // Backend master data from the TanStack Query server cache
+  const {
+    data: contactsData,
+    isLoading: contactsLoading,
+    refetch: refetchContacts,
+  } = useContacts();
+  const {
+    data: productsData,
+    isLoading: productsLoading,
+    refetch: refetchProducts,
+  } = useProducts();
 
-  // Dashboard Entity State
-  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>([]);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
-  const [vendorBills, setVendorBills] = useState<VendorBill[]>([]);
-  const [budgetMetric, setBudgetMetric] = useState<BudgetMetric | null>(null);
+  const contacts = useMemo(() => contactsData ?? [], [contactsData]);
+  const products = useMemo(() => productsData ?? [], [productsData]);
+  const loading = contactsLoading || productsLoading;
+
+  // Server-derived demo entities (no backend order endpoints yet)
+  const baseData = useMemo(
+    () => (loading ? null : buildDashboardDataFromBackend(contacts, products)),
+    [loading, contacts, products]
+  );
+
+  // Local client-side additions layered on top of the server-derived base.
+  // Creating orders/bills or converting a PO only touches these lists, so a
+  // background refetch never wipes what the user just created.
+  const [createdOrders, setCreatedOrders] = useState<SalesOrder[]>([]);
+  const [createdPOs, setCreatedPOs] = useState<PurchaseOrder[]>([]);
+  const [createdBills, setCreatedBills] = useState<VendorBill[]>([]);
+  const [billedPoIds, setBilledPoIds] = useState<Record<string, true>>({});
+
+  const salesOrders = useMemo(
+    () => [...createdOrders, ...(baseData?.salesOrders ?? [])],
+    [createdOrders, baseData]
+  );
+  const purchaseOrders = useMemo(
+    () => [
+      ...createdPOs,
+      ...(baseData?.purchaseOrders ?? []).map((po) =>
+        billedPoIds[po.id] ? { ...po, status: "Partially Billed" as const } : po
+      ),
+    ],
+    [createdPOs, baseData, billedPoIds]
+  );
+  const vendorBills = useMemo(
+    () => [...createdBills, ...(baseData?.vendorBills ?? [])],
+    [createdBills, baseData]
+  );
+  const budgetMetric = baseData?.budgetMetric ?? null;
 
   // Filter & View States
   const [salesFilterStatus, setSalesFilterStatus] = useState<string>("all");
@@ -71,76 +111,21 @@ export default function AppDashboardPage() {
     }, 4000);
   }, []);
 
-  // Refresh backend master data on demand
+  // Refresh backend master data on demand: revalidate the server cache and
+  // clear local additions so the dashboard reflects fresh server data.
   const handleRefresh = useCallback(async () => {
-    setLoading(true);
     try {
-      const [fetchedContacts, fetchedProducts] = await Promise.all([
-        fetchDashboardContacts(),
-        fetchDashboardProducts(),
-      ]);
-
-      setContacts(fetchedContacts);
-      setProducts(fetchedProducts);
-
-      const dashboardData = buildDashboardDataFromBackend(
-        fetchedContacts,
-        fetchedProducts
-      );
-
-      setSalesOrders(dashboardData.salesOrders);
-      setPurchaseOrders(dashboardData.purchaseOrders);
-      setVendorBills(dashboardData.vendorBills);
-      setBudgetMetric(dashboardData.budgetMetric);
+      await Promise.all([refetchContacts(), refetchProducts()]);
+      setCreatedOrders([]);
+      setCreatedPOs([]);
+      setCreatedBills([]);
+      setBilledPoIds({});
       showToast("Backend data refreshed successfully.");
     } catch (err) {
       console.error("Failed to refresh dashboard data:", err);
       showToast("Could not sync with backend. Using cached domain models.");
-    } finally {
-      setLoading(false);
     }
-  }, [showToast]);
-
-  // Initial data loading on mount
-  useEffect(() => {
-    let ignore = false;
-    async function init() {
-      try {
-        const [fetchedContacts, fetchedProducts] = await Promise.all([
-          fetchDashboardContacts(),
-          fetchDashboardProducts(),
-        ]);
-
-        if (ignore) return;
-        setContacts(fetchedContacts);
-        setProducts(fetchedProducts);
-
-        const dashboardData = buildDashboardDataFromBackend(
-          fetchedContacts,
-          fetchedProducts
-        );
-
-        setSalesOrders(dashboardData.salesOrders);
-        setPurchaseOrders(dashboardData.purchaseOrders);
-        setVendorBills(dashboardData.vendorBills);
-        setBudgetMetric(dashboardData.budgetMetric);
-      } catch (err) {
-        if (!ignore) {
-          console.error("Failed to load dashboard data:", err);
-          showToast("Could not sync with backend. Using cached domain models.");
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void init();
-    return () => {
-      ignore = true;
-    };
-  }, [showToast]);
+  }, [refetchContacts, refetchProducts, showToast]);
 
   // Keyboard shortcut ESC to close modals
   useEffect(() => {
@@ -299,12 +284,8 @@ export default function AppDashboardPage() {
       payment_status: "Unpaid",
     };
 
-    setVendorBills((prev) => [newBill, ...prev]);
-    setPurchaseOrders((prev) =>
-      prev.map((p) =>
-        p.id === po.id ? { ...p, status: "Partially Billed" } : p
-      )
-    );
+    setCreatedBills((prev) => [newBill, ...prev]);
+    setBilledPoIds((prev) => ({ ...prev, [po.id]: true }));
     setSelectedPurchaseOrder(null);
     showToast(
       `Vendor Bill ${newBillNumber} created for ${po.vendor_name} ($${po.total_amount.toLocaleString(
@@ -1496,7 +1477,7 @@ export default function AppDashboardPage() {
           products={products}
           onClose={() => setIsCreateOrderModalOpen(false)}
           onCreate={(newOrder) => {
-            setSalesOrders((prev) => [newOrder, ...prev]);
+            setCreatedOrders((prev) => [newOrder, ...prev]);
             setIsCreateOrderModalOpen(false);
             showToast(`Sales Order ${newOrder.order_number} created successfully for ${newOrder.customer_name}!`);
           }}
@@ -1512,7 +1493,9 @@ export default function AppDashboardPage() {
           products={products}
           onClose={() => setIsCreatePOModalOpen(false)}
           onCreate={(newPO) => {
-            setPurchaseOrders((prev) => [newPO, ...prev]);
+            setCreatedPOs((prev) => [newPO, ...prev]);
+            queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+            queryClient.invalidateQueries({ queryKey: ["purchase-orders-paged"] });
             setIsCreatePOModalOpen(false);
             showToast(`Purchase Order ${newPO.po_number} created successfully for ${newPO.vendor_name}!`);
           }}
@@ -1714,49 +1697,103 @@ function CreatePurchaseOrderModal({
   onCreate: (po: PurchaseOrder) => void;
 }) {
   const [selectedVendorId, setSelectedVendorId] = useState<number>(
-    vendors[0]?.id || 1
+    vendors[0]?.id || 0
   );
-  const [materialDescription, setMaterialDescription] = useState<string>(
-    "Kiln-Dried Teak Wood Planks"
+  const [selectedProductId, setSelectedProductId] = useState<number>(
+    products[0]?.id || 0
   );
   const [quantity, setQuantity] = useState<number>(10);
-  const [unitCost, setUnitCost] = useState<number>(2400);
+  const [unitCost, setUnitCost] = useState<number>(
+    products[0]?.cost ?? products[0]?.price ?? 2400
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Sync if vendors or products populate after initial render
+  useEffect(() => {
+    if (!selectedVendorId && vendors.length > 0) {
+      setSelectedVendorId(vendors[0].id);
+    }
+  }, [vendors, selectedVendorId]);
+
+  useEffect(() => {
+    if (!selectedProductId && products.length > 0) {
+      setSelectedProductId(products[0].id);
+      setUnitCost(products[0].cost ?? products[0].price ?? 2400);
+    }
+  }, [products, selectedProductId]);
 
   const vendor = vendors.find((v) => v.id === selectedVendorId) || vendors[0];
+  const product = products.find((p) => p.id === selectedProductId) || products[0];
   const totalAmount = quantity * unitCost;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleProductChange = (productId: number) => {
+    setSelectedProductId(productId);
+    const prod = products.find((p) => p.id === productId);
+    if (prod) {
+      setUnitCost(prod.cost ?? prod.price ?? 0);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!vendor) return;
+    if (!vendor) {
+      setError("Please select a vendor.");
+      return;
+    }
+    if (!product) {
+      setError("Please select a product.");
+      return;
+    }
+    if (quantity <= 0) {
+      setError("Quantity must be at least 1.");
+      return;
+    }
+    if (unitCost < 0) {
+      setError("Unit cost cannot be negative.");
+      return;
+    }
 
-    const locationStr = [vendor.city, vendor.state].filter(Boolean).join(", ") || "India Supply Depot";
+    setSubmitting(true);
+    setError(null);
 
-    const newPO: PurchaseOrder = {
-      id: `po-${Date.now()}`,
-      po_number: `PO-2025-0${Math.floor(90 + Math.random() * 50)}`,
-      vendor_id: vendor.id,
-      vendor_name: vendor.name,
-      vendor_location: locationStr,
-      vendor_email: vendor.email || "supply@vendor.com",
-      po_date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      status: "Confirmed",
-      total_amount: totalAmount,
-      items: [
-        {
-          product_name: materialDescription,
-          category: "Lumber & Hardware",
-          quantity,
-          unit_cost: unitCost,
-          total: totalAmount,
-        },
-      ],
-    };
+    try {
+      const created = await createPurchaseOrder({
+        vendor_id: vendor.id,
+        lines: [
+          {
+            product_id: product.id,
+            quantity,
+            unit_price: unitCost,
+          },
+        ],
+      });
 
-    onCreate(newPO);
+      // Confirm the PO so it is in Confirmed status, matching issued state
+      let finalPO = created;
+      try {
+        finalPO = await confirmPurchaseOrder(Number(created.id));
+      } catch (confirmErr) {
+        console.warn("Could not confirm PO, saved as draft:", confirmErr);
+      }
+
+      // Enrich vendor contact details for dashboard UI display
+      const locationStr =
+        [vendor.city, vendor.state].filter(Boolean).join(", ") || "India Supply Depot";
+      finalPO = {
+        ...finalPO,
+        vendor_location: locationStr,
+        vendor_email: vendor.email || "supply@vendor.com",
+      };
+
+      onCreate(finalPO);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to create purchase order on server."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -1775,58 +1812,58 @@ function CreatePurchaseOrderModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text"
+            disabled={submitting}
+            className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text disabled:opacity-50"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
+        {error && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-xs">
           <div>
             <label className="block font-semibold text-text mb-1">Vendor (from Backend DB)</label>
-            <select
-              value={selectedVendorId}
-              onChange={(e) => setSelectedVendorId(Number(e.target.value))}
-              className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-            >
-              {vendors.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.name} {v.city ? `(${v.city}, ${v.state || ""})` : ""}
-                </option>
-              ))}
-            </select>
+            {vendors.length > 0 ? (
+              <select
+                value={selectedVendorId}
+                onChange={(e) => setSelectedVendorId(Number(e.target.value))}
+                disabled={submitting}
+                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
+              >
+                {vendors.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} {v.city ? `(${v.city}, ${v.state || ""})` : ""}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-xs text-amber-600">No active vendors found in database.</p>
+            )}
           </div>
 
           <div>
-            <label className="block font-semibold text-text mb-1">Raw Material / Component</label>
-            <select
-              value={materialDescription}
-              onChange={(e) => {
-                const val = e.target.value;
-                setMaterialDescription(val);
-                const matched = products.find((p) => p.name === val);
-                if (matched) {
-                  setUnitCost(matched.cost ?? matched.price);
-                }
-              }}
-              className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-            >
-              {products.length > 0 ? (
-                products.map((p) => (
-                  <option key={p.id} value={p.name}>
-                    {p.name} {p.category ? `(${p.category})` : ""} - ₹{p.cost ?? p.price}
+            <label className="block font-semibold text-text mb-1">Raw Material / Product</label>
+            {products.length > 0 ? (
+              <select
+                value={selectedProductId}
+                onChange={(e) => handleProductChange(Number(e.target.value))}
+                disabled={submitting}
+                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
+              >
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} {p.category ? `(${p.category})` : ""} - ₹{(p.cost ?? p.price).toLocaleString("en-IN")}
                   </option>
-                ))
-              ) : (
-                <>
-                  <option value="Kiln-Dried Teak Wood Planks">Kiln-Dried Teak Wood Planks (Timber)</option>
-                  <option value="Oak Veneer Sheets (Grade A)">Oak Veneer Sheets (Grade A)</option>
-                  <option value="Heavy-Duty Ergonomic Casters & Gas Lifts">Heavy-Duty Ergonomic Casters &amp; Gas Lifts</option>
-                  <option value="High-Density Polyurethane Foam Cushions">High-Density Polyurethane Foam Cushions</option>
-                  <option value="Stainless Steel Assembly Fasteners">Stainless Steel Assembly Fasteners</option>
-                </>
-              )}
-            </select>
+                ))}
+              </select>
+            ) : (
+              <p className="text-xs text-amber-600">No active products found in database.</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -1837,39 +1874,53 @@ function CreatePurchaseOrderModal({
                 min="1"
                 value={quantity}
                 onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                disabled={submitting}
+                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block font-semibold text-text mb-1">Unit Cost ($)</label>
+              <label className="block font-semibold text-text mb-1">Unit Cost (₹)</label>
               <input
                 type="number"
-                min="1"
+                min="0"
+                step="any"
                 value={unitCost}
-                onChange={(e) => setUnitCost(Math.max(1, Number(e.target.value)))}
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                onChange={(e) => setUnitCost(Math.max(0, Number(e.target.value)))}
+                disabled={submitting}
+                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
               />
             </div>
           </div>
 
           <div className="rounded-xl bg-surface-muted p-3 flex justify-between font-bold text-text">
             <span>Total Committed PO Cost:</span>
-            <span className="font-mono text-indigo-600">${totalAmount.toFixed(2)}</span>
+            <span className="font-mono text-indigo-600">
+              ₹{totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+            </span>
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-border px-4 py-2 text-text-muted hover:bg-surface-muted hover:text-text transition-colors"
+              disabled={submitting}
+              className="rounded-xl border border-border px-4 py-2 text-text-muted hover:bg-surface-muted hover:text-text transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700 transition-colors shadow-sm"
+              disabled={submitting || vendors.length === 0 || products.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Issue Purchase Order
+              {submitting ? (
+                <>
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                  <span>Issuing PO...</span>
+                </>
+              ) : (
+                <span>Issue Purchase Order</span>
+              )}
             </button>
           </div>
         </form>

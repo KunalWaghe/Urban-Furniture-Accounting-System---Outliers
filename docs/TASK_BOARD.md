@@ -1,198 +1,171 @@
-# Live Task Board — Sourabh + Kunal
-## Urban Furniture Accounting System
-
-This is the team's execution source of truth. Every task is atomic (15–60 mins) with clear ownership, acceptance criteria, and dependencies.
-
-**How to use:** every task is a tickbox. When a task is done, tick it (`- [x]`) and move it to the **DONE** list at the top. Completed tasks always show on top. Within every section, tasks are grouped **Backend → Frontend → Integration**.
-
-**Last updated:** 5 September 2026, 6:15 PM — Master data views detailed (List, Form, Kanban for Contacts, Products, Journals, Chart of Accounts); Task board reconciled
-**Current phase/gate:** 10:00 AM — Foundation & First Vertical Slice  
-**Stable URL:** http://localhost:3000 (dev)  
-**Stable commit/tag:** `a03511e` on `feat/auth`  
+# Urban Furniture Accounting System — Master Task List
+> **Ground source of truth.** Frontend: Sourabh · Backend: Kunal · Integration: Both
+> Last synced: 5 Sep 2026, 7:55 PM IST
 
 ---
 
-## Board Rules
+## Step 1 — Scaffold & Auth ✅ COMPLETE
 
-1. One task per person in **NOW**. Do not start a third stream.
-2. A task should take 15–60 minutes; split anything estimated above 90 minutes.
-3. P0 blockers and integration always outrank P1 and Bonus.
-4. Frontend works from the locked API contract; backend implements the same contract.
-5. A task is **DONE** only with evidence: commit, test result, endpoint response, or verified UI.
-6. If blocked for 10 minutes, switch to the agreed mock/adapter or the next unblocked task.
-7. Contract, schema, auth, migration, and deployment changes require a sync and doc update.
-8. Update this board at each task completion, hourly sync, and integration gate — tick the box and move the task to **DONE** (top of board, newest first within its group).
+- [x] 1.1 · BE · FastAPI scaffold, PostgreSQL connection, `/health` route (P0-BE-01)
+- [x] 1.2 · FE · Next.js 16 + Tailwind 4 + shadcn shell, QueryProvider, AuthProvider (P0-FE-01)
+- [x] 1.3 · BE · User model, JWT register/login/me, RBAC dependency (P0-BE-02R)
+- [x] 1.4 · FE · Login & Signup pages wired to live API, role-gated routing (P0-FE-02R)
+- [x] 1.5 · INT · Auth handshake verified end-to-end, role gates enforced (P0-INT-01)
 
 ---
 
-## Status Legend
+## Step 2 — Master Data APIs ✅ COMPLETE
 
-- `- [x]` — **DONE**: integrated and supported by evidence; lives in the DONE list at the top.
-- `- [ ]` — open; the section it sits in gives its status:
-  - `NOW` — actively being worked on (max 1 per person).
-  - `NEXT` / `BACKLOG` — queued in priority order.
-  - `IN REVIEW` — implementation complete; awaiting teammate review/integration.
-  - `BLOCKED` — cannot progress; blocker and fallback must be recorded.
-  - `CUT` — deliberately removed from event scope with a reason.
+- [x] 2.1 · BE · Contact & Product models + CRUD endpoints (P0-BE-03)
+- [x] 2.2 · BE · Chart of Accounts & Journals seed + list endpoints (P0-BE-04)
 
 ---
 
-## DONE — completed (newest first within each group)
+## Step 3 — Dashboard & Navigation Shell 🔲 NEXT
 
-### Integration
-
-- [x] **P0-INT-01** — Integrate Auth handshake and role gates · Both · 5 Sep, 4:00 PM — Evidence: Full live handshake script `test_live_handshake.py` verified; public signup strictly creates `invoicing_user` (Accountant) with privilege escalation protection (422); Admin `/admin/users` route protected with `RequireRole` (403 Access Denied UI for non-admin, badge & sidebar role filtering); logout clears session completely and redirects to `/login`; Next.js production build and FastAPI tests green · Integrated & Verified
-
-### Backend
-
-- [x] **P0-BE-06** — Vendor Bill creation + auto Journal Entry logic · Kunal · 5 Sep, 4:35 PM — Evidence: `tests/test_vendor_bills.py` PASSED (5/5 tests passed; VendorBill BILL-0001 created, balanced Journal Entry JE-0001 posted with Debit Purchase Expense 5010 / Credit Accounts Payable 2010; status updated to 'billed'; 409 conflict and 422 status guards verified; 19/19 full backend suite passed) · Integrated & Verified
-- [x] **P0-BE-05** — Purchase Order model & create/confirm endpoints · Kunal · 5 Sep, 4:05 PM — Evidence: `tests/test_purchase_order.py` PASSED (2/2 lifecycle & validation tests passed, sequential PO-0001 generation, line items, status draft -> confirmed) · Integrated & Verified
-- [x] **P0-BE-02R** — Auth identity and role contract correction · Kunal · 5 Sep, 3:45 PM — Evidence: `tests/test_auth.py` PASSED (3/3 auth tests, 9/9 backend suite); public registration strictly creates `invoicing_user`; privilege escalation to admin rejected with 422; Admin user creation protected via `POST /api/v1/users` (403 for non-admins, 201 for admin); login uses `login_id` with 401 "Invalid Login Id or Password" · Integrated & Verified
-- [x] **P0-BE-04** — Chart of Accounts & Journals seed + endpoints · Kunal · 5 Sep, 1:25 PM — Evidence: `tests/test_accounts_and_journals.py` PASSED (5 account types & 4 journals seeded and fetchable); `seed.py` deterministic master data run verified · Integrated & Verified
-- [x] **P0-BE-03** — Contact & Product models + CRUD endpoints · Kunal · 5 Sep, 12:45 PM — Evidence: `tests/test_contacts.py` & `test_products.py` PASSED · Integrated & Verified
-- [x] **P0-BE-02 (baseline)** — User model + JWT Auth endpoints (email-based register/login/me) · Kunal · 5 Sep, 11:35 AM — Evidence: `tests/test_auth.py` PASSED + live HTTP verified · Baseline only; superseded by Excalidraw auth contract correction below
-- [x] **P0-BE-01** — FastAPI scaffold + PostgreSQL setup · Kunal · 5 Sep, 11:25 AM — Evidence: `GET /health` returns 200 `connected` · Integrated & Verified
-
-### Frontend
-
-- [x] **P0-FE-15** — Sales & Purchase Order list routes · Sourabh · 5 Sep, 4:20 PM — Evidence: `/sales-orders` and `/purchase-orders` are navigable from dashboard, header dropdown, and sidebar; both provide search, status filters, summary cards, responsive tables, and detail inspection; `npm run lint`, `npx tsc --noEmit`, and `next build --webpack` pass · Uses demo-derived order data pending P0-BE-05/P0-BE-08
-- [x] **P0-FE-02R** — Correct auth UI and wire API · Sourabh · 5 Sep, 3:50 PM — Evidence: `loginId` implemented with 6–12 char regex validation; role selection removed from public signup; exact 401/409 error mappings (`Invalid Login Id or Password`, `LOGIN_ID_ALREADY_EXISTS`, `EMAIL_ALREADY_EXISTS`); `npm run lint` & `npm run build` clean (0 errors, 0 warnings) · Integrated & Verified
-- [x] **P0-FE-01** — Next.js 16 + Tailwind 4 + shadcn shell + QueryProvider + AuthProvider · Sourabh · 5 Sep, 1:35 PM — Evidence: `@tanstack/react-query@5.80.7` installed; `QueryProvider` + `AuthProvider` mounted via `AppProviders` in root layout (ThemeProvider › QueryProvider › AuthProvider); `npm run build` clean — TypeScript OK, 4 routes static-prerendered, 0 errors · Integrated & Verified
-- [x] **P0-FE-02 (baseline UI)** — `/login` + `/signup` built with email field and UI-only wiring · Sourabh · 5 Sep, 12:45 PM — Evidence: browser-verified validation, strength meter, match badge, demo notices, dark mode; `npm run build` + lint clean · Baseline only; must be corrected to Excalidraw `loginId` contract
-- [x] **A-05** — Auth pages design spec approved (UI-only, route groups) · Sourabh · 5 Sep, 12:00 PM — Evidence: `docs/superpowers/specs/2026-09-05-auth-pages-design.md` · Design locked
-
-### Team
-
-- [x] **A-04** — Locked Frontend & Backend Architecture ADRs, Logic & Screen Inventory · Both · 5 Sep, 10:45 AM — Evidence: `docs/frontend/ARCHITECTURE_DECISIONS.md`, `docs/frontend/LOGIC.md` · Architecture locked
-- [x] **A-03** — Locked atomic task board with P0/P1/Bonus splits · Both · 5 Sep, 10:20 AM — Evidence: `docs/TASK_BOARD.md` · Task board locked
-- [x] **A-02** — Completed full Analysis-Hour deliverable & API Contract · Both · 5 Sep, 10:05 AM — Evidence: `brain/.../analysis_hour_deliverable.md` · Architecture locked
-- [x] **A-01** — Evaluated 3 problem statements; selected Urban Furniture (85% feasibility) · Both · 5 Sep, 10:00 AM — Evidence: `docs/PROBLEM_SELECTION.md` · Decision artifact
+- [ ] 3.1 · FE · Dashboard layout shell with sidebar navigation (P0-FE-03)
+  - Sales, Purchase, Accounting, Reports, Master Data nav items
+  - Role-based visibility (admin sees all, invoicing_user sees subset)
+  - Active route highlighting, responsive collapse on mobile
 
 ---
 
-## NOW — maximum two rows (one per owner)
+## Step 4 — Master Data Pages 🔲
 
-### Backend
+> Build generic reusable List/Form components here; every later page reuses them.
 
-- [ ] **P0-BE-07** — Payment endpoint + auto Journal Entry (Outbound) · Kunal · 45m · Depends: P0-BE-06 — Contract: `POST /api/v1/payments` · Done when: bill status updated to paid; Debit AP / Credit Bank or Cash
-
-### Frontend
-
-- [ ] **P0-FE-05** — Purchase Order UI & create/confirm flow · Sourabh · 45m · Depends: P0-BE-05 · Start purchase workflow wiring with vendor selection & backend PO models
-
----
-
-## NEXT — queued in priority order
-
-### Backend
-
-- [ ] **P0-BE-08** — Sales Order model & create/confirm endpoints · Kunal · 45m · Depends: P0-BE-03R, P0-BE-04 — Contract: `POST /api/v1/sales-orders` · Done when: SO created in draft, confirmed changes status, and lines retain account/income-analytic references
-
-### Frontend
-
-- [ ] **P0-FE-06** — Vendor Bill UI & payment status · Sourabh · 45m · Depends: P0-BE-06
+- [ ] 4.1 · FE · Contacts list page + create/edit form (P0-FE-04a)
+  - `GET /api/v1/contacts` → table with search/filter
+  - New Contact form → `POST /api/v1/contacts`
+  - Click row → edit form → `PUT /api/v1/contacts/:id`
+- [ ] 4.2 · FE · Products list page + create/edit form (P0-FE-04b)
+  - Same pattern as Contacts
+- [ ] 4.3 · FE · Chart of Accounts hierarchical list view (P0-FE-05-CoA)
+  - `GET /api/v1/accounts` → grouped by type (Asset, Liability, Income, Expense…)
+  - Read-only for now (seeded data)
 
 ---
 
-## BACKLOG — P0 Golden Path (Target: 7:00 PM Gate)
+## Step 5 — Purchase Order Flow (PO → Bill → Payment) 🔲
 
-### Backend
+### 5A — Purchase Order (partially done)
 
-- [ ] **P0-BE-03R** — Contact/Product Excalidraw fields + category support · Kunal · 45m · Depends: P0-BE-03 · Add contact profile image/phone parity and product type (`goods|service|combo`), category, sales price, cost price, and optional image; support inline category creation · Done when: corrected schemas/tests expose the fields without breaking baseline CRUD
-- [x] **P0-BE-06** — Vendor Bill creation + auto Journal Entry logic · Kunal · 60m · Depends: P0-BE-05, P0-BE-04 — Contract: `POST /api/v1/purchase-orders/:id/create-bill` · Done when: bill created; balanced Journal Entry (Debit Expense / Credit AP)
-- [ ] **P0-BE-07** — Payment endpoint + auto Journal Entry (Outbound) · Kunal · 45m · Depends: P0-BE-06 — Contract: `POST /api/v1/payments` · Done when: bill status updated to paid; Debit AP / Credit Bank or Cash
-- [ ] **P0-BE-08** — Sales Order model & create/confirm endpoints · Kunal · 45m · Depends: P0-BE-03R, P0-BE-04 — Contract: `POST /api/v1/sales-orders` · Done when: SO created in draft, confirmed changes status, and lines retain account/income-analytic references
-- [ ] **P0-BE-09** — Customer Invoice creation + auto Journal Entry logic · Kunal · 60m · Depends: P0-BE-08, P0-BE-04 — Contract: `POST /api/v1/sales-orders/:id/create-invoice` · Done when: invoice created; balanced Journal Entry (Debit AR / Credit Sales + Tax)
-- [ ] **P0-BE-10** — Payment endpoint + auto Journal Entry (Inbound) · Kunal · 45m · Depends: P0-BE-09 — Contract: `POST /api/v1/payments` · Done when: invoice marked paid; Debit Cash/Bank / Credit AR
-- [ ] **P0-BE-11** — Journal Entries create/list endpoint + balance checks · Kunal · 45m · Depends: P0-BE-06, P0-BE-09 — Contract: `POST/GET /api/v1/journal-entries` · Done when: manual entries accept Journal, Date, Partner, Account, Debit, Credit and every saved entry asserts debit == credit
-- [ ] **P0-BE-12** — Balance Sheet & Profit & Loss report queries · Kunal · 60m · Depends: P0-BE-11 — Contract: `GET /api/v1/reports/*` · Done when: real-time aggregate by account type; Net Profit computed
-- [ ] **P0-BE-13** — Deterministic demo seed script (`seed.py`) · Kunal · 45m · Depends: all BE models — Done when: seeds Azure Furniture, Nimesh Pathak, chairs, ready for demo
+- [x] 5A.1 · BE · Purchase Order model & create/confirm endpoints (P0-BE-05)
+- [x] 5A.2 · FE · PO list page wired to `GET /api/v1/purchase-orders` (P0-FE-15)
+- [x] 5A.3 · FE · PO create form (draft) + confirm action + detail page (P0-FE-05)
 
-### Frontend
+### 5B — Journal Engine + Vendor Bill
 
-- [ ] **P0-FE-16** — Wire Sales & Purchase Order list/detail pages to live order APIs · Sourabh · 45m · Depends: P0-BE-05, P0-BE-08 — Replace `buildDashboardDataFromBackend` adapter in `/sales-orders` and `/purchase-orders` with authenticated `GET /api/v1/sales-orders`, `GET /api/v1/purchase-orders`, and `GET /:id` calls; preserve loading, empty, error, filtering, and detail states
-- [ ] **P0-FE-03** — Dashboard shell & module navigation · Sourabh · 30m · Depends: P0-INT-01 · Done when: authenticated user sees Sales, Purchase, Accounting, Reports, and Master Data navigation; Master Data explicitly lists Contacts (`/contacts`), Products (`/products`), Chart of Accounts (`/chart-of-accounts`), Journals (`/journals`), and Journal Entries (`/journal-entries`) with role-based route visibility
-- [ ] **P0-FE-04A** — Contact Master: List View & Kanban View toggle · Sourabh · 45m · Depends: P0-BE-03, P0-FE-03 · Contract: `GET /api/v1/contacts` · Done when: `/contacts` is list-first with search & filtering by Type (Customer, Vendor, Both); includes List ↔ Kanban toggle button; Kanban boards group cards by Type (Customer/Vendor/Both); cards display avatar/profile image, initials, name, mobile, email, and address; archived contacts visually distinguished
-- [ ] **P0-FE-04B** — Contact Master: Create/Edit Form & Archive action · Sourabh · 45m · Depends: P0-FE-04A · Contract: `POST /api/v1/contacts`, `PUT /api/v1/contacts/:id`, `DELETE /api/v1/contacts/:id` · Done when: "New" opens blank form drawer/modal; clicking row or kanban card opens populated edit form; fields: Name, Type (Customer/Vendor/Both), Email, Mobile, Address (City, State, Pincode), Profile Image; archive action requires confirmation; archived contacts cannot be selected in transactions
-- [ ] **P0-FE-04C** — Product Master: List View & Kanban View toggle · Sourabh · 45m · Depends: P0-BE-03, P0-FE-03 · Contract: `GET /api/v1/products` · Done when: `/products` is list-first with search and Category/Type filtering; includes List ↔ Kanban toggle; Kanban groups cards by Category or Product Type; cards show product image/initials, name, type (Goods, Service, Combo), category, sales price, and cost price
-- [ ] **P0-FE-04D** — Product Master: Create/Edit Form with inline Category & Archive · Sourabh · 45m · Depends: P0-FE-04C · Contract: `POST /api/v1/products`, `PUT /api/v1/products/:id`, `DELETE /api/v1/products/:id` · Done when: "New" opens blank form; clicking row/card opens edit form; fields: Product Name, Type (Goods/Service/Combo), Category with inline "+ Add New Category" creation, Sales Price, Cost (Purchase Price); archive requires confirmation; archived products excluded from new SO/PO lines
-- [ ] **P0-FE-04E** — Chart of Accounts: Hierarchical master list view · Sourabh · 35m · Depends: P0-BE-04 · Contract: `GET /api/v1/accounts` · Done when: `/chart-of-accounts` displays accounts organized under standard account types (Asset, Liability, Bank, Cash, Capital, Income, Expense, Other Expense); displays account code, name, default account flags, and current balance
-- [ ] **P0-FE-04F** — Journals Master: List View & Configuration Form · Sourabh · 35m · Depends: P0-BE-04 · Contract: `GET /api/v1/journals` · Done when: `/journals` displays preconfigured journals (Sales, Purchase, Bank, Cash); details view/form shows Journal Name, Type, and linked default debit/credit accounts
-- [ ] **P0-FE-06** — Purchase Order creation form & list table · Sourabh · 45m · Depends: P0-FE-03, P0-FE-04B, P0-FE-04D — Contract: `POST /api/v1/purchase-orders` · Done when: line items include Product, Purchase Account, Budget Analytic, quantity, unit price; subtotal calculates live
-- [ ] **P0-FE-07** — PO Detail: status tracking + "Convert to Bill" action · Sourabh · 45m · Depends: P0-FE-06 — Contract: PO endpoints · Done when: status badges update, bill created on click
-- [ ] **P0-FE-08** — Bill Payment modal/form + status update · Sourabh · 30m · Depends: P0-FE-07 — Contract: `POST /api/v1/payments` · Done when: records payment, disables repeat payment
-- [ ] **P0-FE-09** — Sales Order creation form & list table · Sourabh · 45m · Depends: P0-FE-03, P0-FE-04B, P0-FE-04D — Contract: `POST /api/v1/sales-orders` · Done when: product selection, Sales Account and Budget Analytic are selectable, quantity and tax auto-compute
-- [ ] **P0-FE-10** — SO Detail: status tracking + "Generate Invoice" action · Sourabh · 45m · Depends: P0-FE-09 — Contract: SO endpoints · Done when: invoice generated, viewable with line breakdowns
-- [ ] **P0-FE-11** — Customer Invoice Payment modal/action · Sourabh · 30m · Depends: P0-FE-10 — Contract: `POST /api/v1/payments` · Done when: payment registered via Cash/Bank, balance updates, repeat payment is disabled
-- [ ] **P0-FE-12** — Journal Entries list/form + balance warning · Sourabh · 45m · Depends: P0-BE-04 — Contract: `GET /api/v1/journal-entries` · Done when: new entry supports Journal, Accounting Date, Account, Partner, Debit, Credit and blocks mismatched totals
-- [ ] **P0-FE-13** — Balance Sheet & P&L report presentation pages · Sourabh · 45m · Depends: P0-BE-12 — Contract: `GET /api/v1/reports/*` · Done when: Balance Sheet shows Assets, Liabilities, Capital with equation check; P&L shows Income, Expenses, Net Income
-- [ ] **P0-FE-14** — Forgot-password screen and auth navigation · Sourabh · 30m · Depends: P0-FE-02R · Done when: Login link opens `/forgot-password`, email/login ID can be submitted, and reset availability is clearly reported without pretending delivery occurred
+- [ ] 5B.1 · BE · Build `post_journal_entry()` helper — unit test debit==credit invariant
+- [ ] 5B.2 · BE · Vendor Bill creation endpoint + auto Journal Entry (P0-BE-06)
+  - `POST /api/v1/purchase-orders/:id/create-bill`
+  - Journal: Dr Purchase Expense / Cr Creditors (AP)
+- [ ] 5B.3 · FE · Vendor Bill UI — list, detail, status badges (P0-FE-06)
+  - Show bill linked from PO detail page
+  - Status: Draft → Confirmed → Paid
 
-### Integration
+### 5C — Outbound Payment
 
-- [ ] **P0-INT-02** — Verify Purchase Vertical Slice end-to-end · Both · 30m · Depends: P0-BE-07, P0-FE-07 — Contract: PO → Bill → Payment · Done when: PO creates, bill opens, payment clears, ledger balanced
-- [ ] **P0-INT-03** — Verify Sales Vertical Slice end-to-end · Both · 30m · Depends: P0-BE-10, P0-FE-10 — Contract: SO → Invoice → Payment · Done when: SO creates, invoice generates, payment clears, ledger balanced
-- [ ] **P0-INT-04** — Full Golden-Path Dry Run & 7:00 PM Commit Tag · Both · 45m · Depends: P0-BE-12, P0-FE-12 — Contract: complete E2E · Done when: 3-minute golden-path demo passes without errors
+- [ ] 5C.1 · BE · Payment endpoint (outbound) + auto Journal Entry (P0-BE-07)
+  - `POST /api/v1/payments` (type: outbound)
+  - Journal: Dr AP / Cr Bank or Cash
+  - Bill status → Paid
+- [ ] 5C.2 · FE · Bill Payment modal/form + status update (P0-FE-08)
+  - Payment method selector (Cash / Bank)
+  - Disables repeat payment after paid
+
+### 5D — Purchase Slice Integration
+
+- [ ] 5D.1 · INT · Verify Purchase vertical slice end-to-end (P0-INT-02)
+  - PO create → confirm → create bill → confirm bill → pay → ledger balanced
 
 ---
 
-## BACKLOG — P1 (7:00–10:00 PM)
+## Step 6 — Sales Order Flow (SO → Invoice → Payment) 🔲
 
-### Backend
+### 6A — Sales Order
 
-- [ ] **P1-BE-01** — Analytic Account & Budget models + endpoints · Kunal · 75m · Depends: P0-BE-12 — Done when: create/list analytic accounts and budgets, map Income analytics to invoice lines and Expense analytics to PO/Bill lines, compute planned vs actual, and support Confirm → Revise → Cancelled with original/revised links
-- [ ] **P1-BE-02** — Contact Portal and Admin-created User endpoints · Kunal · 60m · Depends: P0-BE-02R — Done when: Admin can create a User/Contact login linked to `contact_id`, and portal queries/payments are restricted to that contact's own invoices/bills
+- [ ] 6A.1 · BE · Sales Order model & create/confirm endpoints (P0-BE-08)
+  - `POST /api/v1/sales-orders`, `POST /api/v1/sales-orders/:id/confirm`
+- [ ] 6A.2 · FE · SO list page wired to `GET /api/v1/sales-orders` (P0-FE-09a)
+- [ ] 6A.3 · FE · SO create form + confirm action + detail page (P0-FE-09b)
 
-### Frontend
+### 6B — Customer Invoice
 
-- [ ] **P1-FE-01** — Analytic/Budget master views & Budget Report page · Sourabh · 75m · Depends: P1-BE-01 — Done when: list/form/kanban views expose budget period, responsible contact, analytic type, committed, achieved, achieved %, amount to achieve, and clicking achieved opens matching invoices/bills
-- [ ] **P1-FE-02** — Contact Portal restricted view & payment trigger · Sourabh · 45m · Depends: P1-BE-02 — Done when: User/Contact logs in, sees only their own paid/unpaid invoices/bills, and can pay via Cash/Bank without admin navigation
+- [ ] 6B.1 · BE · Customer Invoice creation + auto Journal Entry (P0-BE-09)
+  - `POST /api/v1/sales-orders/:id/create-invoice`
+  - Journal: Dr Debtors (AR) / Cr Sales Income + Tax
+- [ ] 6B.2 · FE · SO Detail — "Generate Invoice" action + Invoice detail view (P0-FE-10)
 
-### Integration
+### 6C — Inbound Payment
 
-- [ ] **P1-INT-01** — Verify Budget Flow end-to-end · Both · 30m · Depends: P1-BE-01, P1-FE-01 — Done when: budget reflects actual expenses accurately
-- [ ] **P1-INT-02** — Verify Contact Portal end-to-end · Both · 30m · Depends: P1-BE-02, P1-FE-02 — Done when: customer pays invoice from portal, status reflects in admin
+- [ ] 6C.1 · BE · Payment endpoint (inbound) + auto Journal Entry (P0-BE-10)
+  - `POST /api/v1/payments` (type: inbound)
+  - Journal: Dr Cash/Bank / Cr AR
+  - Invoice status → Paid
+- [ ] 6C.2 · FE · Customer Invoice Payment modal/action (P0-FE-11)
 
----
+### 6D — Sales Slice Integration
 
-## BACKLOG — Optional Bonus (Post-Midnight)
-
-### Backend
-
-- [ ] **BONUS-03** — In-memory query caching / PDF invoice export · Kunal · 45m · Depends: P0-BE-12 — Done when: download PDF copy of confirmed invoice/bill
-
-### Frontend
-
-- [ ] **BONUS-02** — Dashboard summary KPI cards (Receivables, Payables, Net Profit) · Sourabh · 45m · Depends: P0-FE-12 — Done when: at-a-glance financial health metrics on home screen
-
-### Integration
-
-- [ ] **BONUS-01** — Date period filters on reports · Both · 45m · Depends: P0-BE-12 — Done when: date picker filters report calculations
+- [ ] 6D.1 · INT · Verify Sales vertical slice end-to-end (P0-INT-03)
+  - SO create → confirm → create invoice → confirm invoice → pay → ledger balanced
 
 ---
 
-## IN REVIEW / INTEGRATION
+## Step 7 — Accounting & Reports 🔲
 
-_None right now._
+### 7A — Journal Entries
 
-Entry format: `- [ ] **ID** — task · Owner · Reviewer · branch/commit — needs: <verification> · deadline: <time>`
+- [ ] 7A.1 · BE · Journal Entries create/list endpoint + balance checks (P0-BE-11)
+  - `POST /GET /api/v1/journal-entries`
+  - Enforce debit == credit on save
+- [ ] 7A.2 · FE · Journal Entries list + manual entry form with balance warning (P0-FE-12)
+
+### 7B — Financial Reports
+
+- [ ] 7B.1 · BE · Balance Sheet & Profit & Loss report queries (P0-BE-12)
+  - `GET /api/v1/reports/balance-sheet`, `GET /api/v1/reports/profit-loss`
+- [ ] 7B.2 · FE · Balance Sheet page — Assets, Liabilities, Capital with equation check (P0-FE-13a)
+- [ ] 7B.3 · FE · P&L page — Income, Expenses, Net Income (P0-FE-13b)
 
 ---
 
-## BLOCKED
+## Step 8 — Demo Data & Golden Path 🔲
 
-_None right now._
-
-Entry format: `- [ ] **ID** — task · Owner · blocked since <time> — blocker: <exact blocker> · asked from: <person> · fallback: <parallel task> · decision deadline: <time>`
+- [ ] 8.1 · BE · Deterministic demo seed script with realistic data (P0-BE-13)
+  - Azure Furniture, Nimesh Pathak, chairs, full PO→Bill→Pay + SO→Invoice→Pay cycle
+- [ ] 8.2 · INT · Full Golden-Path Dry Run — 3-min demo without errors (P0-INT-04)
+  - Tag stable commit, update `docs/REVIEWER_BRIEF.md`
 
 ---
 
-## Hourly Two-Minute Sync
+## Step 9 — P1: Budget & Contact Portal 🔲
 
-Each person answers only these questions:
-1. What did I finish, and what proves it?
-2. What is my one current task and its completion time?
-3. What changed in the contract/schema/UI assumptions?
-4. Am I blocked or likely to block my teammate in the next hour?
+> Only start after Step 8 passes.
 
-Then tick finished tasks, move them to **DONE** (top), and update **NOW**, **NEXT**, and **BLOCKED**.
+- [ ] 9.1 · BE · Analytic Account & Budget models + endpoints (P1-BE-01)
+  - Committed, achieved, achieved %, amount-to-achieve computation
+- [ ] 9.2 · FE · Analytic/Budget master views + Budget Report page with donut chart (P1-FE-01)
+- [ ] 9.3 · INT · Verify Budget Flow end-to-end (P1-INT-01)
+- [ ] 9.4 · BE · Contact Portal endpoints — restrict to own invoices/bills (P1-BE-02)
+- [ ] 9.5 · FE · Contact Portal restricted view ("My Invoices") + pay action (P1-FE-02)
+- [ ] 9.6 · INT · Verify Contact Portal end-to-end (P1-INT-02)
+
+---
+
+## Step 10 — Bonus (Post-Midnight, only if P0 is stable) 🔲
+
+- [ ] 10.1 · FE · Dashboard KPI cards — Receivables, Payables, Net Profit (BONUS-02)
+- [ ] 10.2 · BE · PDF invoice/bill export (BONUS-03)
+- [ ] 10.3 · INT · Date period filters on reports (BONUS-01)
+
+---
+
+## Step 11 — Stabilize, Polish & Submit 🔲
+
+- [ ] 11.1 · FE · Responsive checks (phone + laptop), keyboard nav, contrast (Sourabh)
+- [ ] 11.2 · BE · Input validation, CORS, error redaction, transaction boundaries (Kunal)
+- [ ] 11.3 · INT · Clean browser golden path test + backup screen recording (Both)
+- [ ] 11.4 · DOCS · Reviewer brief, API contract, README — no placeholders (Both)
+- [ ] 11.5 · DEMO · 3 rehearsals: timed demo, failure recovery, architecture Q&A (Both)
+- [ ] 11.6 · SUBMIT · Verify form fields, repo visibility, URLs, submit early (Both)

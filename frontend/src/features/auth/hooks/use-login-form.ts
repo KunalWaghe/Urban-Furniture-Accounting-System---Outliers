@@ -1,8 +1,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
+import type { LoginRequest } from "@/lib/types";
 
 import { useAuth } from "../auth-context";
 import {
@@ -26,7 +28,16 @@ export function useLoginForm() {
   const [rememberDevice, setRememberDevice] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [notice, setNotice] = useState<AuthNotice | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const loginMutation = useMutation({
+    mutationFn: ({
+      payload,
+      remember,
+    }: {
+      payload: LoginRequest;
+      remember: boolean;
+    }) => login(payload, remember),
+  });
 
   function setField(field: keyof LoginFields, value: string) {
     setFields((prev) => ({ ...prev, [field]: value }));
@@ -48,66 +59,70 @@ export function useLoginForm() {
       return;
     }
 
-    setIsSubmitting(true);
     setNotice(null);
 
-    try {
-      await login(
-        {
+    loginMutation.mutate(
+      {
+        payload: {
           login_id: fields.login_id.trim(),
           password: fields.password,
         },
-        rememberDevice
-      );
-      router.push("/");
-    } catch (error) {
-      if (error instanceof ApiError) {
-        if (error.status === 422 && error.fields) {
-          const apiErrors = mapApiFieldsToLoginErrors(error.fields);
-          setErrors((prev) => ({ ...prev, ...apiErrors }));
-          setNotice({
-            kind: "error",
-            title: "Unable to sign in",
-            message: error.message,
-          });
-          const firstApiInvalid = FIELD_ORDER.find((field) => apiErrors[field]);
-          if (firstApiInvalid) {
-            document.getElementById(firstApiInvalid)?.focus();
-          }
-          return;
-        }
+        remember: rememberDevice,
+      },
+      {
+        onSuccess: () => {
+          router.push("/");
+        },
+        onError: handleLoginError,
+      }
+    );
+  }
 
-        if (error.status === 401) {
-          setNotice({
-            kind: "error",
-            title: "Invalid credentials",
-            message: error.message,
-          });
-          document.getElementById("password")?.focus();
-          return;
+  function handleLoginError(error: unknown) {
+    if (error instanceof ApiError) {
+      if (error.status === 422 && error.fields) {
+        const apiErrors = mapApiFieldsToLoginErrors(error.fields);
+        setErrors((prev) => ({ ...prev, ...apiErrors }));
+        setNotice({
+          kind: "error",
+          title: "Unable to sign in",
+          message: error.message,
+        });
+        const firstApiInvalid = FIELD_ORDER.find((field) => apiErrors[field]);
+        if (firstApiInvalid) {
+          document.getElementById(firstApiInvalid)?.focus();
         }
-
-        if (error.status === 403) {
-          setNotice({
-            kind: "error",
-            title: "Account Inactive",
-            message: error.message || "Your account has been deactivated. Contact an administrator.",
-          });
-          return;
-        }
+        return;
       }
 
-      setNotice({
-        kind: "error",
-        title: "Unable to sign in",
-        message: getAuthErrorMessage(
-          error,
-          "Something went wrong. Please try again."
-        ),
-      });
-    } finally {
-      setIsSubmitting(false);
+      if (error.status === 401) {
+        setNotice({
+          kind: "error",
+          title: "Invalid credentials",
+          message: error.message,
+        });
+        document.getElementById("password")?.focus();
+        return;
+      }
+
+      if (error.status === 403) {
+        setNotice({
+          kind: "error",
+          title: "Account Inactive",
+          message: error.message || "Your account has been deactivated. Contact an administrator.",
+        });
+        return;
+      }
     }
+
+    setNotice({
+      kind: "error",
+      title: "Unable to sign in",
+      message: getAuthErrorMessage(
+        error,
+        "Something went wrong. Please try again."
+      ),
+    });
   }
 
   return {
@@ -120,7 +135,7 @@ export function useLoginForm() {
     toggleShowPassword: () => setShowPassword((value) => !value),
     notice,
     dismissNotice: () => setNotice(null),
-    isSubmitting,
+    isSubmitting: loginMutation.isPending,
     handleSubmit,
   };
 }
