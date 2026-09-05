@@ -6,12 +6,13 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.purchase_order import POCreate, POResponse, POListResponse
 from app.schemas.vendor_bill import CreateBillResponse
 from app.services import purchase_order_service, vendor_bill_service
 
-router = APIRouter()
+# 'dependencies' parameter enforces route-level authentication guards globally across all endpoints in this APIRouter
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 @router.post("", response_model=POResponse, status_code=status.HTTP_201_CREATED)

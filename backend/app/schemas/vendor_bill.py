@@ -29,6 +29,7 @@ class VendorBillResponse(BaseModel):
     vendor_id: int
     vendor_name: Optional[str] = None
     bill_date: date | datetime
+    due_date: Optional[date | datetime] = None
     total: float
     amount_paid: float = 0.0
     status: str = "open"

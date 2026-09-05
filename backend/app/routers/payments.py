@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.payment import (
     PaymentCreate,
     PaymentResponse,
@@ -14,8 +14,8 @@ from app.schemas.payment import (
 )
 from app.services import payment_service
 
-# 'APIRouter' encapsulates all payment-related HTTP routes for modular mounting in FastAPI
-router = APIRouter()
+# 'dependencies' parameter enforces route-level authentication guards globally across inbound and outbound payments
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 # Records a new payment and auto-posts balanced double-entry journal items

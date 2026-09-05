@@ -3,7 +3,7 @@ Service logic for Customer Invoices and automated Sales Journal Entry posting (P
 """
 
 import math
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select, func, or_, desc, asc
@@ -38,6 +38,16 @@ def generate_invoice_number(db: Session) -> str:
     # 'func.count' performs an aggregate count query to determine sequential numbering
     count = db.scalar(select(func.count(CustomerInvoice.id))) or 0
     return f"INV-{(count + 1):04d}"
+
+
+# Validates chronological consistency between invoice issuance and payment due date
+def validate_invoice_dates(invoice_date: datetime, due_date: Optional[datetime]) -> None:
+    """
+    Ensure due_date is not earlier than invoice_date.
+    Raises ValidationException if due_date < invoice_date.
+    """
+    if due_date and invoice_date and due_date < invoice_date:
+        raise ValidationException("Customer invoice due_date cannot be earlier than invoice_date")
 
 
 # Converts a CustomerInvoice ORM entity into a validated Pydantic schema response
@@ -186,12 +196,16 @@ def create_invoice_from_so(db: Session, so_id: int) -> CreateInvoiceResponse:
         is_posted=True,
     )
 
-    # 6. Create Customer Invoice record
+    # 6. Create Customer Invoice record with 30-day net due date terms
+    due_date = now_utc + timedelta(days=30)
+    validate_invoice_dates(now_utc, due_date)
+
     customer_invoice = CustomerInvoice(
         invoice_number=invoice_number,
         so_id=so.id,
         customer_id=so.customer_id,
         invoice_date=now_utc,
+        due_date=due_date,
         total=so.total,
         amount_paid=0.0,
         status="open",
@@ -214,9 +228,15 @@ def create_invoice_from_so(db: Session, so_id: int) -> CreateInvoiceResponse:
         )
         db.add(invoice_line)
 
-    # 8. Transition SO status to invoiced
-    so.status = "invoiced"
-    db.commit()
+    try:
+        # 8. Transition SO status to invoiced atomically with invoice and journal entry
+        so.status = "invoiced"
+        # 'commit' persists all entities atomically
+        db.commit()
+    except Exception:
+        # 'rollback' ensures no partial postings or inconsistent order states on error
+        db.rollback()
+        raise
 
     # 9. Reload with relationships for full response envelope
     full_invoice = db.scalar(

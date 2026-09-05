@@ -6,12 +6,13 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.sales_order import SOCreate, SOResponse, SOListResponse
 from app.schemas.customer_invoice import CreateInvoiceResponse
 from app.services import sales_order_service, customer_invoice_service
 
-router = APIRouter()
+# 'dependencies' parameter attaches global security guards enforcing admin or invoicing_user authorization
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 # Endpoint to create a new Sales Order in draft status with line items

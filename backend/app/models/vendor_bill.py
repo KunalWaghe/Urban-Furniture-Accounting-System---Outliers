@@ -21,6 +21,8 @@ class VendorBill(Base):
     po_id: Mapped[int] = mapped_column(Integer, ForeignKey("purchase_orders.id"), unique=True, nullable=False, index=True)
     vendor_id: Mapped[int] = mapped_column(Integer, ForeignKey("contacts.id"), nullable=False, index=True)
     bill_date: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    # Payment due date for settlement compliance (must be >= bill_date)
+    due_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     total: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     amount_paid: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="open", index=True)

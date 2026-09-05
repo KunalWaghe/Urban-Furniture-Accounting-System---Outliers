@@ -64,7 +64,13 @@ def create_manual_journal_entry(db: Session, payload: JournalEntryCreate) -> Jou
         lines=lines,
         is_posted=True,
     )
-    db.commit()
+    try:
+        # 'commit' atomically writes manual journal header and lines to the general ledger
+        db.commit()
+    except Exception:
+        # 'rollback' ensures an unbalanced or erroneous transaction does not pollute the session
+        db.rollback()
+        raise
 
     # Reload with all relationships populated
     entry = db.scalar(

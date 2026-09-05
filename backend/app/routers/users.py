@@ -13,7 +13,8 @@ from app.schemas.auth import AdminUserCreateRequest, UserProfileResponse
 from app.services import auth_service
 from app.models.user import User
 
-router = APIRouter()
+# 'dependencies' parameter enforces admin-only access across all user management operations
+router = APIRouter(dependencies=[Depends(require_roles(["admin"]))])
 
 
 @router.post("", response_model=UserProfileResponse, status_code=status.HTTP_201_CREATED)

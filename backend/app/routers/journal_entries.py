@@ -7,7 +7,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.journal_entry import (
     JournalEntryCreate,
     JournalEntryResponse,
@@ -15,7 +15,8 @@ from app.schemas.journal_entry import (
 )
 from app.services import journal_entry_service
 
-router = APIRouter()
+# 'dependencies' parameter enforces route-level authentication guards globally across general ledger journal operations
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 # Handles HTTP GET requests to list, filter, and paginate general ledger journal entries

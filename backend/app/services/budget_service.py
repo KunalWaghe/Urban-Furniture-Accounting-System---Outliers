@@ -182,6 +182,9 @@ def create_budget(db: Session, req: BudgetCreate) -> BudgetResponse:
             f"An active budget '{overlapping.name}' ({overlapping.status}) already overlaps with the requested period"
         )
 
+    if req.period_end <= req.period_start:
+        raise ValidationException("period_end must be chronologically after period_start")
+
     budget = Budget(
         name=req.name.strip(),
         analytic_account_id=req.analytic_account_id,
@@ -192,7 +195,13 @@ def create_budget(db: Session, req: BudgetCreate) -> BudgetResponse:
         responsible_person_id=req.responsible_person_id,
     )
     db.add(budget)
-    db.commit()
+    try:
+        # 'commit' persists the new draft budget
+        db.commit()
+    except Exception:
+        # 'rollback' ensures no partial or detached budget entity remains in the session
+        db.rollback()
+        raise
     # 'refresh' synchronizes the in-memory entity with generated database defaults
     db.refresh(budget)
     return build_budget_response(db, budget)
@@ -215,7 +224,12 @@ def confirm_budget(db: Session, budget_id: int) -> BudgetResponse:
         raise InvalidStatusTransitionException(f"Cannot confirm budget with status '{budget.status}'")
 
     budget.status = "confirmed"
-    db.commit()
+    try:
+        # 'commit' applies status confirmation
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(budget)
     return build_budget_response(db, budget)
 
@@ -263,7 +277,12 @@ def revise_budget(db: Session, budget_id: int, req: BudgetRevise) -> BudgetRespo
         revised_from_id=original.id,
     )
     db.add(revised_budget)
-    db.commit()
+    try:
+        # 'commit' atomically updates parent status and inserts child revision
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(revised_budget)
     return build_budget_response(db, revised_budget)
 
@@ -285,7 +304,12 @@ def cancel_budget(db: Session, budget_id: int) -> BudgetResponse:
         raise ValidationException(f"Only draft budgets can be cancelled, current status is '{budget.status}'")
 
     budget.status = "cancelled"
-    db.commit()
+    try:
+        # 'commit' marks budget cancelled
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(budget)
     return build_budget_response(db, budget)
 

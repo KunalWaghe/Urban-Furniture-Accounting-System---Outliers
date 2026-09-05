@@ -42,7 +42,12 @@ def create_product(db: Session, req: ProductCreate) -> Product:
         is_active=True,
     )
     db.add(product)
-    db.commit()
+    try:
+        # 'commit' writes product catalog record
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(product)
     return product
 
@@ -108,7 +113,12 @@ def update_product(db: Session, product_id: int, req: ProductUpdate) -> Product:
     for field, val in update_data.items():
         setattr(product, field, val)
 
-    db.commit()
+    try:
+        # 'commit' applies product attribute changes
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(product)
     return product
 
@@ -116,5 +126,9 @@ def update_product(db: Session, product_id: int, req: ProductUpdate) -> Product:
 def delete_product(db: Session, product_id: int) -> None:
     """Soft-delete a product by setting is_active=False."""
     product = get_product_by_id(db, product_id)
-    product.is_active = False
-    db.commit()
+    try:
+        product.is_active = False
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise

@@ -6,12 +6,13 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.customer_invoice import CustomerInvoiceResponse, CustomerInvoiceListResponse
 from app.schemas.payment import InvoicePayRequest, PaymentResponse
 from app.services import customer_invoice_service, payment_service
 
-router = APIRouter()
+# 'dependencies' parameter enforces route-level authentication guards globally across customer invoice management
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 # Endpoint to query paginated, filtered, and sorted Customer Invoices

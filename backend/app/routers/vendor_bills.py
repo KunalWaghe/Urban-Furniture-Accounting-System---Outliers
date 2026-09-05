@@ -6,12 +6,13 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.vendor_bill import VendorBillResponse, VendorBillListResponse
 from app.schemas.payment import BillPayRequest, PaymentResponse
 from app.services import vendor_bill_service, payment_service
 
-router = APIRouter()
+# 'dependencies' parameter enforces route-level RBAC restricting vendor bill access to administrators and accountants
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 # Queries paginated, filtered, and sorted vendor bills

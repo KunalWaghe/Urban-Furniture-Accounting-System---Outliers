@@ -13,7 +13,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., description="Password (> 8 chars, 1 uppercase, 1 lowercase, 1 special char)")
     name: Optional[str] = Field(default=None, description="User full name (defaults to login_id if not provided)")
-    role: Optional[str] = Field(default="contact", description="Public signup role (defaults to user/contact, admin not allowed)")
+    role: Optional[str] = Field(default="invoicing_user", description="Public signup role (defaults to invoicing_user, admin not allowed)")
     contact_id: Optional[int] = Field(default=None, description="Optional contact ID link for portal user role")
 
     @field_validator("role")
@@ -23,7 +23,7 @@ class RegisterRequest(BaseModel):
             normalized = v.strip().lower()
             if normalized in ("admin", "administrator"):
                 raise ValueError("Registration with admin role is forbidden")
-        return v or "contact"
+        return v or "invoicing_user"
 
     @field_validator("login_id")
     @classmethod
@@ -31,8 +31,8 @@ class RegisterRequest(BaseModel):
         v = v.strip()
         if not (6 <= len(v) <= 12):
             raise ValueError("Login Id must be between 6 and 12 characters long")
-        if not re.match(r'^[A-Za-z0-9]+$', v):
-            raise ValueError("Login Id must contain only letters and numbers")
+        if not re.match(r'^[A-Za-z0-9_]+$', v):
+            raise ValueError("Login Id must contain only letters, numbers, and underscores")
         return v
 
     @field_validator("password")
@@ -66,8 +66,8 @@ class AdminUserCreateRequest(BaseModel):
         v = v.strip()
         if not (6 <= len(v) <= 12):
             raise ValueError("Login Id must be between 6 and 12 characters long")
-        if not re.match(r'^[A-Za-z0-9]+$', v):
-            raise ValueError("Login Id must contain only letters and numbers")
+        if not re.match(r'^[A-Za-z0-9_]+$', v):
+            raise ValueError("Login Id must contain only letters, numbers, and underscores")
         return v
 
     @field_validator("password")

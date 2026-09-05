@@ -72,6 +72,8 @@ async def lifespan(app: FastAPI):
             conn.execute(text("ALTER TABLE journal_items ALTER COLUMN credit TYPE NUMERIC(15, 2) USING credit::NUMERIC(15, 2)"))
             conn.execute(text("ALTER TABLE journal_entries ALTER COLUMN total_amount TYPE NUMERIC(15, 2) USING total_amount::NUMERIC(15, 2)"))
             conn.execute(text("ALTER TABLE payments ALTER COLUMN amount TYPE NUMERIC(15, 2) USING amount::NUMERIC(15, 2)"))
+            conn.execute(text("ALTER TABLE vendor_bills ADD COLUMN IF NOT EXISTS due_date TIMESTAMPTZ"))
+            conn.execute(text("ALTER TABLE customer_invoices ADD COLUMN IF NOT EXISTS due_date TIMESTAMPTZ"))
             if engine.dialect.name == "postgresql":
                 conn.execute(text("""
                     DO $$

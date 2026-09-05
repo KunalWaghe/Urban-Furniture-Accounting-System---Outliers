@@ -32,7 +32,13 @@ def create_analytic_account(db: Session, req: AnalyticAccountCreate) -> Analytic
         is_active=True,
     )
     db.add(account)
-    db.commit()
+    try:
+        # 'commit' writes the analytic account record permanently
+        db.commit()
+    except Exception:
+        # 'rollback' ensures rollback on constraint failures
+        db.rollback()
+        raise
     db.refresh(account)
     return account
 
@@ -116,6 +122,11 @@ def update_analytic_account(db: Session, account_id: int, req: AnalyticAccountUp
     if req.is_active is not None:
         account.is_active = req.is_active
 
-    db.commit()
+    try:
+        # 'commit' applies metadata updates
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(account)
     return account

@@ -104,8 +104,14 @@ def create_purchase_order(db: Session, po_in: POCreate) -> POResponse:
         )
         db.add(po_line)
 
-    po.total = round(total_amount, 2)
-    db.commit()
+    try:
+        po.total = round(total_amount, 2)
+        # 'commit' persists the draft Purchase Order and lines atomically
+        db.commit()
+    except Exception:
+        # 'rollback' cancels uncommitted transactions preventing database corruption
+        db.rollback()
+        raise
 
     # Reload PO with relationships
     return get_purchase_order(db, po.id)
@@ -211,7 +217,12 @@ def confirm_purchase_order(db: Session, po_id: int) -> POResponse:
     if po.status != "draft":
         raise ValidationException(f"Cannot confirm Purchase Order in status '{po.status}'")
 
-    po.status = "confirmed"
-    db.commit()
+    try:
+        po.status = "confirmed"
+        # 'commit' transitions PO lifecycle state atomically
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
 
     return get_purchase_order(db, po_id)

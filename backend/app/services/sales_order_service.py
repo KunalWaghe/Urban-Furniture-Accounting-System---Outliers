@@ -107,8 +107,14 @@ def create_sales_order(db: Session, so_in: SOCreate) -> SOResponse:
         )
         db.add(so_line)
 
-    so.total = round(total_amount, 2)
-    db.commit()
+    try:
+        so.total = round(total_amount, 2)
+        # 'commit' persists the draft Sales Order and lines atomically
+        db.commit()
+    except Exception:
+        # 'rollback' ensures no partial or corrupt order entities persist on failure
+        db.rollback()
+        raise
 
     # Reload SO with full relations
     return get_sales_order(db, so.id)
@@ -214,7 +220,12 @@ def confirm_sales_order(db: Session, so_id: int) -> SOResponse:
     if so.status != "draft":
         raise ValidationException(f"Cannot confirm Sales Order in status '{so.status}'")
 
-    so.status = "confirmed"
-    db.commit()
+    try:
+        so.status = "confirmed"
+        # 'commit' applies the confirmed transition atomically
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
 
     return get_sales_order(db, so_id)
