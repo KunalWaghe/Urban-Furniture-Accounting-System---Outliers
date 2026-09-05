@@ -13,6 +13,7 @@ import {
 import { ReportExportMenu } from "@/components/report-export-menu";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { exportHtmlAsPdf } from "@/lib/export-pdf";
 import { formatINR } from "@/lib/format";
 import { showInfoToast } from "@/lib/toast-utils";
@@ -22,29 +23,31 @@ import { fetchProfitLoss, type ReportSection } from "./reports-api";
 const currentYear = new Date().getFullYear();
 
 function ProfitLossSection({ title, description, section }: { title: string; description: string; section: ReportSection }) {
+  const isMobile = useIsMobile();
+
   return (
     <Card>
       <CardContent className="p-0">
-        <div className="border-b border-border p-5">
+        <div className="border-b border-border p-4 sm:p-5">
           <h2 className="font-semibold text-text">{title}</h2>
           <p className="mt-1 text-xs text-text-muted">{description}</p>
         </div>
         {section.lines.length === 0 ? (
-          <p className="p-5 text-sm text-text-muted">No posted balances in this section.</p>
+          <p className="p-4 sm:p-5 text-sm text-text-muted">No posted balances in this section.</p>
         ) : (
           <div className="divide-y divide-border">
             {section.lines.map((line) => (
-              <div key={line.account_code} className="flex items-center justify-between gap-4 px-5 py-3">
-                <div>
+              <div key={line.account_code} className={`flex ${isMobile ? 'flex-col gap-1' : 'items-center justify-between gap-4'} px-4 py-3 sm:px-5`}>
+                <div className={isMobile ? 'w-full' : ''}>
                   <p className="text-sm font-medium text-text">{line.account_name}</p>
                   <p className="text-xs text-text-muted">{line.account_code}</p>
                 </div>
-                <p className="text-sm font-semibold text-text">{formatINR(line.balance)}</p>
+                <p className={`text-sm font-semibold text-text ${isMobile ? 'text-left' : 'text-right shrink-0'}`}>{formatINR(line.balance)}</p>
               </div>
             ))}
           </div>
         )}
-        <div className="flex items-center justify-between border-t border-border bg-surface-muted/50 px-5 py-3">
+        <div className="flex items-center justify-between border-t border-border bg-surface-muted/50 px-4 py-3 sm:px-5">
           <span className="text-sm font-semibold text-text">Total {title}</span>
           <span className="text-sm font-bold text-text">{formatINR(section.total)}</span>
         </div>
@@ -103,9 +106,9 @@ export function ProfitLossPage() {
             <Card size="sm"><CardContent><p className="text-xs text-text-muted">Total expenses</p><p className="mt-1 text-xl font-bold text-text">{formatINR(report.expenses.total)}</p></CardContent></Card>
             <Card size="sm"><CardContent><p className="text-xs text-text-muted">Net result</p><p className={`mt-1 text-xl font-bold ${isProfit ? "text-emerald-600" : "text-red-600"}`}>{formatINR(report.net_income)}</p></CardContent></Card>
           </div>
-          <div className={`flex items-center justify-between gap-4 rounded-xl border px-4 py-3 ${isProfit ? "border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30" : "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30"}`}>
+          <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 rounded-xl border px-4 py-3 ${isProfit ? "border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30" : "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30"}`}>
             <div className="flex items-center gap-2">
-              {isProfit ? <TrendingUp className="h-5 w-5 text-emerald-600" /> : <TrendingDown className="h-5 w-5 text-red-600" />}
+              {isProfit ? <TrendingUp className="h-5 w-5 text-emerald-600 shrink-0" /> : <TrendingDown className="h-5 w-5 text-red-600 shrink-0" />}
               <div>
                 <p className={`text-sm font-semibold ${isProfit ? "text-emerald-700 dark:text-emerald-300" : "text-red-700 dark:text-red-300"}`}>{isProfit ? "Net profit" : "Net loss"}</p>
                 <p className="text-xs text-text-muted">Income minus expenses for {report.year ?? year}</p>

@@ -27,6 +27,7 @@ import {
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatINR } from "@/lib/format";
+import { useIsMobile } from "@/hooks/use-media-query";
 import {
   fetchCustomerInvoice,
   payCustomerInvoice,
@@ -41,6 +42,7 @@ interface CustomerInvoiceDetailPageProps {
 
 export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPageProps) {
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   // ── Dialog & modal state ──────────────────────────────────────────────────
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -115,7 +117,7 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
         </div>
 
         {/* State Machine Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
           {/* Confirmed -> Register Payment Action (Task 6C) */}
           {isConfirmed && (
             <Button
@@ -125,7 +127,7 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
                 setPaymentError(null);
                 setPaymentModalOpen(true);
               }}
-              className="gap-1.5 bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700"
+              className="gap-1.5 bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 w-full sm:w-auto"
             >
               <CreditCard className="h-4 w-4" />
               Register Payment / Receipt
@@ -134,7 +136,7 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
 
           {/* Paid State Marker */}
           {isPaid && (
-            <div className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400">
+            <div className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               Fully Paid & Settled
             </div>
@@ -196,9 +198,8 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
             Amount Outstanding
           </div>
           <p
-            className={`mt-2 text-xl font-bold ${
-              invoice.amount_due > 0 ? "text-amber-600" : "text-emerald-600"
-            }`}
+            className={`mt-2 text-xl font-bold ${invoice.amount_due > 0 ? "text-amber-600" : "text-emerald-600"
+              }`}
           >
             {formatINR(invoice.amount_due)}
           </p>
@@ -254,52 +255,88 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
 
       {/* ── Line Items Table ─────────────────────────────────────────────── */}
       <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-xs">
-        <div className="border-b border-border bg-surface-elevated/60 px-5 py-4">
+        <div className="border-b border-border bg-surface-elevated/60 px-4 py-3 sm:px-5 sm:py-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
             Invoice Line Items
           </h2>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-border bg-surface-elevated text-xs font-semibold uppercase text-text-muted">
-              <tr>
-                <th className="px-5 py-3">#</th>
-                <th className="px-5 py-3">Product Description</th>
-                <th className="px-5 py-3">Chart of Account</th>
-                <th className="px-5 py-3 text-right">Quantity</th>
-                <th className="px-5 py-3 text-right">Unit Price</th>
-                <th className="px-5 py-3 text-right">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {invoice.lines.map((line, idx) => (
-                <tr key={line.id || idx} className="hover:bg-surface-elevated/40">
-                  <td className="px-5 py-3.5 text-xs text-text-muted">{idx + 1}</td>
-                  <td className="px-5 py-3.5 font-medium text-text-primary">
-                    {line.product_name}
-                  </td>
-                  <td className="px-5 py-3.5 text-xs text-text-muted">
-                    {line.account_name ?? "Unavailable"}
-                  </td>
-                  <td className="px-5 py-3.5 text-right font-medium text-text-primary">
-                    {line.quantity}
-                  </td>
-                  <td className="px-5 py-3.5 text-right text-text-muted">
-                    {formatINR(line.unit_price)}
-                  </td>
-                  <td className="px-5 py-3.5 text-right font-semibold text-text-primary">
-                    {formatINR(line.subtotal)}
-                  </td>
+        {isMobile ? (
+          /* Mobile card view */
+          <div className="divide-y divide-border">
+            {invoice.lines.map((line, idx) => (
+              <div key={line.id || idx} className="p-4 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <span className="text-xs text-text-muted">#{idx + 1}</span>
+                    <p className="font-medium text-text-primary">
+                      {line.product_name}
+                    </p>
+                    <p className="text-xs text-text-muted mt-0.5">
+                      {line.account_name ?? "Unavailable"}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">Qty:</span>
+                    <span className="font-medium text-text-primary">{line.quantity}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">Unit:</span>
+                    <span className="text-text">{formatINR(line.unit_price)}</span>
+                  </div>
+                  <div className="col-span-2 flex justify-between pt-1 border-t border-border">
+                    <span className="text-text-muted">Subtotal:</span>
+                    <span className="font-semibold text-text-primary">{formatINR(line.subtotal)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* Desktop table view */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-border bg-surface-elevated text-xs font-semibold uppercase text-text-muted">
+                <tr>
+                  <th className="px-5 py-3">#</th>
+                  <th className="px-5 py-3">Product Description</th>
+                  <th className="px-5 py-3">Chart of Account</th>
+                  <th className="px-5 py-3 text-right">Quantity</th>
+                  <th className="px-5 py-3 text-right">Unit Price</th>
+                  <th className="px-5 py-3 text-right">Subtotal</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {invoice.lines.map((line, idx) => (
+                  <tr key={line.id || idx} className="hover:bg-surface-elevated/40">
+                    <td className="px-5 py-3.5 text-xs text-text-muted">{idx + 1}</td>
+                    <td className="px-5 py-3.5 font-medium text-text-primary">
+                      {line.product_name}
+                    </td>
+                    <td className="px-5 py-3.5 text-xs text-text-muted">
+                      {line.account_name ?? "Unavailable"}
+                    </td>
+                    <td className="px-5 py-3.5 text-right font-medium text-text-primary">
+                      {line.quantity}
+                    </td>
+                    <td className="px-5 py-3.5 text-right text-text-muted">
+                      {formatINR(line.unit_price)}
+                    </td>
+                    <td className="px-5 py-3.5 text-right font-semibold text-text-primary">
+                      {formatINR(line.subtotal)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* ── Financial Summary Breakdown ────────────────────────────────── */}
-        <div className="flex justify-end border-t border-border bg-surface-elevated/30 p-5">
-          <div className="w-full max-w-xs space-y-2 text-sm">
+        <div className="border-t border-border bg-surface-elevated/30 p-4 sm:p-5">
+          <div className="ml-auto w-full max-w-xs space-y-2 text-sm">
             <div className="flex justify-between text-text-muted">
               <span>Invoice Subtotal</span>
               <span className="font-medium text-text-primary">{formatINR(invoice.total_amount)}</span>

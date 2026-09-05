@@ -20,7 +20,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit3, Grid2X2, List, Mail, MapPin, Phone, Plus, Trash2, Users } from "lucide-react";
+import { Edit3, Mail, MapPin, Phone, Plus, Trash2, Users } from "lucide-react";
 
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { AppModal, FormModalFooter, ModalError } from "@/components/app-modal";
@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActionTooltip } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
+import { TableKanbanToggle, toolbarSelectClass } from "@/components/page-toolbar";
 import type { Contact } from "@/lib/types";
 import { ContactKanban } from "./contact-kanban";
 import {
@@ -349,7 +350,7 @@ export function ContactsPage() {
                     setTypeFilter(event.target.value as typeof typeFilter);
                     setPage(1);
                   }}
-                  className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text outline-none focus:border-primary-500"
+                  className={toolbarSelectClass}
                   aria-label="Filter contacts by type"
                 >
                   <option value="all">All contact types</option>
@@ -358,32 +359,7 @@ export function ContactsPage() {
                   <option value="both">Customer &amp; Vendor</option>
                 </select>
               )}
-              <div className="flex rounded-lg border border-border bg-surface-muted p-1">
-                <button
-                  type="button"
-                  onClick={() => setView("table")}
-                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                    view === "table"
-                      ? "bg-surface text-primary-600 shadow-sm"
-                      : "text-text-muted hover:text-text"
-                  }`}
-                >
-                  <List className="h-3.5 w-3.5" />
-                  Table
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setView("kanban")}
-                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                    view === "kanban"
-                      ? "bg-surface text-primary-600 shadow-sm"
-                      : "text-text-muted hover:text-text"
-                  }`}
-                >
-                  <Grid2X2 className="h-3.5 w-3.5" />
-                  Kanban
-                </button>
-              </div>
+              <TableKanbanToggle value={view} onChange={setView} />
             </div>
           </div>
 

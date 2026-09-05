@@ -1,33 +1,129 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, Search } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { BookOpen, Edit3, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { AppModal, FormModalFooter, ModalError } from "@/components/app-modal";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  DetailField,
-  DetailFieldGrid,
-  DetailSection,
-  RecordDetailModal,
-} from "@/components/record-detail-modal";
 import { SkeletonCard } from "@/components/skeleton-card";
 import { SkeletonTable } from "@/components/skeleton-table";
-import { fetchJournalsPage } from "./journals-api";
+import { toolbarSelectClass } from "@/components/page-toolbar";
+import { fetchAccounts } from "@/features/master-data/master-data-api";
 import type { Journal } from "@/lib/types";
+import {
+  createJournal,
+  deleteJournal,
+  fetchJournalsPage,
+  reactivateJournal,
+  updateJournal,
+  type JournalInput,
+} from "./journals-api";
 
-const journalTypes = ["all", "sale", "purchase", "bank", "cash"];
+const journalTypes: { value: Journal["type"]; label: string }[] = [
+  { value: "sale", label: "Sale" },
+  { value: "purchase", label: "Purchase" },
+  { value: "bank", label: "Bank" },
+  { value: "cash", label: "Cash" },
+];
+
+const emptyForm: JournalInput = {
+  code: "",
+  name: "",
+  type: "sale",
+  default_account_id: null,
+};
+
+const fieldClass =
+  "mt-1 block h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm leading-normal text-text outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20";
 
 export function JournalsPage() {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [type, setType] = useState("all");
-  const [viewingJournal, setViewingJournal] = useState<Journal | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Journal | null>(null);
+  const [deactivatingJournal, setDeactivatingJournal] = useState<Journal | null>(null);
+  const [form, setForm] = useState<JournalInput>(emptyForm);
+  const [error, setError] = useState<string | null>(null);
+
   const journalsQuery = useQuery({
-    queryKey: ["journals", search, type],
-    queryFn: () => fetchJournalsPage({ search, type, limit: 100, is_active: true }),
+    queryKey: ["journals", search, type, statusFilter],
+    queryFn: () =>
+      fetchJournalsPage({
+        search,
+        type,
+        limit: 100,
+        is_active: statusFilter === "all" ? undefined : statusFilter === "active",
+      }),
   });
+
+  const accountsQuery = useQuery({
+    queryKey: ["accounts", "journal-form"],
+    queryFn: () => fetchAccounts({ is_active: true }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: () => {
+      const payload: JournalInput = {
+        code: form.code.trim(),
+        name: form.name.trim(),
+        type: form.type,
+        default_account_id: form.default_account_id ?? null,
+      };
+      return editing ? updateJournal(editing.id, payload) : createJournal(payload);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["journals"] });
+      setEditing(null);
+      setIsModalOpen(false);
+      setError(null);
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : "Could not save journal."),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteJournal(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["journals"] });
+      setDeactivatingJournal(null);
+    },
+  });
+
+  const reactivateMutation = useMutation({
+    mutationFn: (id: number) => reactivateJournal(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["journals"] });
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : "Could not reactivate journal."),
+  });
+
   const journals = journalsQuery.data?.data ?? [];
+  const accounts = accountsQuery.data ?? [];
+
+  function openCreate() {
+    setEditing(null);
+    setForm(emptyForm);
+    setError(null);
+    setIsModalOpen(true);
+  }
+
+  function openEdit(journal: Journal) {
+    setEditing(journal);
+    setForm({
+      code: journal.code,
+      name: journal.name,
+      type: journal.type,
+      default_account_id: journal.default_account_id ?? null,
+    });
+    setError(null);
+    setIsModalOpen(true);
+  }
 
   return (
     <div className="space-y-6 pb-12">
@@ -35,9 +131,22 @@ export function JournalsPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">Accounting setup</p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-text">Journals</h1>
-          <p className="mt-1 text-sm text-text-muted">Review the journals used to post sales, purchases, bank, and cash activity.</p>
+          <p className="mt-1 text-sm text-text-muted">
+            Manage the journals used to post sales, purchases, bank, and cash activity.
+          </p>
         </div>
-        <a href="/chart-of-accounts" className="inline-flex h-8 items-center justify-center rounded-lg border border-border px-2.5 text-sm font-medium text-text transition-colors hover:bg-muted">View Chart of Accounts</a>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href="/chart-of-accounts"
+            className="inline-flex h-9 items-center justify-center rounded-lg border border-border px-3 text-sm font-medium text-text transition-colors hover:bg-muted"
+          >
+            View Chart of Accounts
+          </a>
+          <Button type="button" onClick={openCreate}>
+            <Plus className="h-4 w-4" />
+            New journal
+          </Button>
+        </div>
       </div>
 
       {journalsQuery.isLoading ? (
@@ -54,21 +163,25 @@ export function JournalsPage() {
                 <BookOpen className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-text-muted">Active journals</p>
+                <p className="text-xs text-text-muted">Journals shown</p>
                 <p className="text-xl font-bold text-text">{journals.length}</p>
               </div>
             </CardContent>
           </Card>
           <Card size="sm">
             <CardContent>
-              <p className="text-xs text-text-muted">Default journals</p>
-              <p className="mt-1 text-xl font-bold text-text">{journals.filter((journal) => journal.default_account_id).length}</p>
+              <p className="text-xs text-text-muted">With default account</p>
+              <p className="mt-1 text-xl font-bold text-text">
+                {journals.filter((journal) => journal.default_account_id).length}
+              </p>
             </CardContent>
           </Card>
           <Card size="sm">
             <CardContent>
-              <p className="text-xs text-text-muted">Posting status</p>
-              <p className="mt-1 text-sm font-semibold text-emerald-600">Ready for entries</p>
+              <p className="text-xs text-text-muted">Active journals</p>
+              <p className="mt-1 text-xl font-bold text-text">
+                {journals.filter((journal) => journal.is_active).length}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -86,22 +199,35 @@ export function JournalsPage() {
                 className="w-full rounded-lg border border-border bg-surface py-2 pl-10 pr-3 text-sm text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
               />
             </div>
-            <select
-              value={type}
-              onChange={(event) => setType(event.target.value)}
-              className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text"
-            >
-              <option value="all">All journal types</option>
-              {journalTypes.slice(1).map((value) => (
-                <option key={value} value={value}>
-                  {value[0].toUpperCase() + value.slice(1)}
-                </option>
-              ))}
-            </select>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={type}
+                onChange={(event) => setType(event.target.value)}
+                className={toolbarSelectClass}
+                aria-label="Filter journals by type"
+              >
+                <option value="all">All journal types</option>
+                {journalTypes.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value as "all" | "active" | "inactive")}
+                className={toolbarSelectClass}
+                aria-label="Filter journals by status"
+              >
+                <option value="all">All statuses</option>
+                <option value="active">Active only</option>
+                <option value="inactive">Inactive only</option>
+              </select>
+            </div>
           </div>
           {journalsQuery.isLoading ? (
             <div className="p-8">
-              <SkeletonTable columns={5} rows={5} showSearch={false} showPagination={false} />
+              <SkeletonTable columns={6} rows={5} showSearch={false} showPagination={false} />
             </div>
           ) : journalsQuery.isError ? (
             <div className="p-8 text-center text-sm text-red-600">Unable to load journals. Please retry.</div>
@@ -117,6 +243,7 @@ export function JournalsPage() {
                     <th className="px-5 py-3">Type</th>
                     <th className="px-5 py-3">Default account</th>
                     <th className="px-5 py-3">Status</th>
+                    <th className="px-5 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -124,11 +251,11 @@ export function JournalsPage() {
                     <tr
                       key={journal.id}
                       className="cursor-pointer hover:bg-surface-muted/40 focus-visible:bg-surface-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500/40"
-                      onClick={() => setViewingJournal(journal)}
+                      onClick={() => openEdit(journal)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
-                          setViewingJournal(journal);
+                          openEdit(journal);
                         }
                       }}
                       tabIndex={0}
@@ -143,6 +270,39 @@ export function JournalsPage() {
                           {journal.is_active ? "Active" : "Inactive"}
                         </Badge>
                       </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center justify-end gap-1" onClick={(event) => event.stopPropagation()}>
+                          <ActionTooltip label="Edit journal">
+                            <Button type="button" variant="ghost" size="icon-sm" onClick={() => openEdit(journal)}>
+                              <Edit3 className="h-4 w-4" />
+                            </Button>
+                          </ActionTooltip>
+                          {journal.is_active ? (
+                            <ActionTooltip label="Deactivate journal">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => setDeactivatingJournal(journal)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </Button>
+                            </ActionTooltip>
+                          ) : (
+                            <ActionTooltip label="Reactivate journal">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                disabled={reactivateMutation.isPending}
+                                onClick={() => reactivateMutation.mutate(journal.id)}
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            </ActionTooltip>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -152,33 +312,119 @@ export function JournalsPage() {
         </CardContent>
       </Card>
 
-      {viewingJournal && (
-        <RecordDetailModal
-          open
-          onClose={() => setViewingJournal(null)}
-          title={viewingJournal.name}
-          subtitle={`Journal code ${viewingJournal.code}`}
-          titleId="journal-detail-title"
-          badge={
-            <Badge variant={viewingJournal.is_active ? "secondary" : "outline"}>
-              {viewingJournal.is_active ? "Active" : "Inactive"}
-            </Badge>
-          }
-          maxWidth="sm"
+      <AppModal
+        open={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditing(null);
+          setError(null);
+        }}
+        title={editing ? "Edit journal" : "New journal"}
+        subtitle="Journals group related postings — sales, purchases, bank, and cash."
+        titleId="journal-form-title"
+        maxWidth="md"
+        footer={
+          <FormModalFooter
+            formId="journal-form"
+            onCancel={() => {
+              setIsModalOpen(false);
+              setEditing(null);
+              setError(null);
+            }}
+            submitLabel={saveMutation.isPending ? "Saving…" : editing ? "Save changes" : "Create journal"}
+            pending={saveMutation.isPending}
+          />
+        }
+      >
+        <form
+          id="journal-form"
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!form.code.trim() || !form.name.trim()) {
+              setError("Code and name are required.");
+              return;
+            }
+            saveMutation.mutate();
+          }}
         >
-          <DetailSection title="Journal setup">
-            <DetailFieldGrid>
-              <DetailField label="Code" value={viewingJournal.code} mono />
-              <DetailField label="Type" value={<span className="capitalize">{viewingJournal.type}</span>} />
-              <DetailField
-                label="Default account"
-                value={viewingJournal.default_account_name ?? "—"}
-                className="sm:col-span-2"
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block text-sm text-text">
+              Code
+              <input
+                value={form.code}
+                onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value.toUpperCase() }))}
+                placeholder="SLS"
+                className={fieldClass}
+                required
               />
-            </DetailFieldGrid>
-          </DetailSection>
-        </RecordDetailModal>
-      )}
+            </label>
+            <label className="block text-sm text-text">
+              Type
+              <select
+                value={form.type}
+                onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value as Journal["type"] }))}
+                className={fieldClass}
+              >
+                {journalTypes.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <label className="block text-sm text-text">
+            Journal name
+            <input
+              value={form.name}
+              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+              placeholder="Sales Journal"
+              className={fieldClass}
+              required
+            />
+          </label>
+
+          <label className="block text-sm text-text">
+            Default account
+            <select
+              value={form.default_account_id ?? ""}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  default_account_id: event.target.value ? Number(event.target.value) : null,
+                }))
+              }
+              className={fieldClass}
+            >
+              <option value="">No default account</option>
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.code} — {account.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {error && <ModalError message={error} />}
+        </form>
+      </AppModal>
+
+      <ConfirmDialog
+        open={Boolean(deactivatingJournal)}
+        title="Deactivate journal?"
+        message={
+          deactivatingJournal
+            ? `"${deactivatingJournal.name}" (${deactivatingJournal.code}) will be hidden from new journal entries and payment posting. Existing entries already posted to this journal are kept for reporting. You can reactivate it later if needed.`
+            : ""
+        }
+        confirmLabel={deleteMutation.isPending ? "Deactivating…" : "Deactivate"}
+        destructive
+        pending={deleteMutation.isPending}
+        onConfirm={() => deactivatingJournal && deleteMutation.mutate(deactivatingJournal.id)}
+        onCancel={() => setDeactivatingJournal(null)}
+      />
     </div>
   );
 }

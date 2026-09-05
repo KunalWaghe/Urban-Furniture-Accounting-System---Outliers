@@ -21,7 +21,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit3, Grid2X2, List, Package, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Edit3, Package, Plus, RotateCcw, Trash2 } from "lucide-react";
 
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { AppModal, FormModalFooter, ModalError } from "@/components/app-modal";
@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActionTooltip } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
+import { TableKanbanToggle, toolbarSelectClass } from "@/components/page-toolbar";
 import type { Product } from "@/lib/types";
 import {
   createProduct,
@@ -374,7 +375,7 @@ export function ProductsPage() {
                   setCategoryFilter(event.target.value);
                   setPage(1);
                 }}
-                className="rounded-lg border border-border bg-surface py-2 px-3 text-xs text-text outline-none focus:border-primary-500"
+                className={toolbarSelectClass}
                 aria-label="Filter products by category"
               >
                 <option value="all">All categories</option>
@@ -390,7 +391,7 @@ export function ProductsPage() {
                   setProductTypeFilter(event.target.value);
                   setPage(1);
                 }}
-                className="rounded-lg border border-border bg-surface py-2 px-3 text-xs text-text outline-none focus:border-primary-500"
+                className={toolbarSelectClass}
                 aria-label="Filter products by type"
               >
                 <option value="all">All types</option>
@@ -404,39 +405,14 @@ export function ProductsPage() {
                   setStatusFilter(event.target.value as "all" | "active" | "inactive");
                   setPage(1);
                 }}
-                className="rounded-lg border border-border bg-surface py-2 px-3 text-xs text-text outline-none focus:border-primary-500"
+                className={toolbarSelectClass}
                 aria-label="Filter products by status"
               >
                 <option value="all">All statuses</option>
                 <option value="active">Active only</option>
                 <option value="inactive">Inactive only</option>
               </select>
-              <div className="flex rounded-lg border border-border bg-surface-muted p-1">
-                <button
-                  type="button"
-                  onClick={() => setView("table")}
-                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium ${
-                    view === "table"
-                      ? "bg-surface text-primary-600 shadow-sm"
-                      : "text-text-muted"
-                  }`}
-                >
-                  <List className="h-3.5 w-3.5" />
-                  Table
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setView("kanban")}
-                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium ${
-                    view === "kanban"
-                      ? "bg-surface text-primary-600 shadow-sm"
-                      : "text-text-muted"
-                  }`}
-                >
-                  <Grid2X2 className="h-3.5 w-3.5" />
-                  Kanban
-                </button>
-              </div>
+              <TableKanbanToggle value={view} onChange={setView} />
             </div>
           </div>
 

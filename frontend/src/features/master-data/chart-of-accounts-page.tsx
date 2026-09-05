@@ -102,7 +102,7 @@ function typeLabel(type: Account["type"]): string {
 export function ChartOfAccountsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("active");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<Account | null>(null);
   const [deactivatingAccount, setDeactivatingAccount] = useState<Account | null>(null);
@@ -252,9 +252,9 @@ export function ChartOfAccountsPage() {
                 className="rounded-lg border border-border bg-surface py-2 px-3 text-xs text-text outline-none focus:border-primary-500"
                 aria-label="Filter accounts by status"
               >
+                <option value="all">All statuses</option>
                 <option value="active">Active only</option>
                 <option value="inactive">Inactive only</option>
-                <option value="all">All statuses</option>
               </select>
             </div>
           </div>

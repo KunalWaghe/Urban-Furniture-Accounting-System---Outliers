@@ -14,6 +14,7 @@ import { AppModal, ModalError } from "@/components/app-modal";
 import { DetailField, DetailFieldGrid, DetailSection, RecordDetailModal } from "@/components/record-detail-modal";
 import { fetchAccountsPage, fetchContacts } from "@/features/master-data/master-data-api";
 import { formatINR, todayDate } from "@/lib/format";
+import { useIsMobile } from "@/hooks/use-media-query";
 import type { Account } from "@/lib/types";
 import {
   createJournalEntry,
@@ -42,6 +43,7 @@ function amount(value: number | null | undefined) {
 
 export function JournalEntriesPage() {
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [viewingEntryId, setViewingEntryId] = useState<number | null>(null);
@@ -172,7 +174,62 @@ export function JournalEntriesPage() {
             </div>
           ) : entries.length === 0 ? (
             <div className="p-10 text-center text-sm text-text-muted">No journal entries found.</div>
+          ) : isMobile ? (
+            /* Mobile card view */
+            <div className="divide-y divide-border">
+              {entries.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="cursor-pointer p-4 hover:bg-surface-muted/40 active:bg-surface-muted focus-visible:bg-surface-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500/40"
+                  onClick={() => setViewingEntryId(entry.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setViewingEntryId(entry.id);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-mono text-sm font-semibold text-primary-600">
+                      {entry.entry_number}
+                    </span>
+                    <Badge variant={entry.is_posted ? "secondary" : "outline"}>
+                      {entry.is_posted ? "Posted" : "Draft"}
+                    </Badge>
+                  </div>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between gap-4">
+                      <span className="text-text-muted shrink-0">Date:</span>
+                      <span className="text-text">
+                        {new Date(entry.date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <span className="text-text-muted shrink-0">Journal:</span>
+                      <span className="text-text truncate">
+                        {entry.journal_name ?? entry.journal_code ?? "—"}
+                      </span>
+                    </div>
+                    {entry.reference && (
+                      <div className="flex justify-between gap-4">
+                        <span className="text-text-muted shrink-0">Reference:</span>
+                        <span className="text-text truncate">{entry.reference}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between gap-4">
+                      <span className="text-text-muted shrink-0">Total:</span>
+                      <span className="font-mono text-text">
+                        {formatINR(entry.total_amount ?? 0)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
+            /* Desktop table view */
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-surface-muted text-xs font-semibold uppercase tracking-wider text-text-muted">
@@ -316,27 +373,32 @@ export function JournalEntriesPage() {
         maxWidth="2xl"
         bodyClassName="space-y-5"
         footer={
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <Button type="button" variant="outline" onClick={() => setLines((current) => [...current, newLine()])}>
+          <div className="flex flex-col gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setLines((current) => [...current, newLine()])}
+              className="w-full sm:w-auto"
+            >
               <Plus className="h-4 w-4" /> Add line
             </Button>
-            <div className="flex flex-col items-end gap-3 sm:flex-row sm:items-center">
-              <div className="text-right text-sm">
-                <div>
-                  Debit: <strong>{formatINR(totalDebit)}</strong>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm">
+                <div className="flex justify-between sm:block">
+                  <span>Debit:</span> <strong>{formatINR(totalDebit)}</strong>
                 </div>
-                <div>
-                  Credit: <strong>{formatINR(totalCredit)}</strong>
+                <div className="flex justify-between sm:block">
+                  <span>Credit:</span> <strong>{formatINR(totalCredit)}</strong>
                 </div>
-                <div className={balanced ? "font-semibold text-emerald-600" : "font-semibold text-red-600"}>
-                  {balanced ? "Balanced" : `Difference: ${formatINR(Math.abs(totalDebit - totalCredit))}`}
+                <div className={`flex justify-between sm:block ${balanced ? "font-semibold text-emerald-600" : "font-semibold text-red-600"}`}>
+                  {balanced ? "✓ Balanced" : `Difference: ${formatINR(Math.abs(totalDebit - totalCredit))}`}
                 </div>
               </div>
               <div className="flex gap-3">
-                <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} className="flex-1 sm:flex-none">
                   Cancel
                 </Button>
-                <Button type="button" onClick={submit} disabled={createMutation.isPending || !balanced}>
+                <Button type="button" onClick={submit} disabled={createMutation.isPending || !balanced} className="flex-1 sm:flex-none">
                   {createMutation.isPending ? "Posting…" : "Post Entry"}
                 </Button>
               </div>
@@ -345,144 +407,144 @@ export function JournalEntriesPage() {
         }
       >
         <div className="grid gap-4 sm:grid-cols-3">
-              <label className="text-xs font-semibold text-text">
-                Journal
-                <select
-                  value={journalCode}
-                  onChange={(event) => setJournalCode(event.target.value)}
-                  className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-normal text-text"
-                >
-                  {(journalsQuery.data ?? []).map((journal) => (
-                    <option key={journal.id} value={journal.code}>
-                      {journal.name} ({journal.code})
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="text-xs font-semibold text-text">
-                Accounting date
-                <input
-                  type="date"
-                  value={entryDate}
-                  onChange={(event) => setEntryDate(event.target.value)}
-                  className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-normal text-text"
-                />
-              </label>
-              <label className="text-xs font-semibold text-text">
-                Reference
-                <input
-                  value={reference}
-                  onChange={(event) => setReference(event.target.value)}
-                  placeholder="e.g. Manual adjustment"
-                  className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-normal text-text"
-                />
-              </label>
-            </div>
-            <div className="mt-6 overflow-x-auto rounded-xl border border-border">
-              <table className="min-w-[760px] w-full text-left text-sm">
-                <thead className="bg-surface-muted text-xs font-semibold uppercase tracking-wider text-text-muted">
-                  <tr>
-                    <th className="px-3 py-3">Account</th>
-                    <th className="px-3 py-3">Partner</th>
-                    <th className="px-3 py-3">Debit</th>
-                    <th className="px-3 py-3">Credit</th>
-                    <th className="px-3 py-3">Description</th>
-                    <th className="px-3 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {lines.map((line) => (
-                    <tr key={line.key}>
-                      <td className="px-3 py-2">
-                        <select
-                          value={line.account_id || ""}
-                          onChange={(event) =>
-                            updateLine(line.key, { account_id: Number(event.target.value) })
-                          }
-                          className="w-full rounded-lg border border-border bg-surface px-2 py-2 text-sm"
-                        >
-                          <option value="">Select account</option>
-                          {accounts.map((account: Account) => (
-                            <option key={account.id} value={account.id}>
-                              {account.code} · {account.name}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-3 py-2">
-                        <select
-                          value={line.partner_id ?? ""}
-                          onChange={(event) =>
-                            updateLine(line.key, {
-                              partner_id: event.target.value ? Number(event.target.value) : null,
-                            })
-                          }
-                          className="w-full rounded-lg border border-border bg-surface px-2 py-2 text-sm"
-                        >
-                          <option value="">No partner</option>
-                          {contacts.map((contact) => (
-                            <option key={contact.id} value={contact.id}>
-                              {contact.name}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-3 py-2">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={line.debit || ""}
-                          onChange={(event) =>
-                            updateLine(line.key, { debit: Number(event.target.value), credit: 0 })
-                          }
-                          className="w-28 rounded-lg border border-border bg-surface px-2 py-2 text-sm"
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={line.credit || ""}
-                          onChange={(event) =>
-                            updateLine(line.key, { credit: Number(event.target.value), debit: 0 })
-                          }
-                          className="w-28 rounded-lg border border-border bg-surface px-2 py-2 text-sm"
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <input
-                          value={line.description ?? ""}
-                          onChange={(event) =>
-                            updateLine(line.key, { description: event.target.value })
-                          }
-                          className="w-full rounded-lg border border-border bg-surface px-2 py-2 text-sm"
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <ActionTooltip label="Remove line">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setLines((current) =>
-                                current.length > 2
-                                  ? current.filter((item) => item.key !== line.key)
-                                  : current
-                              )
-                            }
-                            disabled={lines.length <= 2}
-                            className="rounded-lg p-2 text-text-muted hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </ActionTooltip>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <label className="text-xs font-semibold text-text">
+            Journal
+            <select
+              value={journalCode}
+              onChange={(event) => setJournalCode(event.target.value)}
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-normal text-text"
+            >
+              {(journalsQuery.data ?? []).map((journal) => (
+                <option key={journal.id} value={journal.code}>
+                  {journal.name} ({journal.code})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs font-semibold text-text">
+            Accounting date
+            <input
+              type="date"
+              value={entryDate}
+              onChange={(event) => setEntryDate(event.target.value)}
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-normal text-text"
+            />
+          </label>
+          <label className="text-xs font-semibold text-text">
+            Reference
+            <input
+              value={reference}
+              onChange={(event) => setReference(event.target.value)}
+              placeholder="e.g. Manual adjustment"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-normal text-text"
+            />
+          </label>
+        </div>
+        <div className="mt-6 overflow-x-auto rounded-xl border border-border">
+          <table className="min-w-[760px] w-full text-left text-sm">
+            <thead className="bg-surface-muted text-xs font-semibold uppercase tracking-wider text-text-muted">
+              <tr>
+                <th className="px-3 py-3">Account</th>
+                <th className="px-3 py-3">Partner</th>
+                <th className="px-3 py-3">Debit</th>
+                <th className="px-3 py-3">Credit</th>
+                <th className="px-3 py-3">Description</th>
+                <th className="px-3 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {lines.map((line) => (
+                <tr key={line.key}>
+                  <td className="px-3 py-2">
+                    <select
+                      value={line.account_id || ""}
+                      onChange={(event) =>
+                        updateLine(line.key, { account_id: Number(event.target.value) })
+                      }
+                      className="w-full rounded-lg border border-border bg-surface px-2 py-2 text-sm"
+                    >
+                      <option value="">Select account</option>
+                      {accounts.map((account: Account) => (
+                        <option key={account.id} value={account.id}>
+                          {account.code} · {account.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-3 py-2">
+                    <select
+                      value={line.partner_id ?? ""}
+                      onChange={(event) =>
+                        updateLine(line.key, {
+                          partner_id: event.target.value ? Number(event.target.value) : null,
+                        })
+                      }
+                      className="w-full rounded-lg border border-border bg-surface px-2 py-2 text-sm"
+                    >
+                      <option value="">No partner</option>
+                      {contacts.map((contact) => (
+                        <option key={contact.id} value={contact.id}>
+                          {contact.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-3 py-2">
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={line.debit || ""}
+                      onChange={(event) =>
+                        updateLine(line.key, { debit: Number(event.target.value), credit: 0 })
+                      }
+                      className="w-28 rounded-lg border border-border bg-surface px-2 py-2 text-sm"
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={line.credit || ""}
+                      onChange={(event) =>
+                        updateLine(line.key, { credit: Number(event.target.value), debit: 0 })
+                      }
+                      className="w-28 rounded-lg border border-border bg-surface px-2 py-2 text-sm"
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <input
+                      value={line.description ?? ""}
+                      onChange={(event) =>
+                        updateLine(line.key, { description: event.target.value })
+                      }
+                      className="w-full rounded-lg border border-border bg-surface px-2 py-2 text-sm"
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <ActionTooltip label="Remove line">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setLines((current) =>
+                            current.length > 2
+                              ? current.filter((item) => item.key !== line.key)
+                              : current
+                          )
+                        }
+                        disabled={lines.length <= 2}
+                        className="rounded-lg p-2 text-text-muted hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </ActionTooltip>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {formError && <ModalError>{formError}</ModalError>}
       </AppModal>
     </div>

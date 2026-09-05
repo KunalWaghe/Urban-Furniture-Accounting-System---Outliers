@@ -8,10 +8,11 @@ from sqlalchemy import select, func
 from app.models.account import Account
 from app.models.journal import Journal
 from app.schemas.account import AccountCreate, AccountUpdate
-from app.schemas.journal import JournalResponse
+from app.schemas.journal import JournalCreate, JournalUpdate, JournalResponse
 from app.core.exceptions import NotFoundException, ConflictException, ValidationException
 
 VALID_ACCOUNT_TYPES = {"asset", "liability", "capital", "income", "expense", "other_expense"}
+VALID_JOURNAL_TYPES = {"sale", "purchase", "bank", "cash"}
 
 # Default seeded Chart of Accounts covering all 5 account types
 DEFAULT_ACCOUNTS = [
@@ -272,4 +273,124 @@ def get_journals(
 
     pages = math.ceil(total / limit) if limit > 0 and total > 0 else 1
     return journals_response, total, page, limit, pages
+
+
+def _journal_to_response(journal: Journal) -> JournalResponse:
+    res = JournalResponse.model_validate(journal)
+    if journal.default_account:
+        res.default_account_name = journal.default_account.name
+    return res
+
+
+def get_journal_by_id(db: Session, journal_id: int) -> JournalResponse:
+    """Fetch a single journal by primary key."""
+    seed_accounting_defaults(db)
+    journal = db.get(Journal, journal_id)
+    if not journal:
+        raise NotFoundException("Journal", journal_id)
+    return _journal_to_response(journal)
+
+
+def create_journal(db: Session, req: JournalCreate) -> JournalResponse:
+    """Create a new journal with a unique code."""
+    seed_accounting_defaults(db)
+
+    journal_type = req.type.lower()
+    if journal_type not in VALID_JOURNAL_TYPES:
+        raise ValidationException(
+            f"Invalid journal type '{req.type}'. Must be one of: {', '.join(sorted(VALID_JOURNAL_TYPES))}"
+        )
+
+    clean_code = req.code.strip().upper()
+    existing = db.scalar(select(Journal).where(func.upper(Journal.code) == clean_code))
+    if existing:
+        raise ConflictException(code="DUPLICATE_JOURNAL_CODE", message=f"Journal code '{clean_code}' already exists")
+
+    default_account_id = req.default_account_id
+    if default_account_id is not None:
+        account = db.get(Account, default_account_id)
+        if not account:
+            raise NotFoundException("Account", default_account_id)
+
+    journal = Journal(
+        code=clean_code,
+        name=req.name.strip(),
+        type=journal_type,
+        default_account_id=default_account_id,
+        is_active=True,
+    )
+    db.add(journal)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    db.refresh(journal)
+    return _journal_to_response(journal)
+
+
+def update_journal(db: Session, journal_id: int, req: JournalUpdate) -> JournalResponse:
+    """Update journal metadata or active status."""
+    seed_accounting_defaults(db)
+    journal = db.get(Journal, journal_id)
+    if not journal:
+        raise NotFoundException("Journal", journal_id)
+
+    if req.type is not None:
+        journal_type = req.type.lower()
+        if journal_type not in VALID_JOURNAL_TYPES:
+            raise ValidationException(
+                f"Invalid journal type '{req.type}'. Must be one of: {', '.join(sorted(VALID_JOURNAL_TYPES))}"
+            )
+        journal.type = journal_type
+
+    if req.code is not None:
+        clean_code = req.code.strip().upper()
+        if clean_code != journal.code.upper():
+            existing = db.scalar(
+                select(Journal).where(
+                    func.upper(Journal.code) == clean_code,
+                    Journal.id != journal_id,
+                )
+            )
+            if existing:
+                raise ConflictException(code="DUPLICATE_JOURNAL_CODE", message=f"Journal code '{clean_code}' already exists")
+            journal.code = clean_code
+
+    if req.name is not None:
+        journal.name = req.name.strip()
+
+    if "default_account_id" in req.model_fields_set:
+        if req.default_account_id is None:
+            journal.default_account_id = None
+        else:
+            account = db.get(Account, req.default_account_id)
+            if not account:
+                raise NotFoundException("Account", req.default_account_id)
+            journal.default_account_id = req.default_account_id
+
+    if req.is_active is not None:
+        journal.is_active = req.is_active
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    db.refresh(journal)
+    return _journal_to_response(journal)
+
+
+def delete_journal(db: Session, journal_id: int) -> None:
+    """Soft-delete a journal by setting is_active=False."""
+    seed_accounting_defaults(db)
+    journal = db.get(Journal, journal_id)
+    if not journal:
+        raise NotFoundException("Journal", journal_id)
+    try:
+        journal.is_active = False
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
 

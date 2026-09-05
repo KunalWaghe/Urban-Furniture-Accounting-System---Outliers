@@ -7,11 +7,18 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, require_roles
-from app.schemas.journal import JournalListResponse
+from app.schemas.journal import JournalCreate, JournalUpdate, JournalResponse, JournalListResponse
 from app.services import accounting_service
 
 # RBAC guard: only admin and invoicing_user roles can access Journal management
 router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
+
+
+@router.post("", response_model=JournalResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=JournalResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
+def create_journal(req: JournalCreate, db: Session = Depends(get_db)):
+    """Create a new journal."""
+    return accounting_service.create_journal(db, req)
 
 
 @router.get("", response_model=JournalListResponse, status_code=status.HTTP_200_OK)
@@ -35,4 +42,23 @@ def list_journals(
         db, journal_type=type, search=search, is_active=is_active, page=page, limit=limit, sort_by=sort_by, sort_order=sort_order
     )
     return JournalListResponse(data=journals, total=total, page=page, limit=limit, pages=pages)
+
+
+@router.get("/{journal_id}", response_model=JournalResponse, status_code=status.HTTP_200_OK)
+def get_journal(journal_id: int, db: Session = Depends(get_db)):
+    """Get journal details by ID."""
+    return accounting_service.get_journal_by_id(db, journal_id)
+
+
+@router.put("/{journal_id}", response_model=JournalResponse, status_code=status.HTTP_200_OK)
+def update_journal(journal_id: int, req: JournalUpdate, db: Session = Depends(get_db)):
+    """Update journal metadata or active status."""
+    return accounting_service.update_journal(db, journal_id, req)
+
+
+@router.delete("/{journal_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_journal(journal_id: int, db: Session = Depends(get_db)):
+    """Soft delete a journal (sets is_active=False)."""
+    accounting_service.delete_journal(db, journal_id)
+    return None
 

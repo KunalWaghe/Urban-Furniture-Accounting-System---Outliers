@@ -13,7 +13,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, type ReactNode } from "react";
 
 import { useAuth } from "@/features/auth/auth-context";
 import { getHomeRouteForRole } from "@/features/auth/validation";
@@ -70,11 +70,11 @@ export function RequireRole({
 
   const isAllowed = user ? allowedRoles.includes(user.role) : false;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (mounted && !bootstrapping && user && !isAllowed) {
       router.replace(getHomeRouteForRole(user.role));
     }
-  }, [mounted, bootstrapping, user, isAllowed, router]);
+  }, [mounted, bootstrapping, user, isAllowed, allowedRoles, router]);
 
   if (!mounted || bootstrapping) {
     return (

@@ -34,6 +34,7 @@ import { TablePagination } from "@/components/ui/table-pagination";
 import { ActionTooltip } from "@/components/ui/tooltip";
 import { formatDate, formatINR } from "@/lib/format";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { useIsMobile } from "@/hooks/use-media-query";
 
 import { fetchVendorBillsPage } from "./vendor-bills-api";
 import { VendorBillStatusBadge } from "./vendor-bill-status-badge";
@@ -46,6 +47,7 @@ const PAGE_SIZE = 10;
 export function VendorBillsListPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   // ── Local filter / pagination / sort state ─────────────────────────────────
   const [search, setSearch] = useState("");
@@ -194,11 +196,10 @@ export function VendorBillsListPage() {
                   setStatusFilter(tab);
                   setPage(1);
                 }}
-                className={`rounded-lg px-3 py-1.5 font-medium capitalize transition-all ${
-                  statusFilter === tab
-                    ? "bg-surface text-text shadow-xs font-semibold"
-                    : "text-text-muted hover:text-text"
-                }`}
+                className={`rounded-lg px-3 py-1.5 font-medium capitalize transition-all ${statusFilter === tab
+                  ? "bg-surface text-text shadow-xs font-semibold"
+                  : "text-text-muted hover:text-text"
+                  }`}
               >
                 {tab}
               </button>
@@ -245,84 +246,136 @@ export function VendorBillsListPage() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-xs">
-                <thead className="bg-surface-muted text-[10px] font-semibold uppercase tracking-wider text-text-muted">
-                  <tr>
-                    <th
-                      className="px-5 py-3 cursor-pointer group select-none hover:text-text"
-                      onClick={() => handleSort("bill_number")}
-                    >
-                      <span className="inline-flex items-center gap-1">
-                        Bill Number {renderSortIcon("bill_number")}
-                      </span>
-                    </th>
-                    <th className="px-5 py-3">Vendor Partner</th>
-                    <th className="px-5 py-3">Source PO</th>
-                    <th
-                      className="px-5 py-3 cursor-pointer group select-none hover:text-text"
-                      onClick={() => handleSort("bill_date")}
-                    >
-                      <span className="inline-flex items-center gap-1">
-                        Bill Date {renderSortIcon("bill_date")}
-                      </span>
-                    </th>
-                    <th className="px-5 py-3">Due Date</th>
-                    <th className="px-5 py-3">Status</th>
-                    <th
-                      className="px-5 py-3 text-right cursor-pointer group select-none hover:text-text"
-                      onClick={() => handleSort("total")}
-                    >
-                      <span className="inline-flex items-center justify-end gap-1">
-                        Total Amount {renderSortIcon("total")}
-                      </span>
-                    </th>
-                    <th className="px-5 py-3 text-right">Balance Due</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {bills.map((bill) => (
-                    <tr
-                      key={bill.id}
-                      className="hover:bg-surface-muted/50 transition-colors cursor-pointer"
-                      onClick={() => router.push(`/vendor-bills/${bill.id}`)}
-                    >
-                      <td className="px-5 py-4 font-bold text-primary-600">
-                        <Link href={`/vendor-bills/${bill.id}`} className="hover:underline">
+            {isMobile ? (
+              /* Mobile card view */
+              <div className="divide-y divide-border">
+                {bills.map((bill) => (
+                  <div
+                    key={bill.id}
+                    className="p-4 cursor-pointer hover:bg-surface-muted/50 active:bg-surface-muted transition-colors"
+                    onClick={() => router.push(`/vendor-bills/${bill.id}`)}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <Link
+                          href={`/vendor-bills/${bill.id}`}
+                          className="font-bold text-primary-600 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {bill.bill_number}
                         </Link>
-                      </td>
-                      <td className="px-5 py-4 font-medium text-text">{bill.vendor_name}</td>
-                      <td className="px-5 py-4 text-text-muted">
-                        {bill.po_number ? (
-                          <span className="rounded bg-surface-muted px-2 py-0.5 font-mono text-[11px] text-text">
-                            {bill.po_number}
-                          </span>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      <td className="px-5 py-4 text-text-muted">{formatDate(bill.bill_date)}</td>
-                      <td className="px-5 py-4 text-text-muted font-medium">
-                        {formatDate(bill.due_date)}
-                      </td>
-                      <td className="px-5 py-4">
-                        <VendorBillStatusBadge status={bill.status} />
-                      </td>
-                      <td className="px-5 py-4 text-right font-mono font-semibold text-text">
-                        {formatINR(bill.total_amount)}
-                      </td>
-                      <td className="px-5 py-4 text-right font-mono font-bold text-primary-600">
-                        {formatINR(bill.amount_due)}
-                      </td>
+                        <p className="text-sm font-medium text-text mt-0.5">{bill.vendor_name}</p>
+                      </div>
+                      <VendorBillStatusBadge status={bill.status} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                      {bill.po_number && (
+                        <div className="flex justify-between col-span-2">
+                          <span className="text-text-muted">PO:</span>
+                          <span className="font-mono text-text">{bill.po_number}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Bill Date:</span>
+                        <span className="text-text">{formatDate(bill.bill_date)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Due Date:</span>
+                        <span className="font-medium text-text">{formatDate(bill.due_date)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Total:</span>
+                        <span className="font-mono font-semibold text-text">{formatINR(bill.total_amount)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Due:</span>
+                        <span className="font-mono font-bold text-primary-600">{formatINR(bill.amount_due)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              /* Desktop table view */
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-xs">
+                  <thead className="bg-surface-muted text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                    <tr>
+                      <th
+                        className="px-5 py-3 cursor-pointer group select-none hover:text-text"
+                        onClick={() => handleSort("bill_number")}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          Bill Number {renderSortIcon("bill_number")}
+                        </span>
+                      </th>
+                      <th className="px-5 py-3">Vendor Partner</th>
+                      <th className="px-5 py-3">Source PO</th>
+                      <th
+                        className="px-5 py-3 cursor-pointer group select-none hover:text-text"
+                        onClick={() => handleSort("bill_date")}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          Bill Date {renderSortIcon("bill_date")}
+                        </span>
+                      </th>
+                      <th className="px-5 py-3">Due Date</th>
+                      <th className="px-5 py-3">Status</th>
+                      <th
+                        className="px-5 py-3 text-right cursor-pointer group select-none hover:text-text"
+                        onClick={() => handleSort("total")}
+                      >
+                        <span className="inline-flex items-center justify-end gap-1">
+                          Total Amount {renderSortIcon("total")}
+                        </span>
+                      </th>
+                      <th className="px-5 py-3 text-right">Balance Due</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {bills.map((bill) => (
+                      <tr
+                        key={bill.id}
+                        className="hover:bg-surface-muted/50 transition-colors cursor-pointer"
+                        onClick={() => router.push(`/vendor-bills/${bill.id}`)}
+                      >
+                        <td className="px-5 py-4 font-bold text-primary-600">
+                          <Link href={`/vendor-bills/${bill.id}`} className="hover:underline">
+                            {bill.bill_number}
+                          </Link>
+                        </td>
+                        <td className="px-5 py-4 font-medium text-text">{bill.vendor_name}</td>
+                        <td className="px-5 py-4 text-text-muted">
+                          {bill.po_number ? (
+                            <span className="rounded bg-surface-muted px-2 py-0.5 font-mono text-[11px] text-text">
+                              {bill.po_number}
+                            </span>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td className="px-5 py-4 text-text-muted">{formatDate(bill.bill_date)}</td>
+                        <td className="px-5 py-4 text-text-muted font-medium">
+                          {formatDate(bill.due_date)}
+                        </td>
+                        <td className="px-5 py-4">
+                          <VendorBillStatusBadge status={bill.status} />
+                        </td>
+                        <td className="px-5 py-4 text-right font-mono font-semibold text-text">
+                          {formatINR(bill.total_amount)}
+                        </td>
+                        <td className="px-5 py-4 text-right font-mono font-bold text-primary-600">
+                          {formatINR(bill.amount_due)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {totalPages > 1 && (
-              <div className="border-t border-border px-5 py-3 flex items-center justify-between">
+              <div className="border-t border-border px-4 py-3 sm:px-5 flex flex-col sm:flex-row items-center justify-between gap-2">
                 <p className="text-xs text-text-muted">
                   Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, totalCount)} of{" "}
                   {totalCount} bills

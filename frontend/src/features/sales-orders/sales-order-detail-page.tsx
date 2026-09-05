@@ -29,6 +29,7 @@ import {
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-media-query";
 import {
   cancelSalesOrder,
   confirmSalesOrder,
@@ -46,6 +47,7 @@ interface SalesOrderDetailPageProps {
 export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
 
@@ -140,14 +142,14 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
         </div>
 
         {/* State Machine Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
           {/* Draft State -> Confirm Action */}
           {isDraft && (
             <Button
               type="button"
               variant="default"
               onClick={() => setConfirmOpen(true)}
-              className="gap-1.5 shadow-sm"
+              className="gap-1.5 shadow-sm w-full sm:w-auto"
             >
               <CheckCircle2 className="h-4 w-4" />
               Confirm Order
@@ -161,7 +163,7 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
               variant="default"
               disabled={createInvoiceMutation.isPending}
               onClick={() => createInvoiceMutation.mutate()}
-              className="gap-1.5 bg-purple-600 text-white shadow-sm hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700"
+              className="gap-1.5 bg-purple-600 text-white shadow-sm hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700 w-full sm:w-auto"
             >
               <Receipt className="h-4 w-4" />
               {createInvoiceMutation.isPending ? "Generating Invoice..." : "Generate Invoice"}
@@ -170,8 +172,8 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
 
           {/* Invoiced State -> View Invoices Link */}
           {isInvoiced && (
-            <Link href="/sales-invoices">
-              <Button variant="outline" className="gap-1.5">
+            <Link href="/sales-invoices" className="w-full sm:w-auto">
+              <Button variant="outline" className="gap-1.5 w-full">
                 <Receipt className="h-4 w-4 text-purple-500" />
                 View Customer Invoices
               </Button>
@@ -182,7 +184,7 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
             <Button
               variant="outline"
               onClick={() => router.push(`/sales-orders/${soId}/edit`)}
-              className="gap-1.5"
+              className="gap-1.5 w-full sm:w-auto"
             >
               <Pencil className="h-4 w-4" />
               Edit
@@ -194,7 +196,7 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
               variant="outline"
               onClick={() => setCancelOpen(true)}
               disabled={cancelMutation.isPending}
-              className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:border-rose-400 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40 gap-1.5"
+              className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:border-rose-400 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40 gap-1.5 w-full sm:w-auto"
             >
               <XCircle className="h-4 w-4" />
               {cancelMutation.isPending ? "Cancelling…" : "Cancel Order"}
@@ -248,52 +250,88 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
 
       {/* ── Line Items Table ─────────────────────────────────────────────── */}
       <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-xs">
-        <div className="border-b border-border bg-surface-elevated/60 px-5 py-4">
+        <div className="border-b border-border bg-surface-elevated/60 px-4 py-3 sm:px-5 sm:py-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
             Ordered Products & Pricing
           </h2>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-border bg-surface-elevated text-xs font-semibold uppercase text-text-muted">
-              <tr>
-                <th className="px-5 py-3">#</th>
-                <th className="px-5 py-3">Product Name</th>
-                <th className="px-5 py-3">Sales Account</th>
-                <th className="px-5 py-3 text-right">Quantity</th>
-                <th className="px-5 py-3 text-right">Unit Price</th>
-                <th className="px-5 py-3 text-right">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {so.lines.map((line, idx) => (
-                <tr key={line.id || idx} className="hover:bg-surface-elevated/40">
-                  <td className="px-5 py-3.5 text-xs text-text-muted">{idx + 1}</td>
-                  <td className="px-5 py-3.5 font-medium text-text-primary">
-                    {line.product_name || `Product #${line.product_id}`}
-                  </td>
-                  <td className="px-5 py-3.5 text-xs text-text-muted">
-                    {line.account_name || "Sales Income (4010)"}
-                  </td>
-                  <td className="px-5 py-3.5 text-right font-medium text-text-primary">
-                    {line.quantity}
-                  </td>
-                  <td className="px-5 py-3.5 text-right text-text-muted">
-                    {formatINR(line.unit_price)}
-                  </td>
-                  <td className="px-5 py-3.5 text-right font-semibold text-text-primary">
-                    {formatINR(line.subtotal)}
-                  </td>
+        {isMobile ? (
+          /* Mobile card view */
+          <div className="divide-y divide-border">
+            {so.lines.map((line, idx) => (
+              <div key={line.id || idx} className="p-4 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <span className="text-xs text-text-muted">#{idx + 1}</span>
+                    <p className="font-medium text-text-primary">
+                      {line.product_name || `Product #${line.product_id}`}
+                    </p>
+                    <p className="text-xs text-text-muted mt-0.5">
+                      {line.account_name || "Sales Income (4010)"}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">Qty:</span>
+                    <span className="font-medium text-text-primary">{line.quantity}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">Unit:</span>
+                    <span className="text-text">{formatINR(line.unit_price)}</span>
+                  </div>
+                  <div className="col-span-2 flex justify-between pt-1 border-t border-border">
+                    <span className="text-text-muted">Subtotal:</span>
+                    <span className="font-semibold text-text-primary">{formatINR(line.subtotal)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* Desktop table view */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-border bg-surface-elevated text-xs font-semibold uppercase text-text-muted">
+                <tr>
+                  <th className="px-5 py-3">#</th>
+                  <th className="px-5 py-3">Product Name</th>
+                  <th className="px-5 py-3">Sales Account</th>
+                  <th className="px-5 py-3 text-right">Quantity</th>
+                  <th className="px-5 py-3 text-right">Unit Price</th>
+                  <th className="px-5 py-3 text-right">Subtotal</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {so.lines.map((line, idx) => (
+                  <tr key={line.id || idx} className="hover:bg-surface-elevated/40">
+                    <td className="px-5 py-3.5 text-xs text-text-muted">{idx + 1}</td>
+                    <td className="px-5 py-3.5 font-medium text-text-primary">
+                      {line.product_name || `Product #${line.product_id}`}
+                    </td>
+                    <td className="px-5 py-3.5 text-xs text-text-muted">
+                      {line.account_name || "Sales Income (4010)"}
+                    </td>
+                    <td className="px-5 py-3.5 text-right font-medium text-text-primary">
+                      {line.quantity}
+                    </td>
+                    <td className="px-5 py-3.5 text-right text-text-muted">
+                      {formatINR(line.unit_price)}
+                    </td>
+                    <td className="px-5 py-3.5 text-right font-semibold text-text-primary">
+                      {formatINR(line.subtotal)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* ── Financial Summary ──────────────────────────────────────────── */}
-        <div className="flex justify-end border-t border-border bg-surface-elevated/30 p-5">
-          <div className="w-full max-w-xs space-y-2 text-sm">
+        <div className="border-t border-border bg-surface-elevated/30 p-4 sm:p-5">
+          <div className="ml-auto w-full max-w-xs space-y-2 text-sm">
             <div className="flex justify-between text-text-muted">
               <span>Subtotal</span>
               <span className="font-medium text-text-primary">{formatINR(so.total)}</span>

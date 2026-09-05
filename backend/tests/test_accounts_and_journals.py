@@ -114,3 +114,49 @@ def test_journals_endpoint():
         sale_data = sale_res.json()
         assert sale_data["total"] >= 1
         assert all(j["type"] == "sale" for j in sale_data["data"])
+
+
+def test_journals_crud_flow():
+    with TestClient(app) as client:
+        accounts_res = client.get("/api/v1/accounts?search=4010")
+        assert accounts_res.status_code == 200
+        sales_account = accounts_res.json()["data"][0]
+
+        payload = {
+            "code": "MISC",
+            "name": "Miscellaneous Journal",
+            "type": "cash",
+            "default_account_id": sales_account["id"],
+        }
+        create_res = client.post("/api/v1/journals", json=payload)
+        assert create_res.status_code == 201, create_res.text
+        created = create_res.json()
+        assert created["code"] == "MISC"
+        assert created["name"] == "Miscellaneous Journal"
+        assert created["is_active"] is True
+
+        journal_id = created["id"]
+
+        get_res = client.get(f"/api/v1/journals/{journal_id}")
+        assert get_res.status_code == 200
+        assert get_res.json()["code"] == "MISC"
+
+        update_res = client.put(
+            f"/api/v1/journals/{journal_id}",
+            json={"name": "Misc Cash Journal"},
+        )
+        assert update_res.status_code == 200, update_res.text
+        assert update_res.json()["name"] == "Misc Cash Journal"
+
+        dup_res = client.post(
+            "/api/v1/journals",
+            json={"code": "MISC", "name": "Duplicate", "type": "cash"},
+        )
+        assert dup_res.status_code == 409
+
+        delete_res = client.delete(f"/api/v1/journals/{journal_id}")
+        assert delete_res.status_code == 204
+
+        inactive_res = client.get(f"/api/v1/journals/{journal_id}")
+        assert inactive_res.status_code == 200
+        assert inactive_res.json()["is_active"] is False

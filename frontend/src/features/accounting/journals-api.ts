@@ -9,6 +9,13 @@ export interface JournalListParams {
   is_active?: boolean;
 }
 
+export interface JournalInput {
+  code: string;
+  name: string;
+  type: Journal["type"];
+  default_account_id?: number | null;
+}
+
 export async function fetchJournalsPage(
   params: JournalListParams = {}
 ): Promise<JournalListResponse> {
@@ -28,4 +35,31 @@ export async function fetchJournalsPage(
 export async function fetchJournals(): Promise<Journal[]> {
   const response = await fetchJournalsPage({ limit: 100, is_active: true });
   return response.data ?? [];
+}
+
+export async function createJournal(input: JournalInput): Promise<Journal> {
+  return apiFetch<Journal>("/api/v1/journals", {
+    method: "POST",
+    auth: true,
+    body: input,
+  });
+}
+
+export async function updateJournal(id: number, input: Partial<JournalInput & { is_active?: boolean }>): Promise<Journal> {
+  return apiFetch<Journal>(`/api/v1/journals/${id}`, {
+    method: "PUT",
+    auth: true,
+    body: input,
+  });
+}
+
+export async function deleteJournal(id: number): Promise<void> {
+  return apiFetch<void>(`/api/v1/journals/${id}`, {
+    method: "DELETE",
+    auth: true,
+  });
+}
+
+export async function reactivateJournal(id: number): Promise<Journal> {
+  return updateJournal(id, { is_active: true });
 }

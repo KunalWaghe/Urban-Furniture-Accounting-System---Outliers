@@ -30,6 +30,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { PaymentModal } from "@/components/payment-modal";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { PoStatusBadge } from "@/features/purchase-orders/po-status-badge";
 import {
   cancelPurchaseOrder,
@@ -64,6 +65,7 @@ interface VendorBillData {
 export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [billConfirmOpen, setBillConfirmOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -164,14 +166,14 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2">
           {isDraft && (
             <>
-              <Button onClick={() => setConfirmOpen(true)} disabled={confirmMutation.isPending}>
+              <Button onClick={() => setConfirmOpen(true)} disabled={confirmMutation.isPending} className="w-full sm:w-auto">
                 <CheckCircle2 className="h-4 w-4 mr-1.5" />
                 Confirm Order
               </Button>
-              <Button variant="outline" onClick={() => router.push(`/purchase-orders/${poId}/edit`)}>
+              <Button variant="outline" onClick={() => router.push(`/purchase-orders/${poId}/edit`)} className="w-full sm:w-auto">
                 <Pencil className="h-4 w-4" />
                 Edit
               </Button>
@@ -181,7 +183,7 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
             <Button
               onClick={() => setBillConfirmOpen(true)}
               disabled={createBillMutation.isPending}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto"
             >
               {createBillMutation.isPending ? (
                 <>
@@ -199,7 +201,7 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
           {isBilled && currentBill && currentBill.status !== "paid" && (
             <Button
               onClick={() => setPaymentModalOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm w-full sm:w-auto"
             >
               <CreditCard className="h-4 w-4 mr-1.5" />
               Register Payment
@@ -210,7 +212,7 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
               variant="outline"
               onClick={() => setCancelOpen(true)}
               disabled={cancelMutation.isPending}
-              className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:border-rose-400 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
+              className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:border-rose-400 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40 w-full sm:w-auto"
             >
               <XCircle className="h-4 w-4 mr-1.5" />
               {cancelMutation.isPending ? "Cancelling…" : "Cancel Order"}
@@ -249,36 +251,70 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <section className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
-          <div className="border-b border-border px-5 py-4">
+          <div className="border-b border-border px-4 py-3 sm:px-5 sm:py-4">
             <h2 className="text-sm font-semibold text-text">Line Items</h2>
             <p className="text-xs text-text-muted">{po.lines.length} item(s)</p>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-surface-muted text-[10px] font-semibold uppercase tracking-wider text-text-muted">
-                <tr>
-                  <th className="px-5 py-3">Sr</th>
-                  <th className="px-5 py-3">Product</th>
-                  <th className="px-5 py-3">Purchase Account</th>
-                  <th className="px-5 py-3 text-right">Qty</th>
-                  <th className="px-5 py-3 text-right">Unit Price</th>
-                  <th className="px-5 py-3 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {po.lines.map((line, index) => (
-                  <tr key={line.id}>
-                    <td className="px-5 py-4 text-text-muted">{index + 1}</td>
-                    <td className="px-5 py-4 font-medium text-text">{line.product_name}</td>
-                    <td className="px-5 py-4 text-text-muted">{line.account_name ?? "Purchase Expense"}</td>
-                    <td className="px-5 py-4 text-right text-text-muted">{line.quantity}</td>
-                    <td className="px-5 py-4 text-right font-mono text-text-muted">{formatINR(line.unit_price)}</td>
-                    <td className="px-5 py-4 text-right font-mono font-medium text-text">{formatINR(line.subtotal)}</td>
+          {isMobile ? (
+            /* Mobile card view */
+            <div className="divide-y divide-border">
+              {po.lines.map((line, index) => (
+                <div key={line.id} className="p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <span className="text-xs text-text-muted">#{index + 1}</span>
+                      <p className="font-medium text-text">{line.product_name}</p>
+                      <p className="text-xs text-text-muted mt-0.5">
+                        {line.account_name ?? "Purchase Expense"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">Qty:</span>
+                      <span className="text-text">{line.quantity}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">Unit:</span>
+                      <span className="font-mono text-text-muted">{formatINR(line.unit_price)}</span>
+                    </div>
+                    <div className="col-span-2 flex justify-between pt-1 border-t border-border">
+                      <span className="text-text-muted">Total:</span>
+                      <span className="font-mono font-medium text-text">{formatINR(line.subtotal)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Desktop table view */
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-surface-muted text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                  <tr>
+                    <th className="px-5 py-3">Sr</th>
+                    <th className="px-5 py-3">Product</th>
+                    <th className="px-5 py-3">Purchase Account</th>
+                    <th className="px-5 py-3 text-right">Qty</th>
+                    <th className="px-5 py-3 text-right">Unit Price</th>
+                    <th className="px-5 py-3 text-right">Total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {po.lines.map((line, index) => (
+                    <tr key={line.id}>
+                      <td className="px-5 py-4 text-text-muted">{index + 1}</td>
+                      <td className="px-5 py-4 font-medium text-text">{line.product_name}</td>
+                      <td className="px-5 py-4 text-text-muted">{line.account_name ?? "Purchase Expense"}</td>
+                      <td className="px-5 py-4 text-right text-text-muted">{line.quantity}</td>
+                      <td className="px-5 py-4 text-right font-mono text-text-muted">{formatINR(line.unit_price)}</td>
+                      <td className="px-5 py-4 text-right font-mono font-medium text-text">{formatINR(line.subtotal)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
         <aside className="space-y-4">
@@ -319,10 +355,10 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
                 </div>
                 <span
                   className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${currentBill.status === "paid"
-                      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                      : currentBill.status === "partially_paid"
-                        ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
-                        : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                    : currentBill.status === "partially_paid"
+                      ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                      : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
                     }`}
                 >
                   {currentBill.status}
@@ -410,8 +446,8 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
             {confirmMutation.error instanceof ApiError && confirmMutation.error.status === 409
               ? "Budget exceeded: Confirming this PO exceeds the allocated budget for one or more accounts. Please review line items or request a budget increase."
               : confirmMutation.error instanceof Error
-              ? confirmMutation.error.message
-              : "An unexpected error occurred while confirming the purchase order."}
+                ? confirmMutation.error.message
+                : "An unexpected error occurred while confirming the purchase order."}
           </p>
         </div>
       )}
