@@ -6,6 +6,7 @@ import {
   Armchair,
   BarChart3,
   CreditCard,
+  FileText,
   LayoutDashboard,
   LogOut,
   Moon,
@@ -13,6 +14,7 @@ import {
   ShoppingCart,
   Sun,
   User,
+  Users,
   type LucideIcon,
 } from "lucide-react"
 
@@ -24,14 +26,17 @@ interface NavItem {
   label: string
   href: string
   icon: LucideIcon
+  roles?: string[]
 }
 
-export const NAV_ITEMS: NavItem[] = [
+export const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Purchase Orders", href: "#", icon: ShoppingCart },
-  { label: "Bills", href: "#", icon: Receipt },
-  { label: "Payments", href: "#", icon: CreditCard },
-  { label: "Reports", href: "#", icon: BarChart3 },
+  { label: "Purchase Orders", href: "#", icon: ShoppingCart, roles: ["admin", "invoicing_user"] },
+  { label: "Bills", href: "#", icon: Receipt, roles: ["admin", "invoicing_user"] },
+  { label: "Payments", href: "#", icon: CreditCard, roles: ["admin", "invoicing_user"] },
+  { label: "Reports", href: "#", icon: BarChart3, roles: ["admin", "invoicing_user"] },
+  { label: "User Management", href: "/admin/users", icon: Users, roles: ["admin"] },
+  { label: "Portal Invoices", href: "#", icon: FileText, roles: ["contact"] },
 ]
 
 export function SiteSidebar() {
@@ -44,6 +49,12 @@ export function SiteSidebar() {
     logout()
     router.replace("/login")
   }
+
+  const userRole = user?.role || "invoicing_user"
+  const visibleNavItems = ALL_NAV_ITEMS.filter((item) => {
+    if (!item.roles) return true
+    return item.roles.includes(userRole)
+  })
 
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-surface md:flex">
@@ -62,7 +73,7 @@ export function SiteSidebar() {
 
       {/* Nav */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        {NAV_ITEMS.map((item) => {
+        {visibleNavItems.map((item) => {
           const Icon = item.icon
           const isActive =
             item.href === "/"
@@ -88,15 +99,36 @@ export function SiteSidebar() {
 
       {/* Bottom: user + theme + logout */}
       <div className="space-y-2 border-t border-border p-4">
-        {/* User info */}
+        {/* User info with role badge */}
         {user && (
-          <div className="flex items-center gap-2 rounded-lg px-2 py-1.5">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
-              <User className="h-3.5 w-3.5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium text-text">{user.name}</p>
-              <p className="truncate text-xs text-text-muted">{user.email}</p>
+          <div className="rounded-lg border border-border/60 bg-surface-muted/50 px-3 py-2.5">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
+                <User className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-1">
+                  <p className="truncate text-xs font-semibold text-text">{user.name}</p>
+                  {user.role === "admin" && (
+                    <span className="rounded bg-purple-100 px-1.5 py-0.2 text-[9px] font-bold uppercase text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                      Admin
+                    </span>
+                  )}
+                  {user.role === "invoicing_user" && (
+                    <span className="rounded bg-emerald-100 px-1.5 py-0.2 text-[9px] font-bold uppercase text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                      Accountant
+                    </span>
+                  )}
+                  {user.role === "contact" && (
+                    <span className="rounded bg-amber-100 px-1.5 py-0.2 text-[9px] font-bold uppercase text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                      Portal
+                    </span>
+                  )}
+                </div>
+                <p className="truncate text-[11px] text-text-muted">
+                  {user.login_id ? `@${user.login_id}` : user.email}
+                </p>
+              </div>
             </div>
           </div>
         )}

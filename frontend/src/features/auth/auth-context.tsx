@@ -84,15 +84,19 @@ function clearSession(): void {
 
 function toAuthUser(response: {
   id: number;
+  login_id?: string | null;
   email: string;
   name: string;
   role: string;
+  contact_id?: number | null;
 }): AuthUser {
   return {
     id: response.id,
+    login_id: response.login_id ?? null,
     email: response.email,
     name: response.name,
     role: response.role,
+    contact_id: response.contact_id ?? null,
   };
 }
 
@@ -160,7 +164,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const storedToken = getStoredToken();
     if (!storedToken) {
-      setBootstrapping(false);
       return;
     }
 
@@ -182,7 +185,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => {
         setBootstrapping(false);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // run once on mount
 
   const value = useMemo<AuthContextValue>(

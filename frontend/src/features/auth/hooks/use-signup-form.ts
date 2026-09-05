@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
-import { ApiError } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
 
 import { useAuth } from "../auth-context";
 import {
@@ -16,13 +16,21 @@ const FIELD_ORDER: Array<keyof SignupErrors> = [
   "name",
   "login_id",
   "email",
+  "role",
   "password",
   "confirmPassword",
-  "role",
   "terms",
 ];
 
-export function useSignupForm() {
+import type { AuthUser } from "@/lib/types";
+
+export interface UseSignupFormOptions {
+  mode?: "signup" | "admin-create";
+  onSuccess?: (createdUser: AuthUser) => void;
+}
+
+export function useSignupForm(options: UseSignupFormOptions = {}) {
+  const { mode = "signup", onSuccess } = options;
   const router = useRouter();
   const { register } = useAuth();
 
@@ -32,7 +40,7 @@ export function useSignupForm() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "invoicing_user",
+    role: mode === "admin-create" ? "invoicing_user" : "contact",
     acceptedTerms: false,
   });
   const [errors, setErrors] = useState<SignupErrors>({});
@@ -65,13 +73,15 @@ export function useSignupForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const nextErrors = validateSignupFields(fields);
+    const nextErrors = validateSignupFields(fields, {
+      requireTerms: mode === "signup",
+    });
     setErrors(nextErrors);
     const firstInvalid = FIELD_ORDER.find((field) => nextErrors[field]);
     if (firstInvalid) {
       setNotice({
         kind: "error",
-        title: "Unable to create account",
+        title: mode === "admin-create" ? "Unable to create user" : "Unable to create account",
         message: "Please correct the highlighted fields and try again.",
       });
       document.getElementById(firstInvalid)?.focus();
@@ -81,33 +91,95 @@ export function useSignupForm() {
     setIsSubmitting(true);
     setNotice(null);
 
+    if (mode === "admin-create") {
+      try {
+        const payload = {
+          name: fields.name.trim(),
+          login_id: fields.login_id.trim(),
+          email: fields.email.trim(),
+          password: fields.password,
+          role: fields.role || "invoicing_user",
+        };
+
+        const res = await apiFetch<AuthUser>("/api/v1/users", {
+          method: "POST",
+          body: payload,
+          auth: true,
+        });
+
+        setNotice({
+          kind: "info",
+          title: "User Created Successfully",
+          message: `Account '${res.login_id}' created with role '${res.role}'.`,
+        });
+
+        setFields({
+          name: "",
+          login_id: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          role: "invoicing_user",
+          acceptedTerms: false,
+        });
+        setErrors({});
+        onSuccess?.(res);
+      } catch (error) {
+        handleApiError(error, "create user");
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // mode === "signup": Public registration creates user role (contact)
     try {
       await register({
         name: fields.name.trim(),
         login_id: fields.login_id.trim(),
         email: fields.email.trim(),
         password: fields.password,
-        role: fields.role,
       });
       router.push("/");
     } catch (error) {
-      if (error instanceof ApiError) {
-        if (error.status === 422 && error.fields) {
-          const apiErrors = mapApiFieldsToSignupErrors(error.fields);
-          setErrors((prev) => ({ ...prev, ...apiErrors }));
+      handleApiError(error, "create account");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleApiError(error: unknown, actionName: string) {
+    if (error instanceof ApiError) {
+      if (error.status === 422 && error.fields) {
+        const apiErrors = mapApiFieldsToSignupErrors(error.fields);
+        setErrors((prev) => ({ ...prev, ...apiErrors }));
+        setNotice({
+          kind: "error",
+          title: `Unable to ${actionName}`,
+          message: error.message,
+        });
+        const firstApiInvalid = FIELD_ORDER.find((field) => apiErrors[field]);
+        if (firstApiInvalid) {
+          document.getElementById(firstApiInvalid)?.focus();
+        }
+        return;
+      }
+
+      if (error.status === 409) {
+        if (error.code === "LOGIN_ID_ALREADY_EXISTS") {
+          setErrors((prev) => ({
+            ...prev,
+            login_id: error.message,
+          }));
           setNotice({
             kind: "error",
-            title: "Unable to create account",
+            title: "Login ID already taken",
             message: error.message,
           });
-          const firstApiInvalid = FIELD_ORDER.find((field) => apiErrors[field]);
-          if (firstApiInvalid) {
-            document.getElementById(firstApiInvalid)?.focus();
-          }
+          document.getElementById("login_id")?.focus();
           return;
         }
-
-        if (error.status === 409 && error.code === "EMAIL_ALREADY_EXISTS") {
+        if (error.code === "EMAIL_ALREADY_EXISTS") {
           setErrors((prev) => ({
             ...prev,
             email: error.message,
@@ -121,18 +193,16 @@ export function useSignupForm() {
           return;
         }
       }
-
-      setNotice({
-        kind: "error",
-        title: "Unable to create account",
-        message: getAuthErrorMessage(
-          error,
-          "Something went wrong. Please try again."
-        ),
-      });
-    } finally {
-      setIsSubmitting(false);
     }
+
+    setNotice({
+      kind: "error",
+      title: `Unable to ${actionName}`,
+      message: getAuthErrorMessage(
+        error,
+        "Something went wrong. Please try again."
+      ),
+    });
   }
 
   return {
