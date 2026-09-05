@@ -27,103 +27,68 @@ import type {
   BudgetMetric,
 } from "@/lib/types";
 
-/** Fetch active contacts for the dashboard (max 100). */
+/** Fetch active contacts for the dashboard. Failures propagate to the UI. */
 export async function fetchDashboardContacts(): Promise<Contact[]> {
-  try {
-    const res = await apiFetch<ContactListResponse>("/api/v1/contacts?is_active=true&limit=100", {
-      auth: true,
-    });
-    return res.data || [];
-  } catch (err) {
-    console.error("Error fetching contacts for dashboard:", err);
-    return [];
-  }
+  const res = await apiFetch<ContactListResponse>("/api/v1/contacts?is_active=true&limit=100", {
+    auth: true,
+  });
+  return res.data;
 }
 
 /** Fetch active products for the dashboard (max 100). */
 export async function fetchDashboardProducts(): Promise<Product[]> {
-  try {
-    const res = await apiFetch<ProductListResponse>("/api/v1/products?is_active=true&limit=100", {
-      auth: true,
-    });
-    return res.data || [];
-  } catch (err) {
-    console.error("Error fetching products for dashboard:", err);
-    return [];
-  }
+  const res = await apiFetch<ProductListResponse>("/api/v1/products?is_active=true&limit=100", {
+    auth: true,
+  });
+  return res.data;
 }
 
 /** Fetch active ledger accounts for the dashboard (max 100). */
 export async function fetchDashboardAccounts(): Promise<Account[]> {
-  try {
-    const res = await apiFetch<{ data: Account[]; total: number }>(
-      "/api/v1/accounts?is_active=true&limit=100",
-      { auth: true }
-    );
-    return res.data || [];
-  } catch (err) {
-    console.error("Error fetching accounts for dashboard:", err);
-    return [];
-  }
+  const res = await apiFetch<{ data: Account[]; total: number }>(
+    "/api/v1/accounts?is_active=true&limit=100",
+    { auth: true }
+  );
+  return res.data;
 }
 
 /** Fetch active journals for the dashboard (max 100). */
 export async function fetchDashboardJournals(): Promise<Journal[]> {
-  try {
-    const res = await apiFetch<{ data: Journal[]; total: number }>(
-      "/api/v1/journals?is_active=true&limit=100",
-      { auth: true }
-    );
-    return res.data || [];
-  } catch (err) {
-    console.error("Error fetching journals for dashboard:", err);
-    return [];
-  }
+  const res = await apiFetch<{ data: Journal[]; total: number }>(
+    "/api/v1/journals?is_active=true&limit=100",
+    { auth: true }
+  );
+  return res.data;
 }
 
-/** Fetch recent sales orders from the sales-orders API (backend or resilient store). */
+/** Fetch recent sales orders from the live API. */
 export async function fetchDashboardSalesOrders(): Promise<SalesOrder[]> {
-  try {
-    const { orders } = await fetchSalesOrdersPage({
-      limit: 100,
-      sort_by: "created_at",
-      sort_order: "desc",
-    });
-    return orders;
-  } catch (err) {
-    console.error("Error fetching sales orders for dashboard:", err);
-    return [];
-  }
+  const { orders } = await fetchSalesOrdersPage({
+    limit: 100,
+    sort_by: "created_at",
+    sort_order: "desc",
+  });
+  return orders;
 }
 
 /** Fetch recent purchase orders from the backend API. */
 export async function fetchDashboardPurchaseOrders(): Promise<PurchaseOrder[]> {
-  try {
-    const { orders } = await fetchPurchaseOrdersPage({
-      limit: 100,
-      sort_by: "created_at",
-      sort_order: "desc",
-    });
-    return orders;
-  } catch (err) {
-    console.error("Error fetching purchase orders for dashboard:", err);
-    return [];
-  }
+  const { orders } = await fetchPurchaseOrdersPage({
+    limit: 100,
+    sort_by: "created_at",
+    sort_order: "desc",
+  });
+  return orders;
 }
 
 /** Fetch recent vendor bills from the backend API. */
 export async function fetchDashboardVendorBills(): Promise<ApiVendorBill[]> {
-  try {
-    const res = await fetchVendorBillsPage({
-      limit: 100,
-      sort_by: "created_at",
-      sort_order: "desc",
-    });
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching vendor bills for dashboard:", err);
-    return [];
-  }
+  const res = await fetchVendorBillsPage({
+    limit: 100,
+    sort_by: "created_at",
+    sort_order: "desc",
+  });
+  return res.data;
 }
 
 /** Invoice totals for dashboard summary links. */
@@ -134,16 +99,11 @@ export interface DashboardInvoiceStats {
 
 /** Fetch customer invoice counts for dashboard summary links. */
 export async function fetchDashboardCustomerInvoiceStats(): Promise<DashboardInvoiceStats> {
-  try {
-    const res = await fetchCustomerInvoicesPage({ limit: 100 });
-    const paid = res.data.filter(
-      (invoice) => invoice.status === "Paid" || invoice.amount_paid > 0
-    ).length;
-    return { total: res.total, paid };
-  } catch (err) {
-    console.error("Error fetching customer invoice stats for dashboard:", err);
-    return { total: 0, paid: 0 };
-  }
+  const res = await fetchCustomerInvoicesPage({ limit: 100 });
+  const paid = res.data.filter(
+    (invoice) => invoice.status === "Paid" || invoice.amount_paid > 0
+  ).length;
+  return { total: res.total, paid };
 }
 
 /** Maps vendor-bills API records to the simplified dashboard bill shape. */

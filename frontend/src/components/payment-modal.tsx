@@ -12,7 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { payVendorBill, type PaymentRecord } from "@/features/payments/payments-api";
-import { formatINR } from "@/lib/format";
+import { formatINR, todayDate } from "@/lib/format";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -39,7 +39,7 @@ export function PaymentModal({
 
   const [amount, setAmount] = useState<string>(remaining > 0 ? remaining.toString() : "");
   const [paymentMethod, setPaymentMethod] = useState<"bank" | "cash">("bank");
-  const [date, setDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState<string>(todayDate);
   const [note, setNote] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,35 +66,16 @@ export function PaymentModal({
 
     try {
       const numBillId = Number(billId);
-      let payment: PaymentRecord;
-
-      if (!isNaN(numBillId) && numBillId > 0) {
-        payment = await payVendorBill(numBillId, {
-          amount: numAmount,
-          payment_method: paymentMethod,
-          date: date ? `${date}T00:00:00Z` : undefined,
-          note: note.trim() || undefined,
-        });
-      } else {
-        // Fallback for client-only mock demonstration bills
-        payment = {
-          id: Date.now(),
-          payment_number: `PAY-DEMO-${Date.now().toString().slice(-4)}`,
-          payment_type: "outbound",
-          contact_id: 1,
-          bill_id: null,
-          bill_number: billNumber,
-          journal_id: paymentMethod === "bank" ? 3 : 4,
-          journal_code: paymentMethod === "bank" ? "BNK" : "CSH",
-          amount: numAmount,
-          payment_method: paymentMethod,
-          date: date ? `${date}T00:00:00Z` : new Date().toISOString(),
-          note: note.trim() || undefined,
-          status: "posted",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
+      if (isNaN(numBillId) || numBillId <= 0) {
+        throw new Error("A valid persisted vendor bill is required to register a payment.");
       }
+
+      const payment: PaymentRecord = await payVendorBill(numBillId, {
+        amount: numAmount,
+        payment_method: paymentMethod,
+        date: date ? `${date}T00:00:00Z` : undefined,
+        note: note.trim() || undefined,
+      });
 
       onSuccess(payment);
       onClose();

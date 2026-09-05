@@ -95,12 +95,18 @@ export function useDashboardOrderData() {
     purchaseQuery.isLoading ||
     billsQuery.isLoading;
 
+  const hasError =
+    contactsQuery.isError ||
+    salesQuery.isError ||
+    purchaseQuery.isError ||
+    billsQuery.isError;
+
   const refetchAll = async () => {
     await Promise.all([
-      contactsQuery.refetch(),
-      salesQuery.refetch(),
-      purchaseQuery.refetch(),
-      billsQuery.refetch(),
+      contactsQuery.refetch({ throwOnError: true }),
+      salesQuery.refetch({ throwOnError: true }),
+      purchaseQuery.refetch({ throwOnError: true }),
+      billsQuery.refetch({ throwOnError: true }),
     ]);
   };
 
@@ -111,6 +117,7 @@ export function useDashboardOrderData() {
     vendorBills,
     budgetMetric,
     isLoading,
+    hasError,
     refetchAll,
   };
 }

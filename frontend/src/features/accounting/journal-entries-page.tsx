@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { fetchAccountsPage, fetchContacts } from "@/features/master-data/master-data-api";
-import { formatINR } from "@/lib/format";
+import { formatINR, todayDate } from "@/lib/format";
 import type { Account } from "@/lib/types";
 import { createJournalEntry, fetchJournalEntriesPage, type JournalEntryItemInput } from "./journal-entries-api";
 import { fetchJournals } from "./journals-api";
@@ -25,7 +25,7 @@ export function JournalEntriesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [journalCode, setJournalCode] = useState("PUR");
   const [reference, setReference] = useState("");
-  const [entryDate, setEntryDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [entryDate, setEntryDate] = useState(todayDate);
   const [lines, setLines] = useState<EntryLine[]>([newLine(), newLine()]);
   const [formError, setFormError] = useState<string | null>(null);
 

@@ -279,6 +279,7 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
         message={`Are you sure you want to confirm sales order ${so.so_number}? Once confirmed, this order can be billed and converted into a Customer Invoice.`}
         confirmLabel={confirmMutation.isPending ? "Confirming..." : "Confirm Order"}
         onConfirm={() => confirmMutation.mutate()}
+        pending={confirmMutation.isPending}
       />
     </div>
   );

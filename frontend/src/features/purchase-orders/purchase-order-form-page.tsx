@@ -30,7 +30,7 @@ import {
   updatePurchaseOrder,
   type PurchaseOrderApi,
 } from "@/features/purchase-orders/purchase-orders-api";
-import { formatINR } from "@/lib/format";
+import { formatINR, todayDate } from "@/lib/format";
 
 /** One editable row in the line items table (all fields stored as strings for inputs). */
 interface LineRow {
@@ -66,7 +66,7 @@ function lineTotal(line: LineRow): number {
  */
 export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: PurchaseOrderApi }) {
   const router = useRouter();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayDate();
   const isEditing = Boolean(initialOrder);
 
   // ── Form state (local — not synced to URL or server until submit) ────────
@@ -81,6 +81,7 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
   })) : [emptyLine()]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
 
   // ── Master data for dropdowns (React Query → purchase-orders-api) ────────
   const vendorsQuery = useQuery({ queryKey: ["po-vendors"], queryFn: fetchVendors });
@@ -159,16 +160,40 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
     setError(null);
     setSubmitting(true);
 
+    if (!isEditing && createdOrderId) {
+      try {
+        if (!asDraft) {
+          await confirmPurchaseOrder(createdOrderId);
+        }
+        router.push(`/purchase-orders/${createdOrderId}`);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to confirm the existing purchase order.");
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    let persistedOrderId: number | null = null;
     try {
       const saved = isEditing
         ? await updatePurchaseOrder(initialOrder!.id, buildPayload())
         : await createPurchaseOrder(buildPayload());
+      if (!isEditing) {
+        persistedOrderId = Number(saved.id);
+        setCreatedOrderId(persistedOrderId);
+      }
       if (!isEditing && !asDraft) {
-        await confirmPurchaseOrder(Number(saved.id));
+        await confirmPurchaseOrder(persistedOrderId!);
       }
       router.push(`/purchase-orders/${saved.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save purchase order");
+      setError(
+        persistedOrderId && !asDraft
+          ? `Purchase order #${persistedOrderId} was created as a draft, but confirmation failed. Retry to confirm this existing order.`
+          : err instanceof Error
+            ? err.message
+            : "Failed to save purchase order"
+      );
       setSubmitting(false);
     }
   }

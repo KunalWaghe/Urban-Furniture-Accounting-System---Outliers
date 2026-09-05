@@ -30,37 +30,21 @@ export interface ToastOptions {
   };
 }
 
-// ============================================================================
-// Toast Interface (to be implemented with your toast library)
-// ============================================================================
+export interface ToastEventDetail {
+  type: ToastType;
+  message: string;
+  options?: ToastOptions;
+}
 
-/**
- * Base toast function - implement this with your toast library of choice.
- * 
- * Example implementations:
- * - react-hot-toast: toast.success(message)
- * - sonner: toast.success(message, { description })
- * - custom: showToast(type, message, options)
- */
+export const TOAST_EVENT = "urban-furniture:toast";
+
 function showToast(type: ToastType, message: string, options?: ToastOptions): void {
-  // TODO: Integrate with your toast library
-  // For now, we'll use console logging as a placeholder
-  if (process.env.NODE_ENV === "development") {
-    console.log(`[Toast - ${type}]`, message, options);
-  }
-  
-  // Example integration with react-hot-toast:
-  // import toast from 'react-hot-toast';
-  // switch (type) {
-  //   case 'success': return toast.success(message);
-  //   case 'error': return toast.error(message);
-  //   case 'info': return toast(message);
-  //   case 'warning': return toast(message, { icon: '⚠️' });
-  // }
-  
-  // Example integration with sonner:
-  // import { toast } from 'sonner';
-  // toast[type](options?.title || message, { description: options?.description });
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent<ToastEventDetail>(TOAST_EVENT, {
+      detail: { type, message, options },
+    })
+  );
 }
 
 // ============================================================================

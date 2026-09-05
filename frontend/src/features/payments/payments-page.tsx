@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatINR } from "@/lib/format";
 import { fetchPayments, type PaymentRecord } from "./payments-api";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 function paymentLabel(payment: PaymentRecord) {
   return payment.payment_type === "inbound" ? "Receipt" : "Payment";
@@ -19,7 +20,8 @@ function paymentLabel(payment: PaymentRecord) {
 export function PaymentsPage() {
   const [search, setSearch] = useState("");
   const [type, setType] = useState<"all" | "inbound" | "outbound">("all");
-  const query = useQuery({ queryKey: ["payments", type, search], queryFn: () => fetchPayments({ payment_type: type === "all" ? undefined : type, search: search.trim() || undefined }) });
+  const debouncedSearch = useDebouncedValue(search);
+  const query = useQuery({ queryKey: ["payments", type, debouncedSearch], queryFn: () => fetchPayments({ payment_type: type === "all" ? undefined : type, search: debouncedSearch.trim() || undefined }) });
   const payments = query.data?.data ?? [];
   const inbound = payments.filter((payment) => payment.payment_type === "inbound").reduce((sum, payment) => sum + payment.amount, 0);
   const outbound = payments.filter((payment) => payment.payment_type === "outbound").reduce((sum, payment) => sum + payment.amount, 0);

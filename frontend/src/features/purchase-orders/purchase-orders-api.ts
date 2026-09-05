@@ -202,8 +202,16 @@ export async function confirmPurchaseOrder(id: number): Promise<PurchaseOrder> {
   return mapPurchaseOrder(po);
 }
 
-export async function createBillFromPo(id: number): Promise<any> {
-  return apiFetch(`/api/v1/purchase-orders/${id}/create-bill`, {
+export interface CreateVendorBillResponse {
+  bill: {
+    id: number;
+    bill_number: string;
+  };
+  journal_entry: unknown;
+}
+
+export async function createBillFromPo(id: number): Promise<CreateVendorBillResponse> {
+  return apiFetch<CreateVendorBillResponse>(`/api/v1/purchase-orders/${id}/create-bill`, {
     method: "POST",
     auth: true,
   });

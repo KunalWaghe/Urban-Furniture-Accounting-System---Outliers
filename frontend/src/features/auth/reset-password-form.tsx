@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ArrowRight, Check, KeyRound, Lock, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,8 +17,9 @@ interface ResetPasswordFormProps {
 }
 
 export function ResetPasswordForm({ initialToken = "" }: ResetPasswordFormProps) {
-  const searchParams = useSearchParams();
-  const token = initialToken || searchParams.get("token") || "";
+  // Keep the token only in component memory, then remove it from the URL so
+  // it is not left in browser history, screenshots, or future referrers.
+  const [token] = useState(() => initialToken);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -28,6 +28,12 @@ export function ResetPasswordForm({ initialToken = "" }: ResetPasswordFormProps)
   const [notice, setNotice] = useState<AuthNotice | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, [token]);
 
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
   const passwordsMatch = Boolean(

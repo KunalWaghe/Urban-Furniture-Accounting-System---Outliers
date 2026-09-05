@@ -52,6 +52,32 @@
 }
 
 @theme {
+  /*
+   * A deliberately generous type scale keeps dense financial data comfortably
+   * readable at a glance. These tokens power Tailwind's text-* utilities
+   * throughout both the app and the public site.
+   */
+  --text-xs: 0.9375rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 1.0625rem;
+  --text-sm--line-height: 1.5rem;
+  --text-base: 1.1875rem;
+  --text-base--line-height: 1.75rem;
+  --text-lg: 1.375rem;
+  --text-lg--line-height: 1.875rem;
+  --text-xl: 1.625rem;
+  --text-xl--line-height: 2.125rem;
+  --text-2xl: 2rem;
+  --text-2xl--line-height: 2.5rem;
+  --text-3xl: 2.375rem;
+  --text-3xl--line-height: 2.875rem;
+  --text-4xl: 2.875rem;
+  --text-4xl--line-height: 3.375rem;
+  --text-5xl: 3.5rem;
+  --text-5xl--line-height: 4rem;
+  --text-6xl: 4.25rem;
+  --text-6xl--line-height: 1;
+
   /* TransitOps brand scale (Tailwind blue), primary-600 is the brand color */
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
@@ -168,6 +194,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
   }
   html {
     @apply font-sans;

@@ -1,46 +1,23 @@
-/**
- * ConfirmDialog — modal overlay that asks the user to confirm or cancel an action.
- *
- * Used before destructive operations like delete. The parent controls visibility
- * via the `open` prop (this component does not manage its own open/close state).
- */
-"use client"
+"use client";
+
+import { useEffect, useId, useRef } from "react";
 
 interface ConfirmDialogProps {
-  /** When false, nothing is rendered. Parent toggles this to show/hide the dialog. */
-  open: boolean
-  /** Bold heading at the top of the dialog. */
-  title: string
-  /** Explanatory text below the title. */
-  message: string
-  /** Label for the primary action button (default: "Confirm"). */
-  confirmLabel?: string
-  /** Label for the dismiss button (default: "Cancel"). */
-  cancelLabel?: string
-  /** Called when the user clicks the confirm button. */
-  onConfirm: () => void
-  /** Called when the user clicks cancel or wants to dismiss. */
-  onCancel: () => void
-  /** When true, confirm button uses red styling (for delete/destructive actions). */
-  destructive?: boolean
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  destructive?: boolean;
+  /** Prevent duplicate mutations and dismissal while the action is in flight. */
+  pending?: boolean;
 }
 
 /**
- * Confirmation modal with title, message, and two action buttons.
- *
- * **State OWNED:** none — fully controlled by parent props.
- *
- * **State CONSUMED:**
- * - `open` — whether the dialog is visible
- * - `title`, `message`, button labels
- * - `onConfirm`, `onCancel` — parent handles the actual logic
- *
- * **Source of truth:** parent page/component owns open state and action handlers.
- *
- * **Flow:**
- * 1. If `open` is false, return null (dialog hidden)
- * 2. Render overlay with title, message, Cancel and Confirm buttons
- * 3. Parent closes dialog by setting `open` to false inside onConfirm/onCancel
+ * Accessible controlled confirmation dialog. It traps focus, restores it to
+ * the triggering control, handles Escape, and makes confirmation single-flight.
  */
 export function ConfirmDialog({
   open,
@@ -51,35 +28,114 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   destructive = false,
+  pending = false,
 }: ConfirmDialogProps) {
-  if (!open) return null
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const titleId = useId();
+  const descriptionId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+
+    returnFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    document.body.style.overflow = "hidden";
+
+    // Cancelling is safer than confirming by default for destructive actions.
+    const target = destructive ? cancelButtonRef.current : dialogRef.current;
+    target?.focus();
+
+    return () => {
+      document.body.style.overflow = "";
+      returnFocusRef.current?.focus();
+    };
+  }, [destructive, open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !pending) {
+        event.preventDefault();
+        onCancel();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onCancel, open, pending]);
+
+  if (!open) return null;
+
+  function trapFocus(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Tab") return;
+
+    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusable?.length) {
+      event.preventDefault();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 shadow-xl">
-        <h3 className="text-lg font-semibold text-text">{title}</h3>
-        <p className="mt-2 text-sm text-text-muted">{message}</p>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !pending) onCancel();
+      }}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        tabIndex={-1}
+        onKeyDown={trapFocus}
+        className="w-full max-w-md rounded-xl border border-border bg-surface p-6 shadow-xl"
+      >
+        <h2 id={titleId} className="text-lg font-semibold text-text">{title}</h2>
+        <p id={descriptionId} className="mt-2 text-sm text-text-muted">{message}</p>
         <div className="mt-6 flex justify-end gap-3">
           <button
+            ref={cancelButtonRef}
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text hover:bg-surface-muted"
+            disabled={pending}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60"
           >
             {cancelLabel}
           </button>
           <button
             type="button"
-            onClick={onConfirm}
-            className={`rounded-lg px-4 py-2 text-sm font-medium text-white ${
-              destructive
-                ? "bg-red-600 hover:bg-red-700"
-                : "bg-primary-600 hover:bg-primary-700"
-            }`}
+            onClick={() => {
+              if (!pending) onConfirm();
+            }}
+            disabled={pending}
+            className={[
+              "rounded-lg px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60",
+              destructive ? "bg-red-600 hover:bg-red-700" : "bg-primary-600 hover:bg-primary-700",
+            ].join(" ")}
           >
             {confirmLabel}
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 }

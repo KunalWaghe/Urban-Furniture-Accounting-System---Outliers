@@ -32,6 +32,7 @@ import { TablePagination } from "@/components/ui/table-pagination";
 import { fetchCustomerInvoicesPage } from "./customer-invoices-api";
 import { CustomerInvoiceStatusBadge } from "./customer-invoice-status-badge";
 import { formatINR } from "@/lib/format";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 const PAGE_SIZE = 10;
 
@@ -44,15 +45,16 @@ export function CustomerInvoicesListPage() {
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const debouncedQuery = useDebouncedValue(query);
 
   // ── Query: paginated customer invoices ────────────────────────────────────
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["customer-invoices", page, query, statusFilter, sortBy, sortOrder],
+    queryKey: ["customer-invoices", page, debouncedQuery, statusFilter, sortBy, sortOrder],
     queryFn: () =>
       fetchCustomerInvoicesPage({
         page,
         limit: PAGE_SIZE,
-        search: query.trim() || undefined,
+        search: debouncedQuery.trim() || undefined,
         status: statusFilter !== "all" ? statusFilter : undefined,
         sort_by: sortBy,
         sort_order: sortOrder,
@@ -67,7 +69,7 @@ export function CustomerInvoicesListPage() {
   const totalInvoicedVal = invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
   const totalCollectedVal = invoices.reduce((sum, inv) => sum + (inv.amount_paid || 0), 0);
   const totalDueVal = invoices.reduce((sum, inv) => sum + (inv.amount_due || 0), 0);
-  const paidCount = invoices.filter((i) => i.status === "Paid" || i.status === "paid").length;
+  const paidCount = invoices.filter((i) => i.status === "Paid").length;
 
   function handleSort(column: string) {
     if (sortBy === column) {
@@ -123,35 +125,35 @@ export function CustomerInvoicesListPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="rounded-xl border border-border bg-surface p-4 shadow-xs">
           <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium">Total Invoiced</span>
+            <span className="text-xs font-medium">Current Page Invoiced</span>
             <Receipt className="h-4 w-4 text-blue-500" />
           </div>
           <p className="mt-2 text-2xl font-bold text-text-primary">
             {formatINR(totalInvoicedVal)}
           </p>
-          <p className="mt-0.5 text-[11px] text-text-muted">{total} total invoices</p>
+          <p className="mt-0.5 text-[11px] text-text-muted">Current page only · {total} matching invoices</p>
         </div>
 
         <div className="rounded-xl border border-border bg-surface p-4 shadow-xs">
           <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium">Collected / Received</span>
+            <span className="text-xs font-medium">Current Page Collected</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </div>
           <p className="mt-2 text-2xl font-bold text-emerald-600">
             {formatINR(totalCollectedVal)}
           </p>
-          <p className="mt-0.5 text-[11px] text-text-muted">{paidCount} settled in full</p>
+          <p className="mt-0.5 text-[11px] text-text-muted">Current page only · {paidCount} settled in full</p>
         </div>
 
         <div className="rounded-xl border border-border bg-surface p-4 shadow-xs">
           <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium">Outstanding Due (AR)</span>
+            <span className="text-xs font-medium">Current Page Due (AR)</span>
             <CreditCard className="h-4 w-4 text-amber-500" />
           </div>
           <p className="mt-2 text-2xl font-bold text-amber-600">
             {formatINR(totalDueVal)}
           </p>
-          <p className="mt-0.5 text-[11px] text-text-muted">Trade receivables balance</p>
+          <p className="mt-0.5 text-[11px] text-text-muted">Current page only; server aggregate pending</p>
         </div>
 
         <div className="rounded-xl border border-border bg-surface p-4 shadow-xs">

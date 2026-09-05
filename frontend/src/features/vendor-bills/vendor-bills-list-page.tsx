@@ -32,6 +32,7 @@ import {
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { formatDate, formatINR } from "@/lib/format";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 import { fetchVendorBillsPage } from "./vendor-bills-api";
 import { VendorBillStatusBadge } from "./vendor-bill-status-badge";
@@ -51,15 +52,16 @@ export function VendorBillsListPage() {
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const debouncedSearch = useDebouncedValue(search);
 
   // ── Server state: paginated bill list (React Query → vendor-bills-api) ───
   const billsQuery = useQuery({
-    queryKey: ["vendor-bills", { page, search, statusFilter, sortBy, sortOrder }],
+    queryKey: ["vendor-bills", { page, search: debouncedSearch, statusFilter, sortBy, sortOrder }],
     queryFn: () =>
       fetchVendorBillsPage({
         page,
         limit: PAGE_SIZE,
-        search: search.trim() || undefined,
+        search: debouncedSearch.trim() || undefined,
         status: statusFilter !== "all" ? statusFilter : undefined,
         sort_by: sortBy,
         sort_order: sortOrder,
@@ -146,35 +148,35 @@ export function VendorBillsListPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
           <div className="flex items-center justify-between text-xs text-text-muted">
-            <span>Total Bills Value</span>
+            <span>Current Page Bills Value</span>
             <Building2 className="h-4 w-4 text-primary-600" />
           </div>
           <div className="mt-2 font-mono text-xl font-bold text-text">
             {formatINR(metrics.totalValue)}
           </div>
-          <div className="mt-1 text-[11px] text-text-muted">{metrics.count} total bill(s)</div>
+          <div className="mt-1 text-[11px] text-text-muted">Current page only · {metrics.count} matching bill(s)</div>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
           <div className="flex items-center justify-between text-xs text-text-muted">
-            <span>Outstanding Dues (AP)</span>
+            <span>Current Page Dues (AP)</span>
             <Clock className="h-4 w-4 text-amber-600" />
           </div>
           <div className="mt-2 font-mono text-xl font-bold text-amber-600 dark:text-amber-400">
             {formatINR(metrics.totalOutstanding)}
           </div>
-          <div className="mt-1 text-[11px] text-text-muted">Pending vendor disbursements</div>
+          <div className="mt-1 text-[11px] text-text-muted">Current page only; server aggregate pending</div>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
           <div className="flex items-center justify-between text-xs text-text-muted">
-            <span>Total Settled</span>
+            <span>Current Page Settled</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
           </div>
           <div className="mt-2 font-mono text-xl font-bold text-emerald-600 dark:text-emerald-400">
             {formatINR(metrics.totalPaid)}
           </div>
-          <div className="mt-1 text-[11px] text-text-muted">Paid via Cash &amp; Bank</div>
+          <div className="mt-1 text-[11px] text-text-muted">Current page only · Cash &amp; Bank</div>
         </div>
       </div>
 
@@ -332,4 +334,3 @@ export function VendorBillsListPage() {
     </div>
   );
 }
-

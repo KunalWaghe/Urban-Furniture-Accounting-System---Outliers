@@ -245,7 +245,7 @@ export async function payCustomerInvoice(
     body: {
       amount: payment.amount,
       payment_method: payment.payment_method,
-      date: payment.payment_date,
+      date: payment.payment_date + "T00:00:00",
       note: payment.notes,
     },
   });

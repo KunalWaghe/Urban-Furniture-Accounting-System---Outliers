@@ -8,9 +8,16 @@
  */
 
 import { apiFetch } from "@/lib/api";
+import { payVendorBill as recordVendorBillPayment } from "@/features/payments/payments-api";
 
 /** Bill status values used in the UI (includes legacy backend strings). */
-export type VendorBillStatus = "Draft" | "Confirmed" | "Paid" | "Cancelled" | "open" | "paid" | "partially_paid";
+export type VendorBillStatus =
+  | "Draft"
+  | "Confirmed"
+  | "Partially Paid"
+  | "Paid"
+  | "Cancelled"
+  | "Unknown";
 
 /** Single line item on a vendor bill. */
 export interface VendorBillLine {
@@ -95,6 +102,7 @@ interface VendorBillApiRecord {
   vendor_id: number;
   vendor_name?: string | null;
   bill_date: string;
+  due_date?: string | null;
   total: number;
   amount_paid: number;
   status: string;
@@ -115,41 +123,50 @@ interface VendorBillApiResponseList {
  * Converts a raw backend bill record into the frontend `VendorBill` shape.
  * Maps status strings, computes due date (+14 days), and normalizes line items.
  */
-function mapVendorBillApiRecord(raw: VendorBillApiRecord): VendorBill {
-  let mappedStatus: VendorBillStatus = "Confirmed";
-  if (raw.status === "paid") {
-    mappedStatus = "Paid";
-  } else if (raw.status === "draft") {
-    mappedStatus = "Draft";
-  } else if (raw.status === "cancelled") {
-    mappedStatus = "Cancelled";
-  } else {
-    // "open" or default active status
-    mappedStatus = "Confirmed";
+function mapVendorBillStatus(status: string): VendorBillStatus {
+  switch (status.toLowerCase()) {
+    case "draft":
+      return "Draft";
+    case "open":
+    case "confirmed":
+      return "Confirmed";
+    case "partially_paid":
+    case "partially paid":
+      return "Partially Paid";
+    case "paid":
+      return "Paid";
+    case "cancelled":
+      return "Cancelled";
+    default:
+      return "Unknown";
   }
+}
 
-  const rawDate = raw.bill_date ? raw.bill_date.split("T")[0] : new Date().toISOString().split("T")[0];
-  const dueDateObj = new Date(new Date(rawDate).getTime() + 14 * 24 * 60 * 60 * 1000);
-  const dueDate = dueDateObj.toISOString().split("T")[0];
+function toDateOnly(value: string | null | undefined): string {
+  return value ? value.split("T")[0] : "Unavailable";
+}
+
+function mapVendorBillApiRecord(raw: VendorBillApiRecord): VendorBill {
+  const amountPaid = raw.amount_paid ?? 0;
 
   return {
     id: String(raw.id),
     bill_number: raw.bill_number,
     po_id: raw.po_id,
-    po_number: raw.po_number ?? (raw.po_id ? `PO-${String(raw.po_id).padStart(4, "0")}` : null),
+    po_number: raw.po_number ?? null,
     vendor_id: raw.vendor_id,
-    vendor_name: raw.vendor_name ?? "Vendor",
-    bill_date: rawDate,
-    due_date: dueDate,
-    status: mappedStatus,
+    vendor_name: raw.vendor_name ?? "Unavailable",
+    bill_date: toDateOnly(raw.bill_date),
+    due_date: toDateOnly(raw.due_date),
+    status: mapVendorBillStatus(raw.status),
     total_amount: raw.total,
-    amount_due: Math.max(0, raw.total - (raw.amount_paid || 0)),
+    amount_due: Math.max(0, raw.total - amountPaid),
     created_at: raw.bill_date,
     journal_entry_id: raw.journal_entry_id,
     lines: (raw.lines ?? []).map((l) => ({
       id: l.id,
       product_id: l.product_id,
-      product_name: l.product_name ?? "Product",
+      product_name: l.product_name ?? "Unavailable",
       account_id: l.account_id,
       account_name: l.account_name,
       quantity: l.quantity,
@@ -195,11 +212,6 @@ export async function fetchVendorBillsPage(params: VendorBillsParams = {}): Prom
  * Fetches up to 100 vendor bills (non-paginated convenience wrapper).
  * Used where a full list is needed without page params.
  */
-export async function fetchVendorBills(): Promise<VendorBill[]> {
-  const res = await fetchVendorBillsPage({ limit: 100 });
-  return res.data;
-}
-
 /**
  * GET /api/v1/vendor-bills/:id — fetches a single bill by numeric ID or bill number.
  * Falls back to search if the ID is not numeric.
@@ -250,21 +262,24 @@ export async function confirmVendorBill(billId: string): Promise<VendorBill> {
 }
 
 /**
- * Registers payment for a vendor bill. Currently updates local state only
- * until a dedicated payment endpoint exists on the backend.
+ * Records the payment through the canonical payments client, then re-fetches
+ * the persisted vendor bill. A failed request never changes local bill state.
  *
  * @param billId - Bill being paid.
  * @param payment - Method, date, amount, and optional notes.
  */
 export async function payVendorBill(billId: string, payment: PaymentInput): Promise<VendorBill> {
-  // For UI responsiveness until payment endpoint is added to backend
-  const bill = await fetchVendorBill(billId);
-  return {
-    ...bill,
-    status: "Paid",
-    amount_due: 0,
+  const numericId = Number(billId);
+  if (!Number.isSafeInteger(numericId) || numericId <= 0) {
+    throw new Error("A valid vendor bill ID is required.");
+  }
+
+  await recordVendorBillPayment(numericId, {
+    amount: payment.amount,
     payment_method: payment.payment_method,
-    payment_date: payment.payment_date,
-    payment_notes: payment.notes,
-  };
+    date: payment.payment_date + "T00:00:00",
+    note: payment.notes,
+  });
+
+  return fetchVendorBill(String(numericId));
 }

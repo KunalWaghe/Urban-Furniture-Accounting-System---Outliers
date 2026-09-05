@@ -21,11 +21,12 @@ import { useAuth } from "@/features/auth/auth-context";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { useMounted } from "@/hooks/use-mounted";
+import type { UserRole } from "@/lib/types";
 
 /** Props for the RequireRole guard component. */
 interface RequireRoleProps {
   /** Role strings that are allowed to see `children` (e.g. `["admin"]`). */
-  allowedRoles: string[];
+  allowedRoles: readonly UserRole[];
   children: ReactNode;
   /** Heading on the 403 fallback screen. */
   fallbackTitle?: string;
@@ -34,7 +35,7 @@ interface RequireRoleProps {
 }
 
 /** Maps backend role slugs to human-readable labels for error messages. */
-const ROLE_DISPLAY_NAMES: Record<string, string> = {
+const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
   admin: "Administrator",
   invoicing_user: "Accountant",
   contact: "Portal User (Contact)",
@@ -86,9 +87,9 @@ export function RequireRole({
   const isAllowed = allowedRoles.includes(user.role);
 
   if (!isAllowed) {
-    const roleName = ROLE_DISPLAY_NAMES[user.role] || user.role;
+    const roleName = ROLE_DISPLAY_NAMES[user.role];
     const requiredRoles = allowedRoles
-      .map((r) => ROLE_DISPLAY_NAMES[r] || r)
+      .map((r) => ROLE_DISPLAY_NAMES[r])
       .join(" or ");
 
     return (

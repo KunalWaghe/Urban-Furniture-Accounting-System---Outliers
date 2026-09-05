@@ -4,7 +4,7 @@
  * Data flow:
  * - Query: useQuery → fetchVendorBill → GET /vendor-bills/:id
  * - Confirm mutation: confirmVendorBill (re-fetch for now)
- * - Pay mutation: payVendorBill (local optimistic update until backend endpoint exists)
+ * - Pay mutation: payVendorBill (persisted backend payment, then bill refetch)
  *
  * Local UI state: confirm dialog, payment modal, payment form fields (method, date, notes).
  */
@@ -28,7 +28,7 @@ import {
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
-import { formatDate, formatINR } from "@/lib/format";
+import { formatDate, formatINR, todayDate } from "@/lib/format";
 
 import {
   confirmVendorBill,
@@ -56,7 +56,7 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
 
   // ── Payment form state (local until payMutation submits) ─────────────────
   const [paymentMethod, setPaymentMethod] = useState<"bank" | "cash">("bank");
-  const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [paymentDate, setPaymentDate] = useState(todayDate);
   const [paymentNotes, setPaymentNotes] = useState("");
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
@@ -111,7 +111,7 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
 
   const bill = billQuery.data;
   const isDraft = bill.status === "Draft";
-  const isConfirmed = bill.status === "Confirmed";
+  const isConfirmed = bill.status === "Confirmed" || bill.status === "Partially Paid";
   const isPaid = bill.status === "Paid";
 
   /** Submits the payment form via payMutation with full amount_due. */
@@ -178,9 +178,10 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
                 setPaymentModalOpen(true);
               }}
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              disabled={payMutation.isPending}
             >
               <CreditCard className="h-4 w-4" />
-              Register Payment
+              {payMutation.isPending ? "Registering…" : "Register Payment"}
             </Button>
           )}
 
@@ -231,9 +232,9 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
             <div>
               <p className="font-semibold">Settled &amp; Fully Paid</p>
               <p className="text-xs text-blue-800 dark:text-blue-400 mt-0.5">
-                Disbursement recorded on {bill.payment_date ? formatDate(bill.payment_date) : "today"}. Journal Entry:{" "}
+                Disbursement recorded on {bill.payment_date ? formatDate(bill.payment_date) : "date unavailable"}. Journal Entry:{" "}
                 <span className="font-mono font-semibold">Dr 2010 Accounts Payable</span> /{" "}
-                <span className="font-mono font-semibold">Cr {bill.payment_method === "cash" ? "1010 Cash" : "1020 Bank Account"}</span>.
+                <span className="font-mono font-semibold">Cr {bill.payment_method === "cash" ? "1010 Cash" : bill.payment_method === "bank" ? "1020 Bank Account" : "payment account unavailable"}</span>.
                 {bill.payment_notes && <span className="block mt-1 italic">&ldquo;{bill.payment_notes}&rdquo;</span>}
               </p>
             </div>
@@ -274,7 +275,7 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
                     <td className="px-5 py-4 font-medium text-text">{line.product_name}</td>
                     <td className="px-5 py-4 text-xs text-text-muted">
                       <span className="inline-flex items-center gap-1 rounded bg-surface-muted px-2 py-0.5 font-mono text-text">
-                        {line.account_name ?? "5010 - Purchase Expense"}
+                        {line.account_name ?? "Unavailable"}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-right text-text">{line.quantity}</td>
@@ -355,6 +356,7 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
         confirmLabel={confirmMutation.isPending ? "Confirming…" : "Confirm Bill"}
         onConfirm={() => confirmMutation.mutate()}
         onCancel={() => setConfirmDialogOpen(false)}
+        pending={confirmMutation.isPending}
       />
 
       {/* Register Payment Modal */}

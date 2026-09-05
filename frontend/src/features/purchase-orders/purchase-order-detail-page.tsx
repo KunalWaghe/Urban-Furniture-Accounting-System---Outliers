@@ -349,6 +349,7 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
         confirmLabel={confirmMutation.isPending ? "Confirming…" : "Confirm"}
         onConfirm={() => confirmMutation.mutate()}
         onCancel={() => setConfirmOpen(false)}
+        pending={confirmMutation.isPending}
       />
 
       <ConfirmDialog
@@ -358,6 +359,7 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
         confirmLabel={createBillMutation.isPending ? "Creating…" : "Create Bill & Post Ledger"}
         onConfirm={() => createBillMutation.mutate()}
         onCancel={() => setBillConfirmOpen(false)}
+        pending={createBillMutation.isPending}
       />
 
       {currentBill && (

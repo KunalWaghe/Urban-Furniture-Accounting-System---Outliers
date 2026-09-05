@@ -39,7 +39,7 @@ function makeQueryClient() {
               HTTP_STATUS.FORBIDDEN,
               HTTP_STATUS.NOT_FOUND,
               HTTP_STATUS.UNPROCESSABLE_ENTITY,
-            ].includes(error.status)
+            ].some((status) => status === error.status)
           ) {
             return false;
           }

@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { formatINR } from "@/lib/format";
+import { formatINR, todayDate } from "@/lib/format";
 import type { CustomerInvoice, CustomerPaymentInput } from "./customer-invoices-api";
 
 interface CustomerPaymentModalProps {
@@ -41,7 +41,7 @@ export function CustomerPaymentModal({
   error,
 }: CustomerPaymentModalProps) {
   const [method, setMethod] = useState<"bank" | "cash">("bank");
-  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(todayDate);
   const [amount, setAmount] = useState(String(invoice.amount_due || invoice.total_amount));
   const [notes, setNotes] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export function CustomerPaymentModal({
 
     onSubmit({
       payment_method: method,
-      payment_date: new Date(date).toISOString(),
+      payment_date: date + "T00:00:00",
       amount: numAmount,
       notes: notes.trim() || undefined,
     });

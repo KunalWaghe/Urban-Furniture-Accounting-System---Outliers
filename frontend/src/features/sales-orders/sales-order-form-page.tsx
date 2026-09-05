@@ -27,7 +27,7 @@ import {
   fetchIncomeAccounts,
   fetchProducts,
 } from "./sales-orders-api";
-import { formatINR } from "@/lib/format";
+import { formatINR, todayDate } from "@/lib/format";
 
 /** One editable row in the line items table. */
 interface LineRow {
@@ -57,7 +57,7 @@ function lineTotal(line: LineRow): number {
 
 export function SalesOrderFormPage() {
   const router = useRouter();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayDate();
 
   // ── Form state ─────────────────────────────────────────────────────────────
   const [customerId, setCustomerId] = useState<number | null>(null);
@@ -65,6 +65,7 @@ export function SalesOrderFormPage() {
   const [lines, setLines] = useState<LineRow[]>([emptyLine()]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
 
   // ── Master data queries from live API ──────────────────────────────────────
   const customersQuery = useQuery({ queryKey: ["so-customers"], queryFn: fetchCustomers });
@@ -112,6 +113,22 @@ export function SalesOrderFormPage() {
     e.preventDefault();
     setError(null);
 
+    // A prior create may have succeeded while confirm failed. Retrying must
+    // confirm that known draft rather than create a second order.
+    if (createdOrderId) {
+      setSubmitting(true);
+      try {
+        if (shouldConfirm) {
+          await confirmSalesOrder(createdOrderId);
+        }
+        router.push(`/sales-orders/${createdOrderId}`);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to confirm the existing sales order.");
+        setSubmitting(false);
+      }
+      return;
+    }
+
     if (!customerId) {
       setError("Please select a customer for this sales order.");
       return;
@@ -141,20 +158,29 @@ export function SalesOrderFormPage() {
     }
 
     setSubmitting(true);
+    let persistedOrderId: number | null = null;
     try {
       const created = await createSalesOrder({
         customer_id: customerId,
-        order_date: new Date(orderDate).toISOString(),
+        order_date: orderDate + "T00:00:00",
         lines: cleanLines,
       });
+      persistedOrderId = Number(created.id);
+      setCreatedOrderId(persistedOrderId);
 
       if (shouldConfirm) {
-        await confirmSalesOrder(Number(created.id));
+        await confirmSalesOrder(persistedOrderId);
       }
 
       router.push(`/sales-orders/${created.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create sales order.");
+      setError(
+        persistedOrderId && shouldConfirm
+          ? `Sales order #${persistedOrderId} was created as a draft, but confirmation failed. Retry to confirm this existing order.`
+          : err instanceof Error
+            ? err.message
+            : "Failed to create sales order."
+      );
       setSubmitting(false);
     }
   }

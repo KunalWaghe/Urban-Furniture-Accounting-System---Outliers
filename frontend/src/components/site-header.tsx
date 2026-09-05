@@ -249,7 +249,7 @@ export function SiteHeader() {
       ref={navContainerRef}
       className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-md"
     >
-      <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8 gap-3 sm:gap-4">
+      <div className="mx-auto flex h-16 w-full max-w-[1800px] items-center justify-between px-4 sm:px-6 lg:px-8 2xl:px-10 gap-3 sm:gap-4">
         {/* Left: Brand Logo */}
         <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2.5 shrink-0">
           <div className="rounded-xl bg-primary-600 p-2 text-white shadow-sm shadow-primary-500/20">

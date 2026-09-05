@@ -387,6 +387,7 @@ export function ContactsPage() {
           }
         }}
         onCancel={() => setDeletingContact(null)}
+        pending={deleteMutation.isPending}
       />
     </div>
   );

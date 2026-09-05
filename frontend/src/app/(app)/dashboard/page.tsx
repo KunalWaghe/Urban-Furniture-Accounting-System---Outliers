@@ -59,6 +59,7 @@ import { createBillFromPo } from "@/features/vendor-bills/vendor-bills-api";
 import { SearchableContactSelect } from "@/components/searchable-contact-select";
 import { PaymentModal } from "@/components/payment-modal";
 import { DashboardKpiCards } from "@/features/dashboard/dashboard-kpi-cards";
+import { Button } from "@/components/ui/button";
 
 function csvValue(value: unknown): string {
   const text = String(value ?? "");
@@ -96,10 +97,11 @@ export default function AppDashboardPage() {
     vendorBills,
     budgetMetric,
     isLoading: loading,
+    hasError: dashboardHasError,
     refetchAll,
   } = useDashboardOrderData();
-  const { data: productsData, isLoading: productsLoading } = useProducts();
-  const { data: invoiceStats } = useDashboardCustomerInvoiceStats();
+  const { data: productsData, isLoading: productsLoading, isError: productsHasError } = useProducts();
+  const { data: invoiceStats, isError: invoiceStatsHasError } = useDashboardCustomerInvoiceStats();
 
   const products = useMemo(() => productsData ?? [], [productsData]);
   const dataLoading = loading || productsLoading;
@@ -363,6 +365,21 @@ export default function AppDashboardPage() {
     },
     [queryClient, showToast]
   );
+
+  if (dashboardHasError || productsHasError || invoiceStatsHasError) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-4 py-16 text-center">
+        <h1 className="text-2xl font-bold text-text">Dashboard data is unavailable</h1>
+        <p className="text-sm text-text-muted">
+          No financial totals are shown because one or more accounting data requests failed.
+          Check the connection or your permissions, then retry.
+        </p>
+        <Button type="button" onClick={() => void handleRefresh()}>
+          <RefreshCw className="h-4 w-4" /> Retry dashboard data
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-12">

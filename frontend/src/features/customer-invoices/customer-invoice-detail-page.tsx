@@ -24,12 +24,10 @@ import {
   Wallet,
 } from "lucide-react";
 
-import { ConfirmDialog } from "@/components/confirm-dialog";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatINR } from "@/lib/format";
 import {
-  confirmCustomerInvoice,
   fetchCustomerInvoice,
   payCustomerInvoice,
   type CustomerPaymentInput,
@@ -45,7 +43,6 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
   const queryClient = useQueryClient();
 
   // ── Dialog & modal state ──────────────────────────────────────────────────
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
@@ -53,16 +50,6 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
   const invoiceQuery = useQuery({
     queryKey: ["customer-invoice", invoiceId],
     queryFn: () => fetchCustomerInvoice(invoiceId),
-  });
-
-  // ── Mutation: Confirm draft invoice ──────────────────────────────────────
-  const confirmMutation = useMutation({
-    mutationFn: () => confirmCustomerInvoice(invoiceId),
-    onSuccess: () => {
-      setConfirmDialogOpen(false);
-      void queryClient.invalidateQueries({ queryKey: ["customer-invoice", invoiceId] });
-      void queryClient.invalidateQueries({ queryKey: ["customer-invoices"] });
-    },
   });
 
   // ── Mutation: Inbound customer payment (Task 6C) ──────────────────────────
@@ -99,9 +86,8 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
   }
 
   const invoice = invoiceQuery.data;
-  const isDraft = invoice.status === "Draft";
-  const isConfirmed = invoice.status === "Confirmed" || invoice.status === "open";
-  const isPaid = invoice.status === "Paid" || invoice.status === "paid";
+  const isConfirmed = invoice.status === "Confirmed" || invoice.status === "Partially Paid";
+  const isPaid = invoice.status === "Paid";
 
   return (
     <div className="space-y-6 pb-16">
@@ -130,19 +116,6 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
 
         {/* State Machine Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Draft -> Confirm Action */}
-          {isDraft && (
-            <Button
-              type="button"
-              variant="default"
-              onClick={() => setConfirmDialogOpen(true)}
-              className="gap-1.5 shadow-sm"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              Confirm Invoice
-            </Button>
-          )}
-
           {/* Confirmed -> Register Payment Action (Task 6C) */}
           {isConfirmed && (
             <Button
@@ -250,9 +223,13 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
             </div>
           </div>
 
-          {invoice.journal_entry_id && (
+          {invoice.journal_entry_id ? (
             <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-elevated px-2.5 py-1 text-xs font-mono font-medium text-text-primary">
               JE-{(invoice.journal_entry_id).toString().padStart(4, "0")} (Posted)
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+              Journal entry unavailable / not posted
             </span>
           )}
         </div>
@@ -303,7 +280,7 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
                     {line.product_name}
                   </td>
                   <td className="px-5 py-3.5 text-xs text-text-muted">
-                    {line.account_name || "Sales Income (4010)"}
+                    {line.account_name ?? "Unavailable"}
                   </td>
                   <td className="px-5 py-3.5 text-right font-medium text-text-primary">
                     {line.quantity}
@@ -346,16 +323,6 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
           </div>
         </div>
       </div>
-
-      {/* ── Confirm Invoice Dialog ───────────────────────────────────────── */}
-      <ConfirmDialog
-        open={confirmDialogOpen}
-        onCancel={() => setConfirmDialogOpen(false)}
-        title="Confirm Customer Invoice"
-        message={`Confirm invoice ${invoice.invoice_number} for ${invoice.customer_name}. This locks the invoice and updates the receivables ledger.`}
-        confirmLabel={confirmMutation.isPending ? "Confirming..." : "Confirm Invoice"}
-        onConfirm={() => confirmMutation.mutate()}
-      />
 
       {/* ── Customer Payment Modal (Task 6C) ─────────────────────────────── */}
       <CustomerPaymentModal

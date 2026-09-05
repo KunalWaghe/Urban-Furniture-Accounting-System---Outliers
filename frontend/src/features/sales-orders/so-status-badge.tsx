@@ -15,6 +15,7 @@ const STATUS_STYLES: Record<SalesOrder["status"], string> = {
   Cancelled: "border-red-200/70 bg-red-50 text-red-700 dark:border-red-900/70 dark:bg-red-950/40 dark:text-red-400",
   "Partially Billed":
     "border-blue-200/70 bg-blue-50 text-blue-700 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-400",
+  Unknown: "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
 };
 
 /**

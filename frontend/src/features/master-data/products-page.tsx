@@ -467,6 +467,7 @@ export function ProductsPage() {
         }
       }}
       onCancel={() => setDeletingProduct(null)}
+      pending={deleteMutation.isPending}
     />
   </div>
   );
