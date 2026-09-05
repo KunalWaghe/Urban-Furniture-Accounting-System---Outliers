@@ -38,9 +38,6 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 | ID | Pri | Owner | Task | Est. | Depends on | Contract | Acceptance Condition | Started |
 |---|---|---|---|---:|---|---|---|---|
-| P0-FE-01 | P0 | Sourabh | Next.js setup + Tailwind + shadcn shell + Query/Auth provider | 30m | None | — | App runs, Sidebar/Header renders, theme active, Query/Auth mounted | 10:45 AM |
-| P0-BE-03 | P0 | Kunal | Contact & Product models + CRUD endpoints | 45m | P0-BE-02 | `GET/POST /api/v1/contacts`, `GET/POST /api/v1/products` | GET/POST contacts & products with validation | 11:35 AM |
-| P0-FE-01 | P0 | Sourabh | Next.js 14 App Router + Tailwind + shadcn shell + Query/Auth provider | 30m | None | — | App runs, Sidebar/Header renders, theme active | — |
 | P0-BE-04 | P0 | Kunal | Chart of Accounts & Journals seed + endpoints | 30m | P0-BE-01 | `GET /api/v1/accounts`, `GET /api/v1/journals` | 5 account types & 4 journals seeded and fetchable | 12:45 PM |
 
 ---
@@ -131,6 +128,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 | 5 Sep, 10:45 AM | A-04 | Both | Locked Frontend & Backend Architecture ADRs, Logic & Screen Inventory | `docs/frontend/ARCHITECTURE_DECISIONS.md`, `docs/frontend/LOGIC.md` | Architecture locked |
 | 5 Sep, 11:25 AM | P0-BE-01 | Kunal | FastAPI scaffold + PostgreSQL setup | `GET /health` returns 200 `connected` | Integrated & Verified |
 | 5 Sep, 11:35 AM | P0-BE-02 | Kunal | User model + JWT Auth endpoints (register/login/me) | `tests/test_auth.py` PASSED + Live HTTP verified | Integrated & Verified |
+| 5 Sep, 1:30 PM | P0-FE-01 | Sourabh | Next.js 16 + Tailwind 4 + shadcn shell + QueryProvider + AuthProvider fully mounted | `@tanstack/react-query@5.80.7` installed; `QueryProvider` + `AuthProvider` in `AppProviders`; tree: ThemeProvider › QueryProvider › AuthProvider; `npm run build` clean (TS OK, 4 routes, 0 errors) | Integrated & Verified |
 | 5 Sep, 11:50 AM | P0-FE-01 (partial) | Sourabh | Next.js 16 + Tailwind 4 + shadcn shell (sidebar/header/footer/theme) | `frontend/` dev server on `:3000`, home renders | Shell only — Query/Auth provider still open |
 | 5 Sep, 12:00 PM | A-05 | Sourabh | Auth pages design spec approved (UI-only, route groups) | `docs/superpowers/specs/2026-09-05-auth-pages-design.md` | Design locked |
 | 5 Sep, 12:45 PM | P0-FE-02 (UI) | Sourabh | `/login` + `/signup` built per spec — `src/features/auth/` (hooks/UI separated), route groups, no API wiring | Browser-verified: validation, strength meter, match badge, demo notices, dark mode; `npm run build` + `lint` clean | Integrated on `feat/auth`; AuthContext + API client deferred to P0-INT-01 prep |
