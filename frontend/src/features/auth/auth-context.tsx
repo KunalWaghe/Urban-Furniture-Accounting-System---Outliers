@@ -1,3 +1,20 @@
+/**
+ * @file auth-context.tsx
+ *
+ * Global authentication state for the app.
+ *
+ * What this file does:
+ * - Stores the logged-in user and JWT token in React state
+ * - Persists session to localStorage (remember me) or sessionStorage
+ * - Re-validates stored tokens on page load via /auth/me
+ * - Exposes login, register, and logout methods to the rest of the app
+ *
+ * Who consumes this:
+ * - `AuthProvider` wraps the app in the root layout
+ * - Any component or hook calls `useAuth()` to read user state or trigger auth actions
+ * - Login/signup hooks (`useLoginForm`, `useSignupForm`) call `login` / `register`
+ * - Protected routes and nav components read `user`, `isAuthenticated`, `bootstrapping`
+ */
 "use client";
 
 import {
@@ -17,15 +34,16 @@ import {
   getStoredToken,
   setStoredToken,
 } from "@/lib/api";
+import { HTTP_STATUS, STORAGE_KEYS } from "@/lib/constants";
 import type { AuthUser, LoginRequest, RegisterRequest } from "@/lib/types";
 
 import { fetchCurrentUser, loginRequest, registerRequest } from "./api";
 
-const USER_STORAGE_KEY = "uf_auth_user";
+const USER_STORAGE_KEY = STORAGE_KEYS.AUTH_USER;
 
 /**
- * Authentication context value interface
- * Provides user state, authentication methods, and session management
+ * Shape of everything available from `useAuth()`.
+ * Components read these values; they do not set them directly.
  */
 interface AuthContextValue {
   user: AuthUser | null;
@@ -80,6 +98,13 @@ function clearStoredUser(): void {
   sessionStorage.removeItem(USER_STORAGE_KEY);
 }
 
+/**
+ * Saves user + token to browser storage after a successful login or register.
+ * Clears any old session first so we never mix stale data.
+ *
+ * @param rememberDevice - true → localStorage (persists across browser restarts)
+ *                         false → sessionStorage (cleared when tab closes)
+ */
 function persistSession(
   user: AuthUser,
   token: string,
@@ -91,11 +116,16 @@ function persistSession(
   storage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
 }
 
+/** Removes token and user from both storage locations. Called on logout or invalid token. */
 function clearSession(): void {
   clearStoredToken();
   clearStoredUser();
 }
 
+/**
+ * Converts an API auth response into our app's `AuthUser` shape.
+ * Normalizes optional fields (login_id, contact_id) to null when missing.
+ */
 function toAuthUser(response: {
   id: number;
   login_id?: string | null;
@@ -114,6 +144,10 @@ function toAuthUser(response: {
   };
 }
 
+/**
+ * Reads the session from storage on first render (client only).
+ * If token and user are out of sync (only one exists), clears both for safety.
+ */
 function getInitialSession(): { user: AuthUser | null; token: string | null } {
   if (typeof window === "undefined") {
     return { user: null, token: null };
@@ -133,6 +167,19 @@ function getInitialSession(): { user: AuthUser | null; token: string | null } {
   return { user: null, token: null };
 }
 
+/**
+ * Wraps the app and provides auth state to all descendants.
+ *
+ * State owned:
+ * - `session` — current user + token
+ * - `bootstrapping` — true while verifying a stored token against the server
+ *
+ * Side effects:
+ * - On mount: if a token exists, calls `/auth/me` to refresh user data
+ * - 401 from /auth/me → logs out; other errors → keeps cached session
+ *
+ * @param children - App content that can call `useAuth()`
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState(getInitialSession);
   const { user, token } = session;
@@ -189,7 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }));
       })
       .catch((error: unknown) => {
-        if (error instanceof ApiError && error.status === 401) {
+        if (error instanceof ApiError && error.status === HTTP_STATUS.UNAUTHORIZED) {
           clearSession();
           setSession({ user: null, token: null });
         }
@@ -217,6 +264,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+/**
+ * Hook to access auth state and actions from any component inside `AuthProvider`.
+ *
+ * @returns Current user, token, `isAuthenticated`, `bootstrapping`, and auth methods
+ * @throws If called outside of `AuthProvider` (programming error)
+ */
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
 

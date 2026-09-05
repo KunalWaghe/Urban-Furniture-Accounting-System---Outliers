@@ -1,15 +1,40 @@
+/**
+ * TablePagination — page navigation controls for data tables.
+ *
+ * Renders first/prev/numbered/next/last buttons with a sliding window of
+ * page numbers. Used by DataTable and can be reused on any paginated list.
+ */
 "use client";
 
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 interface TablePaginationProps {
+  /** Current active page (1-based). */
   page: number;
+  /** Total number of pages available. */
   totalPages: number;
+  /** Called when user clicks a page button. Parent updates page state. */
   onPageChange: (page: number) => void;
   /** How many numbered page buttons to show at once (default: 5) */
   windowSize?: number;
 }
 
+/**
+ * Pagination button bar with first/prev/numbers/next/last controls.
+ *
+ * **State OWNED:** none — fully controlled by parent via `page` prop.
+ *
+ * **State CONSUMED:**
+ * - `page`, `totalPages` from parent
+ * - `onPageChange` callback to notify parent of page clicks
+ *
+ * **Source of truth:** parent owns current page (DataTable or page component).
+ *
+ * **Flow:**
+ * 1. Return null if totalPages <= 1 (nothing to paginate)
+ * 2. Compute a sliding window of page numbers around current page
+ * 3. Render nav buttons; disabled state when at first/last page
+ */
 export function TablePagination({
   page,
   totalPages,
@@ -18,11 +43,11 @@ export function TablePagination({
 }: TablePaginationProps) {
   if (totalPages <= 1) return null;
 
-  // Build the window of page numbers to render
+  // Build the sliding window of page numbers to render
   const half = Math.floor(windowSize / 2);
   let start = Math.max(1, page - half);
   const end = Math.min(totalPages, start + windowSize - 1);
-  // Shift start left if we're near the end
+  // Shift start left if we're near the last page and window is not full
   if (end - start + 1 < windowSize) {
     start = Math.max(1, end - windowSize + 1);
   }
@@ -42,7 +67,7 @@ export function TablePagination({
       role="navigation"
       aria-label="Pagination"
     >
-      {/* First */}
+      {/* First page */}
       <button
         type="button"
         className={`${btnBase} ${btnIdle}`}
@@ -53,7 +78,7 @@ export function TablePagination({
         <ChevronsLeft className="h-4 w-4" />
       </button>
 
-      {/* Prev */}
+      {/* Previous page */}
       <button
         type="button"
         className={`${btnBase} ${btnIdle}`}
@@ -64,14 +89,14 @@ export function TablePagination({
         <ChevronLeft className="h-4 w-4" />
       </button>
 
-      {/* Left ellipsis */}
+      {/* Left ellipsis when window does not start at page 1 */}
       {start > 1 && (
         <span className="inline-flex h-8 min-w-[2rem] items-center justify-center text-sm text-text-muted">
           …
         </span>
       )}
 
-      {/* Page numbers */}
+      {/* Numbered page buttons */}
       {pageNumbers.map((n) => (
         <button
           key={n}
@@ -85,14 +110,14 @@ export function TablePagination({
         </button>
       ))}
 
-      {/* Right ellipsis */}
+      {/* Right ellipsis when window does not reach last page */}
       {end < totalPages && (
         <span className="inline-flex h-8 min-w-[2rem] items-center justify-center text-sm text-text-muted">
           …
         </span>
       )}
 
-      {/* Next */}
+      {/* Next page */}
       <button
         type="button"
         className={`${btnBase} ${btnIdle}`}
@@ -103,7 +128,7 @@ export function TablePagination({
         <ChevronRight className="h-4 w-4" />
       </button>
 
-      {/* Last */}
+      {/* Last page */}
       <button
         type="button"
         className={`${btnBase} ${btnIdle}`}

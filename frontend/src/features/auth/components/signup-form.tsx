@@ -1,3 +1,21 @@
+/**
+ * @file signup-form.tsx
+ *
+ * Signup and admin "create user" form UI.
+ *
+ * What this file does:
+ * - Renders name, login_id, email, password, confirm, role (admin), and terms (signup)
+ * - Switches layout/copy based on `mode` prop
+ * - Delegates all logic to `useSignupForm` hook
+ *
+ * State consumed (from hook, not owned here):
+ * - fields, errors, notice, passwordStrength, passwordsMatch, isSubmitting
+ *
+ * Who consumes this:
+ * - `/signup` page (mode="signup")
+ * - Admin create-user page (mode="admin-create")
+ */
+
 "use client";
 
 import Link from "next/link";
@@ -12,13 +30,23 @@ import { PasswordInput } from "./password-input";
 import { PasswordStrengthMeter } from "./password-strength-meter";
 import { TextField } from "./text-field";
 
+/** Props for SignupForm — mode controls public signup vs admin create-user. */
 export interface SignupFormProps {
+  /** "signup" = public registration; "admin-create" = admin dashboard create user */
   mode?: "signup" | "admin-create";
+  /** Optional callback after admin successfully creates a user */
   onSuccess?: (createdUser: AuthUser) => void;
   className?: string;
+  /** Override the Cancel link destination */
   cancelHref?: string;
 }
 
+/**
+ * Full signup / create-user form with validation display and password strength.
+ *
+ * All form state and submit logic live in `useSignupForm` — this component
+ * only wires inputs to the hook and renders UI.
+ */
 export function SignupForm({
   mode = "signup",
   onSuccess,
@@ -44,7 +72,6 @@ export function SignupForm({
           )}
 
           <form className="space-y-4" onSubmit={form.handleSubmit} noValidate>
-            {/* Full name */}
             <TextField
               id="name"
               label="Full name"
@@ -57,7 +84,6 @@ export function SignupForm({
               required
             />
 
-            {/* Login ID */}
             <TextField
               id="login_id"
               label="Login ID"
@@ -72,7 +98,6 @@ export function SignupForm({
               required
             />
 
-            {/* Work email */}
             <TextField
               id="email"
               label="Work email"
@@ -86,7 +111,7 @@ export function SignupForm({
               required
             />
 
-            {/* Role selector - only displayed on Create User page for Admin */}
+            {/* Role picker — only shown when admin creates an internal user */}
             {isAdminCreate && (
               <div>
                 <label className="mb-1 block text-sm font-medium text-text">
@@ -113,7 +138,6 @@ export function SignupForm({
               </div>
             )}
 
-            {/* Password */}
             <div>
               <PasswordInput
                 id="password"
@@ -132,7 +156,6 @@ export function SignupForm({
               )}
             </div>
 
-            {/* Confirm password */}
             <TextField
               id="confirmPassword"
               label="Re-enter password"
@@ -160,7 +183,7 @@ export function SignupForm({
               }
             />
 
-            {/* Terms - for public signup only */}
+            {/* Terms checkbox — public signup only; admin-create skips this */}
             {!isAdminCreate && (
               <div className="pt-1">
                 <div className="flex items-start">
@@ -188,7 +211,6 @@ export function SignupForm({
               </div>
             )}
 
-            {/* Submit */}
             <div className="flex flex-col gap-3 pt-3 sm:flex-row">
               <Button
                 type="submit"
@@ -213,7 +235,6 @@ export function SignupForm({
             </div>
           </form>
 
-          {/* Footer link for public signup */}
           {!isAdminCreate && (
             <div className="mt-6 border-t border-border/60 pt-5 text-center">
               <p className="text-sm text-text-muted">

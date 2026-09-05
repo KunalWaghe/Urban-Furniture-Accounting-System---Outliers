@@ -1,3 +1,15 @@
+/**
+ * New Purchase Order form — create draft or confirmed PO with line items.
+ *
+ * Data flow:
+ * - Master data queries: vendors, products, expense accounts (for dropdowns)
+ * - Submit: createPurchaseOrder → POST /purchase-orders
+ * - Optional confirm: confirmPurchaseOrder → PATCH /confirm (when not saving as draft)
+ *
+ * Form state (local useState): vendor, date, line rows, validation error, submitting flag.
+ * No React Query mutations — save uses direct API calls then router.push to detail page.
+ */
+
 "use client";
 
 import { useMemo, useState } from "react";
@@ -7,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { SearchableContactSelect } from "@/components/searchable-contact-select";
 import { Button } from "@/components/ui/button";
 import {
   confirmPurchaseOrder,
@@ -17,6 +30,7 @@ import {
 } from "@/features/purchase-orders/purchase-orders-api";
 import { formatINR } from "@/lib/format";
 
+/** One editable row in the line items table (all fields stored as strings for inputs). */
 interface LineRow {
   key: string;
   productId: string;
@@ -25,6 +39,7 @@ interface LineRow {
   unitPrice: string;
 }
 
+/** Creates a blank line row with a unique key for React list rendering. */
 function emptyLine(): LineRow {
   return {
     key: crypto.randomUUID(),
@@ -35,6 +50,7 @@ function emptyLine(): LineRow {
   };
 }
 
+/** Computes qty × unit price for one line (returns 0 if inputs are invalid). */
 function lineTotal(line: LineRow): number {
   const qty = Number(line.quantity);
   const price = Number(line.unitPrice);
@@ -42,17 +58,22 @@ function lineTotal(line: LineRow): number {
   return qty * price;
 }
 
+/**
+ * Form page for creating a new purchase order with vendor, date, and line items.
+ * Supports "Save as Draft" or "Confirm" on submit.
+ */
 export function PurchaseOrderFormPage() {
   const router = useRouter();
   const today = new Date().toISOString().slice(0, 10);
 
-  const [vendorSearch, setVendorSearch] = useState("");
+  // ── Form state (local — not synced to URL or server until submit) ────────
   const [vendorId, setVendorId] = useState<number | null>(null);
   const [poDate, setPoDate] = useState(today);
   const [lines, setLines] = useState<LineRow[]>([emptyLine()]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // ── Master data for dropdowns (React Query → purchase-orders-api) ────────
   const vendorsQuery = useQuery({ queryKey: ["po-vendors"], queryFn: fetchVendors });
   const productsQuery = useQuery({ queryKey: ["po-products"], queryFn: fetchProducts });
   const accountsQuery = useQuery({ queryKey: ["po-expense-accounts"], queryFn: fetchExpenseAccounts });
@@ -66,21 +87,16 @@ export function PurchaseOrderFormPage() {
     return purchaseExpense?.id ?? accounts[0]?.id;
   }, [accounts]);
 
-  const filteredVendors = useMemo(() => {
-    const q = vendorSearch.trim().toLowerCase();
-    if (!q) return vendors;
-    return vendors.filter((v) => v.name.toLowerCase().includes(q));
-  }, [vendorSearch, vendors]);
-
-  const selectedVendor = vendors.find((v) => v.id === vendorId);
   const grandTotal = lines.reduce((sum, line) => sum + lineTotal(line), 0);
 
   const loadingMaster = vendorsQuery.isLoading || productsQuery.isLoading || accountsQuery.isLoading;
 
+  /** Updates one line row by its unique key. */
   function updateLine(key: string, patch: Partial<LineRow>) {
     setLines((prev) => prev.map((line) => (line.key === key ? { ...line, ...patch } : line)));
   }
 
+  /** When product changes, auto-fill unit price from product cost/price. */
   function onProductChange(key: string, productId: string) {
     const product = products.find((p) => p.id === Number(productId));
     updateLine(key, {
@@ -89,6 +105,7 @@ export function PurchaseOrderFormPage() {
     });
   }
 
+  /** Client-side validation before submit; returns error message or null. */
   function validate(): string | null {
     if (!vendorId) return "Vendor is required.";
     if (!poDate) return "PO date is required.";
@@ -105,6 +122,7 @@ export function PurchaseOrderFormPage() {
     return null;
   }
 
+  /** Builds the JSON body sent to POST /purchase-orders. */
   function buildPayload() {
     return {
       vendor_id: vendorId!,
@@ -118,6 +136,10 @@ export function PurchaseOrderFormPage() {
     };
   }
 
+  /**
+   * Saves the PO. If asDraft is false, also confirms it immediately after create.
+   * On success, navigates to the new PO detail page.
+   */
   async function handleSave(asDraft: boolean) {
     const validationError = validate();
     if (validationError) {
@@ -182,36 +204,16 @@ export function PurchaseOrderFormPage() {
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-text-muted">Vendor Name *</label>
-                <input
-                  type="search"
-                  value={selectedVendor ? selectedVendor.name : vendorSearch}
-                  onChange={(e) => {
-                    setVendorSearch(e.target.value);
-                    setVendorId(null);
-                  }}
-                  placeholder="Search vendors..."
-                  className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+                <SearchableContactSelect
+                  contacts={vendors}
+                  value={vendorId}
+                  onChange={setVendorId}
+                  label="Vendor Name"
+                  required
+                  disabled={submitting}
+                  placeholder="Search vendors by name, city, or email..."
+                  emptyMessage="No active vendors found."
                 />
-                {!selectedVendor && vendorSearch.trim() && filteredVendors.length > 0 && (
-                  <div className="mt-1 overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
-                    {filteredVendors.slice(0, 6).map((vendor) => (
-                      <button
-                        key={vendor.id}
-                        type="button"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setVendorId(vendor.id);
-                          setVendorSearch(vendor.name);
-                        }}
-                        className="block w-full px-3 py-2 text-left text-sm text-text hover:bg-surface-muted"
-                      >
-                        {vendor.name}
-                        {vendor.city ? <span className="ml-2 text-text-muted">{vendor.city}</span> : null}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           </section>

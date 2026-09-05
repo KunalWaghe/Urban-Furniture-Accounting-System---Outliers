@@ -1,8 +1,14 @@
 "use client"
 
+/**
+ * Reusable separator primitive (shadcn-style).
+ * Visual divider for horizontal or vertical layout sections.
+ */
+
 import { Separator as SeparatorPrimitive } from "@base-ui/react/separator"
 import { cn } from "cn"
 
+/** Horizontal or vertical divider line. */
 function Separator({
   className,
   orientation = "horizontal",

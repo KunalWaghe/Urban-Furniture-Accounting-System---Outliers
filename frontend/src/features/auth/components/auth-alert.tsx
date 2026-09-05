@@ -1,3 +1,16 @@
+/**
+ * @file auth-alert.tsx
+ *
+ * Dismissible banner for auth form messages (errors and info).
+ *
+ * What this file does:
+ * - Renders a colored alert box with title, message, and close button
+ * - Uses `role="alert"` for screen reader accessibility
+ *
+ * Who consumes this:
+ * - `LoginForm` and `SignupForm` show this when `form.notice` is set
+ */
+
 import { AlertCircle, Info, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -7,6 +20,14 @@ interface AuthAlertProps extends AuthNotice {
   onDismiss: () => void;
 }
 
+/**
+ * Banner alert shown above login/signup forms.
+ *
+ * @param kind - "error" (red) or "info" (blue)
+ * @param title - Short heading (e.g. "Unable to sign in")
+ * @param message - Longer explanation for the user
+ * @param onDismiss - Called when user clicks the X button
+ */
 export function AuthAlert({ kind, title, message, onDismiss }: AuthAlertProps) {
   const isError = kind === "error";
   return (

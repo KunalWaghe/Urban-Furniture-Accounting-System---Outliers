@@ -1,3 +1,15 @@
+/**
+ * Role-based route guard — restricts pages to specific user roles.
+ *
+ * Role in the app:
+ * - Wraps admin-only or role-specific pages inside RequireAuth
+ * - Shows a 403 "Access Denied" screen when the user's role is not allowed
+ * - Redirects unauthenticated users to `/login` (same as RequireAuth)
+ *
+ * Use after RequireAuth in the component tree, or on pages that already
+ * sit behind the auth layout.
+ */
+
 "use client";
 
 import Link from "next/link";
@@ -10,19 +22,39 @@ import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { useMounted } from "@/hooks/use-mounted";
 
+/** Props for the RequireRole guard component. */
 interface RequireRoleProps {
+  /** Role strings that are allowed to see `children` (e.g. `["admin"]`). */
   allowedRoles: string[];
   children: ReactNode;
+  /** Heading on the 403 fallback screen. */
   fallbackTitle?: string;
+  /** Custom body text; auto-generated from roles if omitted. */
   fallbackMessage?: string;
 }
 
+/** Maps backend role slugs to human-readable labels for error messages. */
 const ROLE_DISPLAY_NAMES: Record<string, string> = {
   admin: "Administrator",
   invoicing_user: "Accountant",
   contact: "Portal User (Contact)",
 };
 
+/**
+ * Restricts a route to users whose role is in `allowedRoles`.
+ *
+ * When to use: admin settings, user management, or any role-gated module.
+ *
+ * Flow:
+ * 1. Wait for client mount and auth bootstrapping
+ * 2. Redirect to `/login` if not authenticated
+ * 3. Check `user.role` against `allowedRoles`
+ * 4. Allowed → render children; denied → show 403 fallback UI
+ *
+ * State owned: none (no local useState)
+ * State consumed: AuthContext (`user`, `isAuthenticated`, `bootstrapping`, `logout`), useMounted
+ * Source of truth: AuthContext user.role (from `/auth/me`)
+ */
 export function RequireRole({
   allowedRoles,
   children,

@@ -92,15 +92,15 @@
 
 - [ ] 6A.1 · BE · Sales Order model & create/confirm endpoints (P0-BE-08)
   - `POST /api/v1/sales-orders`, `POST /api/v1/sales-orders/:id/confirm`
-- [ ] 6A.2 · FE · SO list page wired to `GET /api/v1/sales-orders` (P0-FE-09a)
-- [ ] 6A.3 · FE · SO create form + confirm action + detail page (P0-FE-09b)
+- [x] 6A.2 · FE · SO list page wired to `GET /api/v1/sales-orders` (P0-FE-09a)
+- [x] 6A.3 · FE · SO create form + confirm action + detail page (P0-FE-09b)
 
 ### 6B — Customer Invoice
 
 - [ ] 6B.1 · BE · Customer Invoice creation + auto Journal Entry (P0-BE-09)
   - `POST /api/v1/sales-orders/:id/create-invoice`
   - Journal: Dr Debtors (AR) / Cr Sales Income + Tax
-- [ ] 6B.2 · FE · SO Detail — "Generate Invoice" action + Invoice detail view (P0-FE-10)
+- [x] 6B.2 · FE · SO Detail — "Generate Invoice" action + Invoice detail view (P0-FE-10)
 
 ### 6C — Inbound Payment
 
@@ -108,7 +108,7 @@
   - `POST /api/v1/payments` (type: inbound)
   - Journal: Dr Cash/Bank / Cr AR
   - Invoice status → Paid
-- [ ] 6C.2 · FE · Customer Invoice Payment modal/action (P0-FE-11)
+- [x] 6C.2 · FE · Customer Invoice Payment modal/action (P0-FE-11)
 
 ### 6D — Sales Slice Integration
 

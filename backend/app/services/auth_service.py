@@ -2,11 +2,12 @@
 Business logic service for user authentication and registration with Login ID support.
 """
 
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from app.models.user import User
-from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, AdminUserCreateRequest
-from app.core.security import hash_password, verify_password, create_access_token
+from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, AdminUserCreateRequest, ForgotPasswordRequest, ForgotPasswordResponse, ResetPasswordRequest, ResetPasswordResponse
+from app.core.security import hash_password, verify_password, create_access_token, generate_reset_token
 from app.core.exceptions import ConflictException, UnauthorizedException, ValidationException, ForbiddenException
 from app.models.contact import Contact
 
@@ -173,4 +174,70 @@ def login_user(db: Session, req: LoginRequest) -> AuthResponse:
         name=user.name,
         role=user.role,
         token=token,
+    )
+
+
+def forgot_password(db: Session, req: ForgotPasswordRequest) -> ForgotPasswordResponse:
+    """
+    Initiate password reset process by generating a reset token.
+    
+    Always returns success message to prevent email enumeration attacks.
+    Token is valid for 1 hour.
+    
+    NOTE: In production, this should send an email with the reset link.
+    For hackathon/demo purposes, the token is returned in the response.
+    """
+    user = db.query(User).filter(User.email == req.email).first()
+    
+    if user and user.is_active:
+        # Generate reset token
+        reset_token = generate_reset_token()
+        reset_token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+        
+        # Store token in database
+        user.reset_token = reset_token
+        user.reset_token_expiry = reset_token_expiry
+        db.commit()
+        
+        # TODO: In production, send email with reset link
+        # send_password_reset_email(user.email, reset_token)
+        print(f"[DEBUG] Password reset token for {user.email}: {reset_token}")
+    
+    # Always return success to prevent email enumeration
+    return ForgotPasswordResponse(
+        message="If the email exists in our system, a password reset link has been sent.",
+        email=req.email
+    )
+
+
+def reset_password(db: Session, req: ResetPasswordRequest) -> ResetPasswordResponse:
+    """
+    Reset user password using a valid reset token.
+    
+    Validates token and expiry, then updates password.
+    """
+    user = db.query(User).filter(User.reset_token == req.token).first()
+    
+    if not user:
+        raise ValidationException("Invalid or expired reset token")
+    
+    expiry = user.reset_token_expiry
+    if expiry is not None and expiry.tzinfo is None:
+        expiry = expiry.replace(tzinfo=timezone.utc)
+
+    if not expiry or expiry < datetime.now(timezone.utc):
+        # Clear expired token
+        user.reset_token = None
+        user.reset_token_expiry = None
+        db.commit()
+        raise ValidationException("Invalid or expired reset token")
+    
+    # Update password
+    user.password_hash = hash_password(req.new_password)
+    user.reset_token = None
+    user.reset_token_expiry = None
+    db.commit()
+    
+    return ResetPasswordResponse(
+        message="Password has been successfully reset. You can now login with your new password."
     )

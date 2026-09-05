@@ -1,3 +1,11 @@
+/**
+ * Next.js App Router — Admin Users Page
+ *
+ * Route: `/admin/users`
+ *
+ * Admin-only screen for listing system users and creating new accounts.
+ * Auth: `(app)/layout.tsx` requires login; this page adds a role guard for admins only.
+ */
 "use client";
 
 import { useMemo, useState } from "react";
@@ -10,6 +18,15 @@ import { useUsers } from "@/features/users/queries";
 
 const PAGE_SIZE = 8;
 
+/**
+ * Admin user management page — user list, search, pagination, and create-user form.
+ *
+ * Feature pieces used here (not a single page component):
+ * - `SignupForm` in `mode="admin-create"` for creating users
+ * - `useUsers` query hook for the user list
+ *
+ * Role guard: `RequireRole` with `allowedRoles={["admin"]}` — non-admins are blocked.
+ */
 export default function AdminUsersPage() {
   const { data: users = [], isLoading: loading, refetch: refetchUsers } = useUsers();
   const [page, setPage] = useState(1);

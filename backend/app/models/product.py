@@ -3,7 +3,7 @@ Product database model.
 """
 
 from typing import Optional
-from sqlalchemy import String, Integer, Boolean, Numeric
+from sqlalchemy import String, Integer, Boolean, Numeric, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 
@@ -22,4 +22,7 @@ class Product(Base):
     cost: Mapped[Optional[float]] = mapped_column(Numeric(10, 2), nullable=True)  # Cost price
     tax_percent: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False, default=0.0)
     description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    # Stored as a data URL for the lightweight hackathon implementation so the
+    # Product Master can persist the image without a separate media service.
+    image_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)

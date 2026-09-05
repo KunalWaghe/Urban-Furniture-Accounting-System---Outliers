@@ -1,3 +1,16 @@
+/**
+ * @file password-input.tsx
+ *
+ * Password field with show/hide toggle.
+ *
+ * What this file does:
+ * - Wraps `TextField` with type toggling (password ↔ text) and an eye icon button
+ * - Keeps password UX consistent across login and signup forms
+ *
+ * Who consumes this:
+ * - `LoginForm` and `SignupForm`
+ */
+
 import { Eye, EyeOff, Lock } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -17,6 +30,14 @@ interface PasswordInputProps {
   labelAddon?: ReactNode;
 }
 
+/**
+ * Text input configured for passwords with a visibility toggle.
+ *
+ * Parent owns `show` state (typically from useLoginForm / useSignupForm).
+ *
+ * @param show - When true, displays plain text instead of masked dots
+ * @param onToggleShow - Flips show/hide when user clicks the eye button
+ */
 export function PasswordInput({
   show,
   onToggleShow,

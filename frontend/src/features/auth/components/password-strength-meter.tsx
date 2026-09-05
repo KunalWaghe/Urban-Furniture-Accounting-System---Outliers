@@ -1,8 +1,25 @@
+/**
+ * @file password-strength-meter.tsx
+ *
+ * Visual feedback for password requirements during signup.
+ *
+ * What this file does:
+ * - Shows a 4-segment strength bar (Weak → Strong)
+ * - Lists each password rule with a check/circle icon
+ *
+ * State consumed:
+ * - `strength` prop from parent (computed by getPasswordStrength in the hook)
+ *
+ * Who consumes this:
+ * - `SignupForm` renders this when the password field is non-empty
+ */
+
 import { CheckCircle2, Circle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { PasswordStrength } from "../validation";
 
+/** Bar segment colors indexed by strength score (1–4). */
 const SEGMENT_COLORS = [
   "bg-red-500",
   "bg-amber-500",
@@ -10,6 +27,7 @@ const SEGMENT_COLORS = [
   "bg-emerald-500",
 ];
 
+/** Label text colors matching the bar segments. */
 const LABEL_COLORS = [
   "text-red-600 dark:text-red-400",
   "text-amber-600 dark:text-amber-400",
@@ -17,6 +35,11 @@ const LABEL_COLORS = [
   "text-emerald-600 dark:text-emerald-400",
 ];
 
+/**
+ * Password strength indicator with progress bar and rule checklist.
+ *
+ * @param strength - Output of getPasswordStrength() from validation.ts
+ */
 export function PasswordStrengthMeter({
   strength,
 }: {
@@ -31,6 +54,7 @@ export function PasswordStrengthMeter({
           {strength.label} ({strength.score}/4)
         </span>
       </div>
+      {/* Four segments — filled count matches strength.score */}
       <div className="mb-2.5 grid h-1.5 grid-cols-4 gap-1.5">
         {Array.from({ length: 4 }, (_, index) => (
           <div

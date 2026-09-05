@@ -2,6 +2,7 @@
 Security utilities for password hashing and JWT token management.
 """
 
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Any, Dict
 from jose import jwt, JWTError
@@ -50,3 +51,12 @@ def decode_access_token(token: str) -> Dict[str, Any]:
     """
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     return payload
+
+
+def generate_reset_token() -> str:
+    """
+    Generate a secure random token for password reset.
+    
+    Returns a URL-safe token string.
+    """
+    return secrets.token_urlsafe(32)
