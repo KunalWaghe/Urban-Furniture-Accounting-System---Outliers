@@ -34,7 +34,7 @@ src/
 
 ---
 
-## 3. The 4 Key Decisions (ADRs) in Plain English
+## 3. Key Architectural Decisions (ADRs) in Plain English
 
 ### ADR-01: Next.js 14 + shadcn/ui for Speed & Polish
 - **Decision:** Use Next.js 14 App Router with shadcn/ui components.
@@ -59,6 +59,10 @@ src/
 ### ADR-05: Real-Time Live Math, Backend Authoritative
 - **Decision:** Line items calculate Subtotal, GST, and Total live on keystroke for instant feedback, but the backend double-checks and validates the numbers upon submit.
 - **Why to Reviewer:** *"The user gets instantaneous UI responsiveness, but the backend remains the strict authority for accounting accuracy."*
+
+### ADR-06: Route Group Isolation & Feature Collocation for Auth
+- **Decision:** Auth pages (`/login`, `/signup`) are decoupled from the main dashboard shell using Next.js route groups (`(auth)` vs `(app)`), collocating hooks, validation, and presentation under `src/features/auth/`.
+- **Why to Reviewer:** *"This eliminates conditional layout hacks in the root shell, ensuring clean full-screen auth branding while keeping form state hooks independently testable before live API integration."*
 
 ---
 
