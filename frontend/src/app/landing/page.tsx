@@ -32,14 +32,10 @@ import {
 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useAuth } from "@/features/auth/auth-context";
+import { RedirectIfAuth } from "@/components/redirect-if-auth";
 import { SiteHeader } from "@/components/site-header";
-import { useMounted } from "@/hooks/use-mounted";
 
 export default function LandingPage() {
-  const mounted = useMounted();
-  const { isAuthenticated } = useAuth();
-  const showDashboardCta = mounted && isAuthenticated;
   const containerRef = useRef<HTMLDivElement>(null);
   const heroBadgeRef = useRef<HTMLDivElement>(null);
   const heroTitleRef = useRef<HTMLHeadingElement>(null);
@@ -403,6 +399,7 @@ export default function LandingPage() {
   };
 
   return (
+    <RedirectIfAuth>
     <div
       ref={containerRef}
       className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-primary-container selection:text-on-primary-container relative"
@@ -456,23 +453,13 @@ export default function LandingPage() {
               ref={heroCtaRef}
               className="mt-8 flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto"
             >
-              {showDashboardCta ? (
-                <Link
-                  href="/dashboard"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-primary hover:bg-primary-700 text-white shadow-md hover:shadow-lg transition-all active:scale-98"
-                >
-                  <span>Open dashboard</span>
-                  <ArrowRight className="w-4.5 h-4.5" />
-                </Link>
-              ) : (
-                <Link
-                  href="/signup"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-primary hover:bg-primary-700 text-white shadow-md hover:shadow-lg transition-all active:scale-98"
-                >
-                  <span>Create account</span>
-                  <ArrowRight className="w-4.5 h-4.5" />
-                </Link>
-              )}
+              <Link
+                href="/signup"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-primary hover:bg-primary-700 text-white shadow-md hover:shadow-lg transition-all active:scale-98"
+              >
+                <span>Create account</span>
+                <ArrowRight className="w-4.5 h-4.5" />
+              </Link>
               <a
                 href="#telemetry-section"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-card hover:bg-surface-container text-foreground border border-border shadow-xs transition-all"
@@ -1492,5 +1479,6 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
+    </RedirectIfAuth>
   );
 }

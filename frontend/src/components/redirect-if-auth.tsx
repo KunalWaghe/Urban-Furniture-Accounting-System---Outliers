@@ -2,7 +2,7 @@
  * Inverse auth guard — keeps logged-in users off public auth pages.
  *
  * Role in the app:
- * - Wraps the `(auth)` layout (login, register)
+ * - Wraps the `(auth)` layout (login, register) and the public landing page
  * - Redirects authenticated users to their role home route (`/portal` or `/dashboard`)
  * - Prevents a flash of the login form while `/auth/me` is loading
  *
