@@ -1,16 +1,16 @@
 # Graph Report - Urban-Furniture-Accounting-System---Outliers  (2026-09-05)
 
 ## Corpus Check
-- 107 files · ~485,406 words
+- 107 files · ~485,986 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 948 nodes · 1332 edges · 84 communities (73 shown, 11 thin omitted)
+- 967 nodes · 1354 edges · 89 communities (77 shown, 12 thin omitted)
 - Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 157 edges (avg confidence: 0.55)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d1110b8a`
+- Built from commit: `cf0fd8be`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -88,6 +88,11 @@
 - [[_COMMUNITY_Community 81|Community 81]]
 - [[_COMMUNITY_Community 82|Community 82]]
 - [[_COMMUNITY_Community 83|Community 83]]
+- [[_COMMUNITY_Community 84|Community 84]]
+- [[_COMMUNITY_Community 85|Community 85]]
+- [[_COMMUNITY_Community 86|Community 86]]
+- [[_COMMUNITY_Community 87|Community 87]]
+- [[_COMMUNITY_Community 88|Community 88]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `NotFoundException` - 20 edges
@@ -106,31 +111,31 @@
   backend/app/routers/users.py → backend/app/models/user.py
 - `run_seed()` --calls--> `seed_accounting_defaults()`  [INFERRED]
   backend/seed.py → backend/app/services/accounting_service.py
+- `FastAPI` --uses--> `AppException`  [INFERRED]
+  backend/app/main.py → backend/app/core/exceptions.py
+- `FastAPI` --uses--> `RequestValidationError`  [INFERRED]
+  backend/app/main.py → backend/app/core/exceptions.py
 - `Session` --uses--> `User`  [INFERRED]
   backend/app/routers/users.py → backend/app/models/user.py
-- `User` --uses--> `User`  [INFERRED]
-  backend/app/routers/users.py → backend/app/models/user.py
-- `Contact` --uses--> `Base`  [INFERRED]
-  backend/app/models/contact.py → backend/app/core/database.py
 
 ## Hyperedges (group relationships)
 - **Authentication & User Management Flow** — backend_app_routers_auth_py, backend_app_services_auth_service_py, backend_app_models_user_py [INFERRED 0.90]
 - **Double-Entry Accounting & Journal Subsystem** — backend_app_routers_journals_py, backend_app_services_accounting_service_py, backend_app_models_journal_py [INFERRED 0.95]
 - **Master Data Management (Contacts, Products, Accounts)** — backend_app_routers_contacts_py, backend_app_routers_products_py, backend_app_routers_accounts_py [INFERRED 0.90]
 
-## Communities (84 total, 11 thin omitted)
+## Communities (89 total, 12 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.06
-Nodes (71): Any, AuthResponse, Session, str, User, int, str, bool (+63 more)
+Cohesion: 0.24
+Nodes (20): AuthResponse, LoginRequest, RegisterRequest, Session, User, AdminUserCreateRequest, LoginRequest, RegisterRequest (+12 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.06
 Nodes (43): getAuthErrorMessage(), LOGIN_FIELD_MAP, mapApiFieldsToLoginErrors(), mapApiFieldsToSignupErrors(), SIGNUP_FIELD_MAP, ADMIN_CREATABLE_ROLES, AdminCreatableRole, AuthNotice (+35 more)
 
 ### Community 2 - "Community 2"
-Cohesion: 0.06
-Nodes (30): metadata, AppDashboardPage(), AuthProvider(), useAuth(), AppProviders(), DataTableColumn, DataTableProps, EmptyState() (+22 more)
+Cohesion: 0.05
+Nodes (33): metadata, AppDashboardPage(), AuthProvider(), useAuth(), AppProviders(), DataTableColumn, DataTableProps, EmptyState() (+25 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.09
@@ -141,8 +146,8 @@ Cohesion: 0.09
 Nodes (44): bool, ContactCreate, ContactUpdate, int, Session, str, bool, int (+36 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.07
-Nodes (28): Backend, Backend, Backend, Backend, Backend, BACKLOG — Optional Bonus (Post-Midnight), BACKLOG — P0 Golden Path (Target: 7:00 PM Gate), BACKLOG — P1 (7:00–10:00 PM) (+20 more)
+Cohesion: 0.05
+Nodes (41): Backend, Backend, Backend, Backend, Backend, Backend, Backend, Backend (+33 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.07
@@ -229,8 +234,8 @@ Cohesion: 0.20
 Nodes (9): 12:20–3:30 AM — Implement only evidence-backed bonuses, 24-Hour Odoo Hackathon Execution Plan, 3:30–4:00 AM — Hard code freeze, Gate-Based De-Scope Ladder, Operating rules, Ownership, Phase 0 — Problem Selection and Architecture Lock, Phase 4 — Bonus Scalability Window (+1 more)
 
 ### Community 27 - "Community 27"
-Cohesion: 0.28
-Nodes (8): AdminUserCreateRequest, Session, User, create_user(), list_users(), User management API endpoints.  Restricted exclusively to administrator roles (', Create an internal user account.          Security: Only accessible to users wit, List all system users.          Security: Only accessible to users with role 'ad
+Cohesion: 0.24
+Nodes (9): AdminUserCreateRequest, Session, User, FastAPI, create_user(), list_users(), User management API endpoints.  Restricted exclusively to administrator roles (', Create an internal user account.          Security: Only accessible to users wit (+1 more)
 
 ### Community 28 - "Community 28"
 Cohesion: 0.22
@@ -274,7 +279,7 @@ Nodes (7): 1. Auth, `GET /api/v1/auth/me`, Identity and Role Rules, `POST /api/v
 
 ### Community 39 - "Community 39"
 Cohesion: 0.29
-Nodes (7): 6. Payments, 7. Journal Entries, Detailed Specifications, `GET /api/v1/journal-entries`, `POST /api/v1/journal-entries`, `POST /api/v1/payments` (Inbound: Customer Invoice), `POST /api/v1/payments` (Outbound: Vendor Bill)
+Nodes (7): 6. Payments, 9. Budgets & Customer Portal, Detailed Specifications, `GET /api/v1/portal/invoices`, `POST /api/v1/budgets`, `POST /api/v1/payments` (Inbound: Customer Invoice), `POST /api/v1/payments` (Outbound: Vendor Bill)
 
 ### Community 40 - "Community 40"
 Cohesion: 0.29
@@ -286,7 +291,7 @@ Nodes (7): 9:00–10:00 AM, Day 1 — no coding, 9:00–9:08 — Read independen
 
 ### Community 42 - "Community 42"
 Cohesion: 0.15
-Nodes (10): Unit & Integration tests for Authentication, Role Restrictions, and Admin User C, Ensure database tables exist before running tests., Ensure database tables exist before running tests., Public registration should not accept admin roles and strictly assign contact (u, Verify login authentication and input validations., POST /api/v1/users must only be accessible to users with the 'admin' role.     -, setup_db(), test_auth_login_and_validations() (+2 more)
+Nodes (11): Unit & Integration tests for Authentication, Role Restrictions, and Admin User C, Ensure database tables exist before running tests., Ensure database tables exist before running tests., Public registration should not accept admin roles and strictly assign invoicing_, Verify login authentication and input validations., POST /api/v1/users must only be accessible to users with the 'admin' role.     -, setup_db(), test_auth_login_and_validations() (+3 more)
 
 ### Community 43 - "Community 43"
 Cohesion: 0.33
@@ -366,22 +371,38 @@ Nodes (3): Deploy on Vercel, Getting Started, Learn More
 
 ### Community 63 - "Community 63"
 Cohesion: 0.67
-Nodes (3): 9. Budgets & Customer Portal, `GET /api/v1/portal/invoices`, `POST /api/v1/budgets`
+Nodes (3): 7. Journal Entries, `GET /api/v1/journal-entries`, `POST /api/v1/journal-entries`
+
+### Community 84 - "Community 84"
+Cohesion: 0.22
+Nodes (16): int, app_exception_handler(), AppException, _build_error_response(), generic_exception_handler(), Custom exceptions and global error handlers.  All API errors follow the standard, Catch-all for unhandled exceptions.          Returns a generic 500 error with a, Base exception for all application-level errors. (+8 more)
+
+### Community 85 - "Community 85"
+Cohesion: 0.19
+Nodes (13): Any, bool, str, create_access_token(), decode_access_token(), hash_password(), Security utilities for password hashing and JWT token management., Hash a plain text password using bcrypt. (+5 more)
+
+### Community 86 - "Community 86"
+Cohesion: 0.24
+Nodes (13): Session, str, User, get_current_user(), get_db(), Dependency injection utilities for FastAPI routes., Dependency that yields a SQLAlchemy database session per request,     ensuring i, Dependency that validates the JWT bearer token and retrieves the current User en (+5 more)
+
+### Community 87 - "Community 87"
+Cohesion: 0.20
+Nodes (9): get_me(), login(), logout(), Authentication API endpoints., Create a new user account.          Returns user details and a JWT token upon su, Authenticate user credentials.          Returns user details and a JWT token upo, Get current logged in user profile., Log out the current authenticated user and invalidate session. (+1 more)
 
 ## Knowledge Gaps
-- **394 isolated node(s):** `config`, `name`, `version`, `private`, `dev` (+389 more)
+- **409 isolated node(s):** `config`, `name`, `version`, `private`, `dev` (+404 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `FastAPI` connect `Community 0` to `Community 33`, `Community 34`, `Community 35`, `Community 14`, `Community 15`, `Community 27`?**
-  _High betweenness centrality (0.139) - this node is a cross-community bridge._
-- **Why does `NotFoundException` connect `Community 4` to `Community 0`?**
-  _High betweenness centrality (0.032) - this node is a cross-community bridge._
-- **Why does `RequestValidationError` connect `Community 0` to `Community 4`?**
-  _High betweenness centrality (0.032) - this node is a cross-community bridge._
+- **Why does `FastAPI` connect `Community 27` to `Community 33`, `Community 34`, `Community 35`, `Community 14`, `Community 15`, `Community 84`, `Community 86`, `Community 87`?**
+  _High betweenness centrality (0.137) - this node is a cross-community bridge._
+- **Why does `RequestValidationError` connect `Community 84` to `Community 0`, `Community 4`, `Community 86`, `Community 88`, `Community 27`?**
+  _High betweenness centrality (0.031) - this node is a cross-community bridge._
+- **Why does `NotFoundException` connect `Community 4` to `Community 88`, `Community 84`?**
+  _High betweenness centrality (0.031) - this node is a cross-community bridge._
 - **Are the 17 inferred relationships involving `NotFoundException` (e.g. with `bool` and `ContactCreate`) actually correct?**
   _`NotFoundException` has 17 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 17 inferred relationships involving `ValidationException` (e.g. with `AuthResponse` and `AdminUserCreateRequest`) actually correct?**
@@ -389,4 +410,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 18 inferred relationships involving `User` (e.g. with `AuthResponse` and `Session`) actually correct?**
   _`User` has 18 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `config`, `name`, `version` to the rest of the system?**
-  _497 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _512 weakly-connected nodes found - possible documentation gaps or missing edges._

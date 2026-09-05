@@ -28,8 +28,8 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
         if check_role in ("admin", "administrator"):
             raise ForbiddenException(message="Registration with admin role is forbidden", code="ROLE_NOT_ALLOWED")
 
-    # Public registration strictly creates standard user role (contact)
-    assigned_role = "contact"
+    # Public registration strictly creates standard accountant role (invoicing_user)
+    assigned_role = "invoicing_user"
 
     # 1. Check if Login ID is already taken
     existing_login = db.query(User).filter(User.login_id == req.login_id).first()

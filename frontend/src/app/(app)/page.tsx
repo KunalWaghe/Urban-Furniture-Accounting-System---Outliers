@@ -2,15 +2,12 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  Armchair,
   BarChart3,
   Check,
   CheckCircle2,
-  ChevronDown,
   Clock,
   CreditCard,
   FileText,
-  LayoutGrid,
   LineChart,
   Package,
   Plus,
@@ -58,7 +55,6 @@ export default function AppDashboardPage() {
   const [salesFilterStatus, setSalesFilterStatus] = useState<string>("all");
   const [salesSearchQuery, setSalesSearchQuery] = useState<string>("");
   const [purchaseActiveTab, setPurchaseActiveTab] = useState<"po" | "bills">("po");
-  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
 
   // Selected Order / PO for Inspection Modals
   const [selectedSalesOrder, setSelectedSalesOrder] = useState<SalesOrder | null>(null);
@@ -78,11 +74,9 @@ export default function AppDashboardPage() {
     }, 4000);
   }, []);
 
-  // Fetch backend master data on mount
-  const loadBackendData = useCallback(async (isRefresh = false) => {
-    if (isRefresh) {
-      setLoading(true);
-    }
+  // Refresh backend master data on demand
+  const handleRefresh = useCallback(async () => {
+    setLoading(true);
     try {
       const [fetchedContacts, fetchedProducts] = await Promise.all([
         fetchDashboardContacts(),
@@ -101,30 +95,60 @@ export default function AppDashboardPage() {
       setPurchaseOrders(dashboardData.purchaseOrders);
       setVendorBills(dashboardData.vendorBills);
       setBudgetMetric(dashboardData.budgetMetric);
+      showToast("Backend data refreshed successfully.");
     } catch (err) {
-      console.error("Failed to load dashboard data:", err);
+      console.error("Failed to refresh dashboard data:", err);
       showToast("Could not sync with backend. Using cached domain models.");
     } finally {
       setLoading(false);
     }
   }, [showToast]);
 
+  // Initial data loading on mount
   useEffect(() => {
-    void loadBackendData(false);
-  }, [loadBackendData]);
+    let ignore = false;
+    async function init() {
+      try {
+        const [fetchedContacts, fetchedProducts] = await Promise.all([
+          fetchDashboardContacts(),
+          fetchDashboardProducts(),
+        ]);
 
-  // Keyboard shortcut ⌘K / Ctrl+K to focus search, ESC to close mega menu
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        const searchInput = document.getElementById("dashboardGlobalSearch");
-        if (searchInput) {
-          searchInput.focus();
+        if (ignore) return;
+        setContacts(fetchedContacts);
+        setProducts(fetchedProducts);
+
+        const dashboardData = buildDashboardDataFromBackend(
+          fetchedContacts,
+          fetchedProducts
+        );
+
+        setSalesOrders(dashboardData.salesOrders);
+        setPurchaseOrders(dashboardData.purchaseOrders);
+        setVendorBills(dashboardData.vendorBills);
+        setBudgetMetric(dashboardData.budgetMetric);
+      } catch (err) {
+        if (!ignore) {
+          console.error("Failed to load dashboard data:", err);
+          showToast("Could not sync with backend. Using cached domain models.");
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
         }
       }
+    }
+
+    void init();
+    return () => {
+      ignore = true;
+    };
+  }, [showToast]);
+
+  // Keyboard shortcut ESC to close modals
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        setIsMegaMenuOpen(false);
         setSelectedSalesOrder(null);
         setSelectedPurchaseOrder(null);
         setIsCreateOrderModalOpen(false);
@@ -133,6 +157,55 @@ export default function AppDashboardPage() {
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Sync navigation from navbar header (hashchange and erp-navigate custom events)
+  useEffect(() => {
+    function handleNavigation(hash: string, tab?: "po" | "bills") {
+      if (tab) {
+        setPurchaseActiveTab(tab);
+      } else if (hash === "#purchase-bills") {
+        setPurchaseActiveTab("bills");
+      } else if (hash === "#purchase-orders") {
+        setPurchaseActiveTab("po");
+      }
+
+      if (hash && hash.startsWith("#")) {
+        const targetId = hash.replace("#", "");
+        const elementId =
+          targetId === "purchase-orders" || targetId === "purchase-bills"
+            ? "purchase-section"
+            : targetId;
+
+        const el = document.getElementById(elementId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    }
+
+    function onErpNavigate(e: Event) {
+      const detail = (e as CustomEvent<{ href: string; tab?: "po" | "bills" }>).detail;
+      if (detail?.href) {
+        const hash = detail.href.includes("#") ? `#${detail.href.split("#")[1]}` : "";
+        handleNavigation(hash, detail.tab);
+      }
+    }
+
+    function onHashChange() {
+      handleNavigation(window.location.hash);
+    }
+
+    window.addEventListener("erp-navigate", onErpNavigate);
+    window.addEventListener("hashchange", onHashChange);
+    if (window.location.hash) {
+      handleNavigation(window.location.hash);
+    }
+
+    return () => {
+      window.removeEventListener("erp-navigate", onErpNavigate);
+      window.removeEventListener("hashchange", onHashChange);
+    };
   }, []);
 
   // Customers and Vendors derived from backend data
@@ -261,326 +334,6 @@ export default function AppDashboardPage() {
         </div>
       )}
 
-      {/* BEGIN: Top Header Banner & Quick Module Directory Strip */}
-      <div className="relative rounded-2xl border border-border bg-surface p-4 shadow-sm sm:p-5">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          {/* Left: Brand Identity & Live Status */}
-          <div className="flex flex-wrap items-center gap-3.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-600 text-white shadow-md shadow-primary-500/20">
-              <Armchair className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold tracking-tight text-text sm:text-xl">
-                  App Dashboard
-                </h1>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Live
-                </span>
-                <span className="hidden rounded-md bg-surface-muted px-2 py-0.5 text-[11px] font-medium text-text-muted sm:inline-block">
-                  Urban Furniture ERP
-                </span>
-                {role === "admin" && (
-                  <span className="rounded-md bg-purple-100 px-2 py-0.5 text-[11px] font-semibold text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
-                    Admin
-                  </span>
-                )}
-                {role === "invoicing_user" && (
-                  <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                    Accountant
-                  </span>
-                )}
-                {role === "contact" && (
-                  <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                    Portal User
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-text-muted mt-0.5">
-                Double-entry financial ledgers, procurement &amp; customer order dispatch
-              </p>
-            </div>
-          </div>
-
-          {/* Center / Right: Quick Module Tabs & Directory Launcher */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Quick Module Flyout Jump Links */}
-            <nav className="hidden lg:flex items-center space-x-1 rounded-xl bg-surface-muted p-1 text-xs font-medium text-text-muted">
-              <button
-                type="button"
-                onClick={() => setIsMegaMenuOpen((prev) => !prev)}
-                className="flex items-center gap-1 rounded-lg px-3 py-1.5 transition-colors hover:bg-surface hover:text-text"
-              >
-                <span>Sales</span>
-                <ChevronDown className="h-3 w-3 text-text-muted" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsMegaMenuOpen((prev) => !prev)}
-                className="flex items-center gap-1 rounded-lg px-3 py-1.5 transition-colors hover:bg-surface hover:text-text"
-              >
-                <span>Purchase</span>
-                <ChevronDown className="h-3 w-3 text-text-muted" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsMegaMenuOpen((prev) => !prev)}
-                className="flex items-center gap-1 rounded-lg px-3 py-1.5 transition-colors hover:bg-surface hover:text-text"
-              >
-                <span>Account</span>
-                <ChevronDown className="h-3 w-3 text-text-muted" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsMegaMenuOpen((prev) => !prev)}
-                className="flex items-center gap-1 rounded-lg px-3 py-1.5 transition-colors hover:bg-surface hover:text-text"
-              >
-                <span>Reports</span>
-                <ChevronDown className="h-3 w-3 text-text-muted" />
-              </button>
-            </nav>
-
-            {/* Global Search Bar with ⌘K */}
-            <div className="relative w-full sm:w-64">
-              <input
-                id="dashboardGlobalSearch"
-                type="text"
-                value={salesSearchQuery}
-                onChange={(e) => setSalesSearchQuery(e.target.value)}
-                placeholder="Search orders, bills, accounts..."
-                className="w-full rounded-xl border border-border bg-surface-muted py-1.5 pl-8 pr-12 text-xs text-text placeholder-text-muted transition-all focus:border-primary-500 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-              />
-              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-text-muted" />
-              <div className="absolute right-2 top-1.5 hidden items-center gap-0.5 rounded border border-border/80 bg-surface px-1.5 py-0.5 text-[10px] font-medium text-text-muted sm:flex shadow-xs">
-                <span>⌘</span>K
-              </div>
-            </div>
-
-            {/* ERP Directory Mega Menu Button */}
-            <button
-              type="button"
-              id="megaMenuBtn"
-              onClick={() => setIsMegaMenuOpen((prev) => !prev)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-surface text-text-muted transition-colors hover:bg-surface-muted hover:text-primary-600"
-              title="ERP Central Directory (Sketch Model)"
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </button>
-
-            {/* Refresh Live Backend Data */}
-            <button
-              type="button"
-              onClick={() => loadBackendData(true)}
-              disabled={loading}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-surface text-text-muted transition-colors hover:bg-surface-muted hover:text-primary-600 disabled:opacity-50"
-              title="Refresh backend data"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            </button>
-          </div>
-        </div>
-
-        {/* BEGIN: MegaMenuFlyout (4 Columns matching Sketch Model) */}
-        {isMegaMenuOpen && (
-          <div className="absolute right-4 top-20 z-50 w-[840px] max-w-[92vw] rounded-2xl border border-border bg-surface p-6 shadow-2xl transition-all">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-primary-600"></span>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-text">
-                  ERP Central Directory (Sketch Model)
-                </h2>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[11px] text-text-muted">
-                  Press <kbd className="rounded bg-surface-muted px-1.5 py-0.5 text-[10px]">ESC</kbd> to close
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsMegaMenuOpen(false)}
-                  className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 pt-5 sm:grid-cols-2 lg:grid-cols-4">
-              {/* Sales Column */}
-              <div>
-                <h3 className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text">
-                  <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-                  Sales
-                </h3>
-                <ul className="space-y-2 text-xs">
-                  <li>
-                    <a
-                      href="#sales-section"
-                      onClick={() => setIsMegaMenuOpen(false)}
-                      className="flex items-center gap-1.5 text-text-muted transition-all hover:translate-x-1 hover:text-primary-600"
-                    >
-                      <span>Sales order</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#sales-section"
-                      onClick={() => setIsMegaMenuOpen(false)}
-                      className="flex items-center gap-1.5 text-text-muted transition-all hover:translate-x-1 hover:text-primary-600"
-                    >
-                      <span>Sale Invoice</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#sales-section"
-                      onClick={() => setIsMegaMenuOpen(false)}
-                      className="flex items-center gap-1.5 text-text-muted transition-all hover:translate-x-1 hover:text-primary-600"
-                    >
-                      <span>Receipt</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Purchase Column */}
-              <div>
-                <h3 className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-500"></span>
-                  Purchase
-                </h3>
-                <ul className="space-y-2 text-xs">
-                  <li>
-                    <a
-                      href="#purchase-section"
-                      onClick={() => {
-                        setPurchaseActiveTab("po");
-                        setIsMegaMenuOpen(false);
-                      }}
-                      className="flex items-center gap-1.5 text-text-muted transition-all hover:translate-x-1 hover:text-primary-600"
-                    >
-                      <span>Purchase Order</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#purchase-section"
-                      onClick={() => {
-                        setPurchaseActiveTab("bills");
-                        setIsMegaMenuOpen(false);
-                      }}
-                      className="flex items-center gap-1.5 text-text-muted transition-all hover:translate-x-1 hover:text-primary-600"
-                    >
-                      <span>Purchase Bill</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#purchase-section"
-                      onClick={() => setIsMegaMenuOpen(false)}
-                      className="flex items-center gap-1.5 text-text-muted transition-all hover:translate-x-1 hover:text-primary-600"
-                    >
-                      <span>Payment</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Account Column */}
-              <div>
-                <h3 className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                  Account
-                </h3>
-                <ul className="space-y-2 text-xs">
-                  <li>
-                    <button
-                      onClick={() => {
-                        setIsMegaMenuOpen(false);
-                        showToast(`Active Contacts: ${contacts.length} records in backend`);
-                      }}
-                      className="text-left text-text-muted transition-all hover:translate-x-1 hover:text-primary-600"
-                    >
-                      Contact ({contacts.length})
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => {
-                        setIsMegaMenuOpen(false);
-                        showToast(`Active Products: ${products.length} catalog items in backend`);
-                      }}
-                      className="text-left text-text-muted transition-all hover:translate-x-1 hover:text-primary-600"
-                    >
-                      Product ({products.length})
-                    </button>
-                  </li>
-                  <li>
-                    <span className="text-text-muted/70">Analyticals</span>
-                  </li>
-                  <li>
-                    <a
-                      href="#budget-section"
-                      onClick={() => setIsMegaMenuOpen(false)}
-                      className="text-text-muted transition-all hover:translate-x-1 hover:text-primary-600 block"
-                    >
-                      Analytical Budget
-                    </a>
-                  </li>
-                  <li>
-                    <span className="text-text-muted/70">Chart of Account (8)</span>
-                  </li>
-                  <li>
-                    <span className="text-text-muted/70">Journals (4)</span>
-                  </li>
-                  <li>
-                    <span className="text-text-muted/70">Journal Entries</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Report Column */}
-              <div>
-                <h3 className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text">
-                  <span className="h-1.5 w-1.5 rounded-full bg-purple-500"></span>
-                  Report
-                </h3>
-                <ul className="space-y-2 text-xs">
-                  <li>
-                    <a
-                      href="#budget-section"
-                      onClick={() => setIsMegaMenuOpen(false)}
-                      className="text-text-muted transition-all hover:translate-x-1 hover:text-primary-600 block"
-                    >
-                      Balancesheet
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#budget-section"
-                      onClick={() => setIsMegaMenuOpen(false)}
-                      className="text-text-muted transition-all hover:translate-x-1 hover:text-primary-600 block"
-                    >
-                      Profit and Loss
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#budget-section"
-                      onClick={() => setIsMegaMenuOpen(false)}
-                      className="text-text-muted transition-all hover:translate-x-1 hover:text-primary-600 block"
-                    >
-                      Budget Report
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* END: MegaMenuFlyout */}
-      </div>
-      {/* END: Top Header Banner */}
 
       {/* ========================================================================= */}
       {/* SECTION 1: Sales Module Card */}
@@ -620,6 +373,15 @@ export default function AppDashboardPage() {
             >
               <span>View all sales orders</span>
               <span>→</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={loading}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-surface text-text-muted transition-colors hover:bg-surface-muted hover:text-primary-600 disabled:opacity-50"
+              title="Refresh backend data"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
             <button
               type="button"
@@ -2050,14 +1812,31 @@ function CreatePurchaseOrderModal({
             <label className="block font-semibold text-text mb-1">Raw Material / Component</label>
             <select
               value={materialDescription}
-              onChange={(e) => setMaterialDescription(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setMaterialDescription(val);
+                const matched = products.find((p) => p.name === val);
+                if (matched) {
+                  setUnitCost(matched.cost ?? matched.price);
+                }
+              }}
               className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             >
-              <option value="Kiln-Dried Teak Wood Planks">Kiln-Dried Teak Wood Planks (Timber)</option>
-              <option value="Oak Veneer Sheets (Grade A)">Oak Veneer Sheets (Grade A)</option>
-              <option value="Heavy-Duty Ergonomic Casters & Gas Lifts">Heavy-Duty Ergonomic Casters &amp; Gas Lifts</option>
-              <option value="High-Density Polyurethane Foam Cushions">High-Density Polyurethane Foam Cushions</option>
-              <option value="Stainless Steel Assembly Fasteners">Stainless Steel Assembly Fasteners</option>
+              {products.length > 0 ? (
+                products.map((p) => (
+                  <option key={p.id} value={p.name}>
+                    {p.name} {p.category ? `(${p.category})` : ""} - ₹{p.cost ?? p.price}
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value="Kiln-Dried Teak Wood Planks">Kiln-Dried Teak Wood Planks (Timber)</option>
+                  <option value="Oak Veneer Sheets (Grade A)">Oak Veneer Sheets (Grade A)</option>
+                  <option value="Heavy-Duty Ergonomic Casters & Gas Lifts">Heavy-Duty Ergonomic Casters &amp; Gas Lifts</option>
+                  <option value="High-Density Polyurethane Foam Cushions">High-Density Polyurethane Foam Cushions</option>
+                  <option value="Stainless Steel Assembly Fasteners">Stainless Steel Assembly Fasteners</option>
+                </>
+              )}
             </select>
           </div>
 

@@ -805,7 +805,7 @@
       "label": "AppDashboardPage()",
       "file_type": "code",
       "source_file": "frontend/src/app/(app)/page.tsx",
-      "source_location": "L42",
+      "source_location": "L39",
       "id": "app_page_appdashboardpage",
       "community": 2,
       "norm_label": "appdashboardpage()"
@@ -814,7 +814,7 @@
       "label": "CreateSalesOrderModal()",
       "file_type": "code",
       "source_file": "frontend/src/app/(app)/page.tsx",
-      "source_location": "L1775",
+      "source_location": "L1537",
       "id": "app_page_createsalesordermodal",
       "community": 3,
       "norm_label": "createsalesordermodal()"
@@ -823,7 +823,7 @@
       "label": "CreatePurchaseOrderModal()",
       "file_type": "code",
       "source_file": "frontend/src/app/(app)/page.tsx",
-      "source_location": "L1954",
+      "source_location": "L1716",
       "id": "app_page_createpurchaseordermodal",
       "community": 3,
       "norm_label": "createpurchaseordermodal()"
@@ -834,7 +834,7 @@
       "source_file": "frontend/src/app/(app)/admin/users/page.tsx",
       "source_location": "L1",
       "id": "frontend_src_app_app_admin_users_page_tsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "page.tsx"
     },
     {
@@ -843,7 +843,7 @@
       "source_file": "frontend/src/app/(app)/admin/users/page.tsx",
       "source_location": "L11",
       "id": "users_page_adminuserspage",
-      "community": 1,
+      "community": 2,
       "norm_label": "adminuserspage()"
     },
     {
@@ -1774,28 +1774,37 @@
       "norm_label": "site-header.tsx"
     },
     {
-      "label": "NavItem",
+      "label": "SubNavItem",
       "file_type": "code",
       "source_file": "frontend/src/components/site-header.tsx",
-      "source_location": "L28",
-      "id": "components_site_header_navitem",
+      "source_location": "L32",
+      "id": "components_site_header_subnavitem",
       "community": 2,
-      "norm_label": "navitem"
+      "norm_label": "subnavitem"
     },
     {
-      "label": "TOP_NAV_ITEMS",
+      "label": "NavCategory",
       "file_type": "code",
       "source_file": "frontend/src/components/site-header.tsx",
-      "source_location": "L35",
-      "id": "components_site_header_top_nav_items",
+      "source_location": "L40",
+      "id": "components_site_header_navcategory",
       "community": 2,
-      "norm_label": "top_nav_items"
+      "norm_label": "navcategory"
+    },
+    {
+      "label": "NAV_CATEGORIES",
+      "file_type": "code",
+      "source_file": "frontend/src/components/site-header.tsx",
+      "source_location": "L47",
+      "id": "components_site_header_nav_categories",
+      "community": 2,
+      "norm_label": "nav_categories"
     },
     {
       "label": "SiteHeader()",
       "file_type": "code",
       "source_file": "frontend/src/components/site-header.tsx",
-      "source_location": "L45",
+      "source_location": "L93",
       "id": "components_site_header_siteheader",
       "community": 2,
       "norm_label": "siteheader()"
@@ -2211,7 +2220,7 @@
       "source_file": "frontend/src/lib/utils.ts",
       "source_location": "L1",
       "id": "frontend_src_lib_utils_ts",
-      "community": 2,
+      "community": 1,
       "norm_label": "utils.ts"
     },
     {
@@ -2535,7 +2544,7 @@
       "source_file": "backend/app/main.py",
       "source_location": "L37",
       "id": "fastapi",
-      "community": 0,
+      "community": 27,
       "norm_label": "fastapi"
     },
     {
@@ -2598,7 +2607,7 @@
       "source_file": "backend/app/routers/auth.py",
       "source_location": "L1",
       "id": "backend_app_routers_auth_py",
-      "community": 0,
+      "community": 87,
       "norm_label": "auth.py"
     },
     {
@@ -2607,7 +2616,7 @@
       "source_file": "backend/app/routers/auth.py",
       "source_location": "L17",
       "id": "routers_auth_register",
-      "community": 0,
+      "community": 87,
       "norm_label": "register()"
     },
     {
@@ -2634,7 +2643,7 @@
       "source_file": "backend/app/routers/auth.py",
       "source_location": "L27",
       "id": "routers_auth_login",
-      "community": 0,
+      "community": 87,
       "norm_label": "login()"
     },
     {
@@ -2652,7 +2661,7 @@
       "source_file": "backend/app/routers/auth.py",
       "source_location": "L37",
       "id": "routers_auth_get_me",
-      "community": 0,
+      "community": 87,
       "norm_label": "get_me()"
     },
     {
@@ -2665,12 +2674,21 @@
       "norm_label": "user"
     },
     {
+      "label": "logout()",
+      "file_type": "code",
+      "source_file": "backend/app/routers/auth.py",
+      "source_location": "L45",
+      "id": "routers_auth_logout",
+      "community": 87,
+      "norm_label": "logout()"
+    },
+    {
       "label": "Authentication API endpoints.",
       "file_type": "rationale",
       "source_file": "backend/app/routers/auth.py",
       "source_location": "L1",
       "id": "routers_auth_rationale_1",
-      "community": 0,
+      "community": 87,
       "norm_label": "authentication api endpoints."
     },
     {
@@ -2679,7 +2697,7 @@
       "source_file": "backend/app/routers/auth.py",
       "source_location": "L18",
       "id": "routers_auth_rationale_18",
-      "community": 0,
+      "community": 87,
       "norm_label": "create a new user account.          returns user details and a jwt token upon su"
     },
     {
@@ -2688,7 +2706,7 @@
       "source_file": "backend/app/routers/auth.py",
       "source_location": "L28",
       "id": "routers_auth_rationale_28",
-      "community": 0,
+      "community": 87,
       "norm_label": "authenticate user credentials.          returns user details and a jwt token upo"
     },
     {
@@ -2697,8 +2715,17 @@
       "source_file": "backend/app/routers/auth.py",
       "source_location": "L38",
       "id": "routers_auth_rationale_38",
-      "community": 0,
+      "community": 87,
       "norm_label": "get current logged in user profile."
+    },
+    {
+      "label": "Log out the current authenticated user and invalidate session.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routers/auth.py",
+      "source_location": "L46",
+      "id": "routers_auth_rationale_46",
+      "community": 87,
+      "norm_label": "log out the current authenticated user and invalidate session."
     },
     {
       "label": "contacts.py",
@@ -3246,7 +3273,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L1",
       "id": "backend_app_core_deps_py",
-      "community": 0,
+      "community": 86,
       "norm_label": "deps.py"
     },
     {
@@ -3255,7 +3282,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L21",
       "id": "core_deps_get_db",
-      "community": 0,
+      "community": 86,
       "norm_label": "get_db()"
     },
     {
@@ -3264,7 +3291,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L21",
       "id": "backend_app_core_deps_py_session",
-      "community": 0,
+      "community": 86,
       "norm_label": "session"
     },
     {
@@ -3273,7 +3300,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L33",
       "id": "core_deps_get_current_user",
-      "community": 0,
+      "community": 86,
       "norm_label": "get_current_user()"
     },
     {
@@ -3282,7 +3309,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L33",
       "id": "httpauthorizationcredentials",
-      "community": 0,
+      "community": 86,
       "norm_label": "httpauthorizationcredentials"
     },
     {
@@ -3291,7 +3318,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L33",
       "id": "backend_app_core_deps_py_user",
-      "community": 0,
+      "community": 86,
       "norm_label": "user"
     },
     {
@@ -3300,7 +3327,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L61",
       "id": "core_deps_require_roles",
-      "community": 0,
+      "community": 86,
       "norm_label": "require_roles()"
     },
     {
@@ -3309,7 +3336,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L61",
       "id": "backend_app_core_deps_py_str",
-      "community": 0,
+      "community": 86,
       "norm_label": "str"
     },
     {
@@ -3318,7 +3345,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L1",
       "id": "core_deps_rationale_1",
-      "community": 0,
+      "community": 86,
       "norm_label": "dependency injection utilities for fastapi routes."
     },
     {
@@ -3327,7 +3354,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L22",
       "id": "core_deps_rationale_22",
-      "community": 0,
+      "community": 86,
       "norm_label": "dependency that yields a sqlalchemy database session per request,     ensuring i"
     },
     {
@@ -3336,7 +3363,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L37",
       "id": "core_deps_rationale_37",
-      "community": 0,
+      "community": 86,
       "norm_label": "dependency that validates the jwt bearer token and retrieves the current user en"
     },
     {
@@ -3345,7 +3372,7 @@
       "source_file": "backend/app/core/deps.py",
       "source_location": "L62",
       "id": "core_deps_rationale_62",
-      "community": 0,
+      "community": 86,
       "norm_label": "role-based access control (rbac) dependency factory.     usage: depends(require_"
     },
     {
@@ -3453,7 +3480,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L1",
       "id": "backend_app_core_security_py",
-      "community": 0,
+      "community": 85,
       "norm_label": "security.py"
     },
     {
@@ -3462,7 +3489,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L15",
       "id": "core_security_hash_password",
-      "community": 0,
+      "community": 85,
       "norm_label": "hash_password()"
     },
     {
@@ -3471,7 +3498,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L15",
       "id": "backend_app_core_security_py_str",
-      "community": 0,
+      "community": 85,
       "norm_label": "str"
     },
     {
@@ -3480,7 +3507,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L20",
       "id": "core_security_verify_password",
-      "community": 0,
+      "community": 85,
       "norm_label": "verify_password()"
     },
     {
@@ -3489,7 +3516,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L20",
       "id": "backend_app_core_security_py_bool",
-      "community": 0,
+      "community": 85,
       "norm_label": "bool"
     },
     {
@@ -3498,7 +3525,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L25",
       "id": "core_security_create_access_token",
-      "community": 0,
+      "community": 85,
       "norm_label": "create_access_token()"
     },
     {
@@ -3507,7 +3534,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L25",
       "id": "any",
-      "community": 0,
+      "community": 85,
       "norm_label": "any"
     },
     {
@@ -3516,7 +3543,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L25",
       "id": "timedelta",
-      "community": 0,
+      "community": 85,
       "norm_label": "timedelta"
     },
     {
@@ -3525,7 +3552,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L45",
       "id": "core_security_decode_access_token",
-      "community": 0,
+      "community": 85,
       "norm_label": "decode_access_token()"
     },
     {
@@ -3534,7 +3561,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L1",
       "id": "core_security_rationale_1",
-      "community": 0,
+      "community": 85,
       "norm_label": "security utilities for password hashing and jwt token management."
     },
     {
@@ -3543,7 +3570,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L16",
       "id": "core_security_rationale_16",
-      "community": 0,
+      "community": 85,
       "norm_label": "hash a plain text password using bcrypt."
     },
     {
@@ -3552,7 +3579,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L21",
       "id": "core_security_rationale_21",
-      "community": 0,
+      "community": 85,
       "norm_label": "verify a plain text password against a stored hash."
     },
     {
@@ -3561,7 +3588,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L26",
       "id": "core_security_rationale_26",
-      "community": 0,
+      "community": 85,
       "norm_label": "create a signed jwt access token.          data dictionary should contain at lea"
     },
     {
@@ -3570,7 +3597,7 @@
       "source_file": "backend/app/core/security.py",
       "source_location": "L46",
       "id": "core_security_rationale_46",
-      "community": 0,
+      "community": 85,
       "norm_label": "decode and validate a jwt access token.          raises jwterror if invalid or e"
     },
     {
@@ -3588,7 +3615,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L1",
       "id": "backend_app_core_exceptions_py",
-      "community": 0,
+      "community": 84,
       "norm_label": "exceptions.py"
     },
     {
@@ -3597,7 +3624,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L21",
       "id": "core_exceptions_appexception",
-      "community": 0,
+      "community": 84,
       "norm_label": "appexception"
     },
     {
@@ -3606,7 +3633,7 @@
       "source_file": "",
       "source_location": "",
       "id": "exception",
-      "community": 0,
+      "community": 84,
       "norm_label": "exception"
     },
     {
@@ -3615,7 +3642,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L24",
       "id": "core_exceptions_appexception_init",
-      "community": 0,
+      "community": 84,
       "norm_label": ".__init__()"
     },
     {
@@ -3624,7 +3651,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L24",
       "id": "backend_app_core_exceptions_py_int",
-      "community": 0,
+      "community": 84,
       "norm_label": "int"
     },
     {
@@ -3633,7 +3660,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L24",
       "id": "backend_app_core_exceptions_py_str",
-      "community": 0,
+      "community": 88,
       "norm_label": "str"
     },
     {
@@ -3651,7 +3678,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L40",
       "id": "core_exceptions_notfoundexception_init",
-      "community": 0,
+      "community": 88,
       "norm_label": ".__init__()"
     },
     {
@@ -3669,7 +3696,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L49",
       "id": "core_exceptions_conflictexception_init",
-      "community": 0,
+      "community": 88,
       "norm_label": ".__init__()"
     },
     {
@@ -3687,7 +3714,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L54",
       "id": "core_exceptions_validationexception_init",
-      "community": 0,
+      "community": 88,
       "norm_label": ".__init__()"
     },
     {
@@ -3696,7 +3723,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L63",
       "id": "core_exceptions_unauthorizedexception",
-      "community": 0,
+      "community": 86,
       "norm_label": "unauthorizedexception"
     },
     {
@@ -3705,7 +3732,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L64",
       "id": "core_exceptions_unauthorizedexception_init",
-      "community": 0,
+      "community": 88,
       "norm_label": ".__init__()"
     },
     {
@@ -3714,7 +3741,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L68",
       "id": "core_exceptions_forbiddenexception",
-      "community": 0,
+      "community": 86,
       "norm_label": "forbiddenexception"
     },
     {
@@ -3723,7 +3750,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L69",
       "id": "core_exceptions_forbiddenexception_init",
-      "community": 0,
+      "community": 88,
       "norm_label": ".__init__()"
     },
     {
@@ -3732,7 +3759,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L75",
       "id": "core_exceptions_build_error_response",
-      "community": 0,
+      "community": 84,
       "norm_label": "_build_error_response()"
     },
     {
@@ -3741,7 +3768,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L75",
       "id": "jsonresponse",
-      "community": 0,
+      "community": 84,
       "norm_label": "jsonresponse"
     },
     {
@@ -3750,7 +3777,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L89",
       "id": "core_exceptions_app_exception_handler",
-      "community": 0,
+      "community": 84,
       "norm_label": "app_exception_handler()"
     },
     {
@@ -3759,7 +3786,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L89",
       "id": "request",
-      "community": 0,
+      "community": 84,
       "norm_label": "request"
     },
     {
@@ -3768,7 +3795,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L94",
       "id": "core_exceptions_validation_exception_handler",
-      "community": 0,
+      "community": 84,
       "norm_label": "validation_exception_handler()"
     },
     {
@@ -3777,7 +3804,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L94",
       "id": "requestvalidationerror",
-      "community": 0,
+      "community": 84,
       "norm_label": "requestvalidationerror"
     },
     {
@@ -3786,7 +3813,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L115",
       "id": "core_exceptions_generic_exception_handler",
-      "community": 0,
+      "community": 84,
       "norm_label": "generic_exception_handler()"
     },
     {
@@ -3795,7 +3822,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L1",
       "id": "core_exceptions_rationale_1",
-      "community": 0,
+      "community": 84,
       "norm_label": "custom exceptions and global error handlers.  all api errors follow the standard"
     },
     {
@@ -3804,7 +3831,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L22",
       "id": "core_exceptions_rationale_22",
-      "community": 0,
+      "community": 84,
       "norm_label": "base exception for all application-level errors."
     },
     {
@@ -3813,7 +3840,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L76",
       "id": "core_exceptions_rationale_76",
-      "community": 0,
+      "community": 84,
       "norm_label": "build a standard error envelope response."
     },
     {
@@ -3822,7 +3849,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L90",
       "id": "core_exceptions_rationale_90",
-      "community": 0,
+      "community": 84,
       "norm_label": "handle all custom appexception subclasses."
     },
     {
@@ -3831,7 +3858,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L95",
       "id": "core_exceptions_rationale_95",
-      "community": 0,
+      "community": 84,
       "norm_label": "handle pydantic/fastapi validation errors.          transforms fastapi's default"
     },
     {
@@ -3840,7 +3867,7 @@
       "source_file": "backend/app/core/exceptions.py",
       "source_location": "L116",
       "id": "core_exceptions_rationale_116",
-      "community": 0,
+      "community": 84,
       "norm_label": "catch-all for unhandled exceptions.          returns a generic 500 error with a"
     },
     {
@@ -5203,13 +5230,13 @@
       "norm_label": "setup_db()"
     },
     {
-      "label": "test_public_registration_creates_contact_role_only()",
+      "label": "test_public_registration_creates_accountant_role_only()",
       "file_type": "code",
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L21",
-      "id": "tests_test_auth_test_public_registration_creates_contact_role_only",
+      "id": "tests_test_auth_test_public_registration_creates_accountant_role_only",
       "community": 42,
-      "norm_label": "test_public_registration_creates_contact_role_only()"
+      "norm_label": "test_public_registration_creates_accountant_role_only()"
     },
     {
       "label": "test_create_user_endpoint_strictly_restricted_to_admin()",
@@ -5248,13 +5275,13 @@
       "norm_label": "ensure database tables exist before running tests."
     },
     {
-      "label": "Public registration should not accept admin roles and strictly assign contact (u",
+      "label": "Public registration should not accept admin roles and strictly assign invoicing_",
       "file_type": "rationale",
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L22",
       "id": "tests_test_auth_rationale_22",
       "community": 42,
-      "norm_label": "public registration should not accept admin roles and strictly assign contact (u"
+      "norm_label": "public registration should not accept admin roles and strictly assign invoicing_"
     },
     {
       "label": "POST /api/v1/users must only be accessible to users with the 'admin' role.     -",
@@ -6364,10 +6391,19 @@
       "norm_label": "done \u2014 completed (newest first within each group)"
     },
     {
-      "label": "Backend",
+      "label": "Integration",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
       "source_location": "L42",
+      "id": "docs_task_board_integration",
+      "community": 5,
+      "norm_label": "integration"
+    },
+    {
+      "label": "Backend",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L46",
       "id": "docs_task_board_backend",
       "community": 5,
       "norm_label": "backend"
@@ -6376,7 +6412,7 @@
       "label": "Frontend",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L49",
+      "source_location": "L54",
       "id": "docs_task_board_frontend",
       "community": 5,
       "norm_label": "frontend"
@@ -6385,7 +6421,7 @@
       "label": "Team",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L55",
+      "source_location": "L61",
       "id": "docs_task_board_team",
       "community": 5,
       "norm_label": "team"
@@ -6394,7 +6430,7 @@
       "label": "NOW \u2014 maximum two rows (one per owner)",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L64",
+      "source_location": "L70",
       "id": "docs_task_board_now_maximum_two_rows_one_per_owner",
       "community": 5,
       "norm_label": "now \u2014 maximum two rows (one per owner)"
@@ -6403,8 +6439,8 @@
       "label": "Backend",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L66",
-      "id": "docs_task_board_backend_66",
+      "source_location": "L72",
+      "id": "docs_task_board_backend_72",
       "community": 5,
       "norm_label": "backend"
     },
@@ -6412,8 +6448,8 @@
       "label": "Frontend",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L71",
-      "id": "docs_task_board_frontend_71",
+      "source_location": "L76",
+      "id": "docs_task_board_frontend_76",
       "community": 5,
       "norm_label": "frontend"
     },
@@ -6421,25 +6457,34 @@
       "label": "NEXT \u2014 queued in priority order",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L77",
+      "source_location": "L82",
       "id": "docs_task_board_next_queued_in_priority_order",
       "community": 5,
       "norm_label": "next \u2014 queued in priority order"
     },
     {
-      "label": "Integration",
+      "label": "Backend",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L79",
-      "id": "docs_task_board_integration",
+      "source_location": "L84",
+      "id": "docs_task_board_backend_84",
       "community": 5,
-      "norm_label": "integration"
+      "norm_label": "backend"
+    },
+    {
+      "label": "Frontend",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L88",
+      "id": "docs_task_board_frontend_88",
+      "community": 5,
+      "norm_label": "frontend"
     },
     {
       "label": "BACKLOG \u2014 P0 Golden Path (Target: 7:00 PM Gate)",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L85",
+      "source_location": "L94",
       "id": "docs_task_board_backlog_p0_golden_path_target_7_00_pm_gate",
       "community": 5,
       "norm_label": "backlog \u2014 p0 golden path (target: 7:00 pm gate)"
@@ -6448,8 +6493,8 @@
       "label": "Backend",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L87",
-      "id": "docs_task_board_backend_87",
+      "source_location": "L96",
+      "id": "docs_task_board_backend_96",
       "community": 5,
       "norm_label": "backend"
     },
@@ -6457,8 +6502,8 @@
       "label": "Frontend",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L101",
-      "id": "docs_task_board_frontend_101",
+      "source_location": "L110",
+      "id": "docs_task_board_frontend_110",
       "community": 5,
       "norm_label": "frontend"
     },
@@ -6466,8 +6511,8 @@
       "label": "Integration",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L116",
-      "id": "docs_task_board_integration_116",
+      "source_location": "L125",
+      "id": "docs_task_board_integration_125",
       "community": 5,
       "norm_label": "integration"
     },
@@ -6475,7 +6520,7 @@
       "label": "BACKLOG \u2014 P1 (7:00\u201310:00 PM)",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L124",
+      "source_location": "L133",
       "id": "docs_task_board_backlog_p1_7_00_10_00_pm",
       "community": 5,
       "norm_label": "backlog \u2014 p1 (7:00\u201310:00 pm)"
@@ -6484,8 +6529,8 @@
       "label": "Backend",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L126",
-      "id": "docs_task_board_backend_126",
+      "source_location": "L135",
+      "id": "docs_task_board_backend_135",
       "community": 5,
       "norm_label": "backend"
     },
@@ -6493,8 +6538,8 @@
       "label": "Frontend",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L131",
-      "id": "docs_task_board_frontend_131",
+      "source_location": "L140",
+      "id": "docs_task_board_frontend_140",
       "community": 5,
       "norm_label": "frontend"
     },
@@ -6502,8 +6547,8 @@
       "label": "Integration",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L136",
-      "id": "docs_task_board_integration_136",
+      "source_location": "L145",
+      "id": "docs_task_board_integration_145",
       "community": 5,
       "norm_label": "integration"
     },
@@ -6511,7 +6556,7 @@
       "label": "BACKLOG \u2014 Optional Bonus (Post-Midnight)",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L143",
+      "source_location": "L152",
       "id": "docs_task_board_backlog_optional_bonus_post_midnight",
       "community": 5,
       "norm_label": "backlog \u2014 optional bonus (post-midnight)"
@@ -6520,8 +6565,8 @@
       "label": "Backend",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L145",
-      "id": "docs_task_board_backend_145",
+      "source_location": "L154",
+      "id": "docs_task_board_backend_154",
       "community": 5,
       "norm_label": "backend"
     },
@@ -6529,8 +6574,8 @@
       "label": "Frontend",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L149",
-      "id": "docs_task_board_frontend_149",
+      "source_location": "L158",
+      "id": "docs_task_board_frontend_158",
       "community": 5,
       "norm_label": "frontend"
     },
@@ -6538,8 +6583,8 @@
       "label": "Integration",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L153",
-      "id": "docs_task_board_integration_153",
+      "source_location": "L162",
+      "id": "docs_task_board_integration_162",
       "community": 5,
       "norm_label": "integration"
     },
@@ -6547,7 +6592,7 @@
       "label": "IN REVIEW / INTEGRATION",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L159",
+      "source_location": "L168",
       "id": "docs_task_board_in_review_integration",
       "community": 5,
       "norm_label": "in review / integration"
@@ -6556,7 +6601,7 @@
       "label": "BLOCKED",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L167",
+      "source_location": "L176",
       "id": "docs_task_board_blocked",
       "community": 5,
       "norm_label": "blocked"
@@ -6565,7 +6610,7 @@
       "label": "Hourly Two-Minute Sync",
       "file_type": "document",
       "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L175",
+      "source_location": "L184",
       "id": "docs_task_board_hourly_two_minute_sync",
       "community": 5,
       "norm_label": "hourly two-minute sync"
@@ -6945,7 +6990,7 @@
       "source_file": "docs/API_CONTRACT.md",
       "source_location": "L832",
       "id": "docs_api_contract_7_journal_entries",
-      "community": 39,
+      "community": 63,
       "norm_label": "7. journal entries"
     },
     {
@@ -6954,7 +6999,7 @@
       "source_file": "docs/API_CONTRACT.md",
       "source_location": "L836",
       "id": "docs_api_contract_get_api_v1_journal_entries",
-      "community": 39,
+      "community": 63,
       "norm_label": "`get /api/v1/journal-entries`"
     },
     {
@@ -6963,7 +7008,7 @@
       "source_file": "docs/API_CONTRACT.md",
       "source_location": "L861",
       "id": "docs_api_contract_post_api_v1_journal_entries",
-      "community": 39,
+      "community": 63,
       "norm_label": "`post /api/v1/journal-entries`"
     },
     {
@@ -7008,7 +7053,7 @@
       "source_file": "docs/API_CONTRACT.md",
       "source_location": "L938",
       "id": "docs_api_contract_9_budgets_customer_portal",
-      "community": 63,
+      "community": 39,
       "norm_label": "9. budgets & customer portal"
     },
     {
@@ -7017,7 +7062,7 @@
       "source_file": "docs/API_CONTRACT.md",
       "source_location": "L940",
       "id": "docs_api_contract_post_api_v1_budgets",
-      "community": 63,
+      "community": 39,
       "norm_label": "`post /api/v1/budgets`"
     },
     {
@@ -7026,7 +7071,7 @@
       "source_file": "docs/API_CONTRACT.md",
       "source_location": "L944",
       "id": "docs_api_contract_get_api_v1_portal_invoices",
-      "community": 63,
+      "community": 39,
       "norm_label": "`get /api/v1/portal/invoices`"
     },
     {
@@ -8540,6 +8585,132 @@
       "id": "specs_2026_09_05_auth_pages_design_11_future_seams",
       "community": 19,
       "norm_label": "11. future seams"
+    },
+    {
+      "label": "NavItem",
+      "file_type": "code",
+      "source_file": "frontend/src/components/site-header.tsx",
+      "source_location": "L28",
+      "community": 2,
+      "norm_label": "navitem",
+      "id": "components_site_header_navitem"
+    },
+    {
+      "label": "TOP_NAV_ITEMS",
+      "file_type": "code",
+      "source_file": "frontend/src/components/site-header.tsx",
+      "source_location": "L35",
+      "community": 2,
+      "norm_label": "top_nav_items",
+      "id": "components_site_header_top_nav_items"
+    },
+    {
+      "label": "test_public_registration_creates_contact_role_only()",
+      "file_type": "code",
+      "source_file": "backend/tests/test_auth.py",
+      "source_location": "L21",
+      "community": 42,
+      "norm_label": "test_public_registration_creates_contact_role_only()",
+      "id": "tests_test_auth_test_public_registration_creates_contact_role_only"
+    },
+    {
+      "label": "Backend",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L66",
+      "community": 5,
+      "norm_label": "backend",
+      "id": "docs_task_board_backend_66"
+    },
+    {
+      "label": "Frontend",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L71",
+      "community": 5,
+      "norm_label": "frontend",
+      "id": "docs_task_board_frontend_71"
+    },
+    {
+      "label": "Backend",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L87",
+      "community": 5,
+      "norm_label": "backend",
+      "id": "docs_task_board_backend_87"
+    },
+    {
+      "label": "Frontend",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L101",
+      "community": 5,
+      "norm_label": "frontend",
+      "id": "docs_task_board_frontend_101"
+    },
+    {
+      "label": "Integration",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L116",
+      "community": 5,
+      "norm_label": "integration",
+      "id": "docs_task_board_integration_116"
+    },
+    {
+      "label": "Backend",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L126",
+      "community": 5,
+      "norm_label": "backend",
+      "id": "docs_task_board_backend_126"
+    },
+    {
+      "label": "Frontend",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L131",
+      "community": 5,
+      "norm_label": "frontend",
+      "id": "docs_task_board_frontend_131"
+    },
+    {
+      "label": "Integration",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L136",
+      "community": 5,
+      "norm_label": "integration",
+      "id": "docs_task_board_integration_136"
+    },
+    {
+      "label": "Backend",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L145",
+      "community": 5,
+      "norm_label": "backend",
+      "id": "docs_task_board_backend_145"
+    },
+    {
+      "label": "Frontend",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L149",
+      "community": 5,
+      "norm_label": "frontend",
+      "id": "docs_task_board_frontend_149"
+    },
+    {
+      "label": "Integration",
+      "file_type": "document",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L153",
+      "community": 5,
+      "norm_label": "integration",
+      "id": "docs_task_board_integration_153"
     },
     {
       "label": "test_auth_register_and_login_with_login_id()",
@@ -12367,6 +12538,26 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/components/site-header.tsx",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "frontend_src_components_site_header_tsx",
+      "target": "components_site_header_nav_categories",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/components/site-header.tsx",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "frontend_src_components_site_header_tsx",
+      "target": "components_site_header_navcategory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/components/site-header.tsx",
       "source_location": "L28",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -12382,6 +12573,16 @@
       "confidence_score": 1.0,
       "source": "frontend_src_components_site_header_tsx",
       "target": "components_site_header_siteheader"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/components/site-header.tsx",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "frontend_src_components_site_header_tsx",
+      "target": "components_site_header_subnavitem",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -13457,6 +13658,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/routers/auth.py",
+      "source_location": "L45",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "backend_app_routers_auth_py",
+      "target": "routers_auth_logout"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/app/routers/auth.py",
       "source_location": "L17",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -13787,6 +13998,27 @@
       "confidence_score": 0.5,
       "source": "backend_app_routers_auth_py_user",
       "target": "models_user_user"
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/app/routers/auth.py",
+      "source_location": "L45",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routers_auth_logout",
+      "target": "backend_app_routers_auth_py_user"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/app/routers/auth.py",
+      "source_location": "L46",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routers_auth_rationale_46",
+      "target": "routers_auth_logout"
     },
     {
       "relation": "contains",
@@ -18810,6 +19042,16 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "backend_tests_test_auth_py",
+      "target": "tests_test_auth_test_public_registration_creates_accountant_role_only"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_auth.py",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "backend_tests_test_auth_py",
       "target": "tests_test_auth_test_public_registration_creates_contact_role_only"
     },
     {
@@ -18850,7 +19092,7 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "tests_test_auth_rationale_22",
-      "target": "tests_test_auth_test_public_registration_creates_contact_role_only"
+      "target": "tests_test_auth_test_public_registration_creates_accountant_role_only"
     },
     {
       "relation": "rationale_for",
@@ -18871,6 +19113,16 @@
       "confidence_score": 1.0,
       "source": "tests_test_auth_rationale_223",
       "target": "tests_test_auth_test_auth_login_and_validations"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_auth.py",
+      "source_location": "L22",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "tests_test_auth_rationale_22",
+      "target": "tests_test_auth_test_public_registration_creates_contact_role_only"
     },
     {
       "relation": "contains",
@@ -20076,31 +20328,21 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L42",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_done_completed_newest_first_within_each_group",
+      "target": "docs_task_board_integration"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
       "source_location": "L55",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "docs_task_board_done_completed_newest_first_within_each_group",
       "target": "docs_task_board_team"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L66",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_task_board_now_maximum_two_rows_one_per_owner",
-      "target": "docs_task_board_backend_66"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/TASK_BOARD.md",
-      "source_location": "L71",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_task_board_now_maximum_two_rows_one_per_owner",
-      "target": "docs_task_board_frontend_71"
     },
     {
       "relation": "contains",
@@ -20116,11 +20358,81 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L66",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_now_maximum_two_rows_one_per_owner",
+      "target": "docs_task_board_backend_66"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L72",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_now_maximum_two_rows_one_per_owner",
+      "target": "docs_task_board_backend_72"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L71",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_now_maximum_two_rows_one_per_owner",
+      "target": "docs_task_board_frontend_71"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L76",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_now_maximum_two_rows_one_per_owner",
+      "target": "docs_task_board_frontend_76"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L84",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_next_queued_in_priority_order",
+      "target": "docs_task_board_backend_84"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L88",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_next_queued_in_priority_order",
+      "target": "docs_task_board_frontend_88"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
       "source_location": "L87",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "docs_task_board_backlog_p0_golden_path_target_7_00_pm_gate",
       "target": "docs_task_board_backend_87"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L96",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_backlog_p0_golden_path_target_7_00_pm_gate",
+      "target": "docs_task_board_backend_96"
     },
     {
       "relation": "contains",
@@ -20136,11 +20448,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L110",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_backlog_p0_golden_path_target_7_00_pm_gate",
+      "target": "docs_task_board_frontend_110"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
       "source_location": "L116",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "docs_task_board_backlog_p0_golden_path_target_7_00_pm_gate",
       "target": "docs_task_board_integration_116"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_backlog_p0_golden_path_target_7_00_pm_gate",
+      "target": "docs_task_board_integration_125"
     },
     {
       "relation": "contains",
@@ -20156,11 +20488,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L135",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_backlog_p1_7_00_10_00_pm",
+      "target": "docs_task_board_backend_135"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
       "source_location": "L131",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "docs_task_board_backlog_p1_7_00_10_00_pm",
       "target": "docs_task_board_frontend_131"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L140",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_backlog_p1_7_00_10_00_pm",
+      "target": "docs_task_board_frontend_140"
     },
     {
       "relation": "contains",
@@ -20179,8 +20531,28 @@
       "source_location": "L145",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "source": "docs_task_board_backlog_p1_7_00_10_00_pm",
+      "target": "docs_task_board_integration_145"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L145",
+      "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_task_board_backlog_optional_bonus_post_midnight",
       "target": "docs_task_board_backend_145"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L154",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_backlog_optional_bonus_post_midnight",
+      "target": "docs_task_board_backend_154"
     },
     {
       "relation": "contains",
@@ -20196,11 +20568,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L158",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_backlog_optional_bonus_post_midnight",
+      "target": "docs_task_board_frontend_158"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
       "source_location": "L153",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "docs_task_board_backlog_optional_bonus_post_midnight",
       "target": "docs_task_board_integration_153"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/TASK_BOARD.md",
+      "source_location": "L162",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_task_board_backlog_optional_bonus_post_midnight",
+      "target": "docs_task_board_integration_162"
     },
     {
       "relation": "contains",
@@ -22344,5 +22736,5 @@
       "source_file": "SPECIFICATION.md"
     }
   ],
-  "built_at_commit": "d1110b8ae058dca56c67324a50a220d360e3f7ca"
+  "built_at_commit": "cf0fd8be35748f0a9ad20d4a210722dccab20bcf"
 }

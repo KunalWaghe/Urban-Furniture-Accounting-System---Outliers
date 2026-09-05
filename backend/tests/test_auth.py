@@ -18,8 +18,8 @@ def setup_db():
     yield
 
 
-def test_public_registration_creates_contact_role_only():
-    """Public registration should not accept admin roles and strictly assign contact (user) role."""
+def test_public_registration_creates_accountant_role_only():
+    """Public registration should not accept admin roles and strictly assign invoicing_user (accountant) role."""
     with TestClient(app) as client:
         unique_suffix = uuid.uuid4().hex[:4]
         test_login_id = f"user_{unique_suffix}"
@@ -27,7 +27,7 @@ def test_public_registration_creates_contact_role_only():
         test_password = "SecureP@ssword123!"
         test_name = "Regular Portal User"
 
-        # 1. Public signup without role specified -> defaults to contact (user)
+        # 1. Public signup without role specified -> defaults to invoicing_user (Accountant)
         reg_payload = {
             "login_id": test_login_id,
             "email": test_email,
@@ -40,7 +40,7 @@ def test_public_registration_creates_contact_role_only():
         assert data["login_id"] == test_login_id
         assert data["email"] == test_email
         assert data["name"] == test_name
-        assert data["role"] == "contact"
+        assert data["role"] == "invoicing_user"
         assert "token" in data
 
         # 2. Attempt to register directly with admin role -> rejected
@@ -259,7 +259,7 @@ def test_auth_login_and_validations():
         # Check /me endpoint
         me_res = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert me_res.status_code == 200
-        assert me_res.json()["role"] == "contact"
+        assert me_res.json()["role"] == "invoicing_user"
 
         # Invalid Login ID (< 6 chars)
         short_res = client.post(
