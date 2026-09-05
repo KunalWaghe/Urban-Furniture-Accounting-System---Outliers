@@ -80,3 +80,14 @@ def get_invoice_payments(
 ):
     """Retrieve all payment records logged against a specific customer invoice."""
     return payment_service.get_payments_for_invoice(db, invoice_id)
+
+
+# Cancels an open customer invoice that has no existing payments
+@router.patch("/{invoice_id}/cancel", response_model=CustomerInvoiceResponse, status_code=status.HTTP_200_OK)
+def cancel_customer_invoice(
+    invoice_id: int,
+    db: Session = Depends(get_db),
+):
+    """Cancel an open Customer Invoice. Blocked if any payments have been received."""
+    return customer_invoice_service.cancel_customer_invoice(db, invoice_id)
+

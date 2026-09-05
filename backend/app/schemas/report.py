@@ -49,3 +49,28 @@ class BalanceSheetReport(BaseModel):
     capital: ReportSection = Field(..., description="Owner capital and retained earnings section")
     is_balanced: bool = Field(..., description="Audit flag indicating whether Assets == Liabilities + Capital")
     total_liabilities_and_capital: float = Field(..., description="Combined sum of Liabilities and Capital")
+
+
+# Budget Report item for GET /reports/budget
+class BudgetReportItem(BaseModel):
+    """Individual budget performance entry with live variance metrics."""
+    id: int = Field(..., description="Budget primary key ID")
+    name: str = Field(..., description="Budget title")
+    analytic_account_name: Optional[str] = Field(None, description="Linked cost/revenue centre name")
+    period_start: str = Field(..., description="Budget period start date")
+    period_end: str = Field(..., description="Budget period end date")
+    status: str = Field(..., description="Budget lifecycle status (draft, confirmed, revised, cancelled)")
+    committed_amount: float = Field(..., description="Total committed budget allocation")
+    achieved_amount: float = Field(0.0, description="Actual amount achieved from ledger postings")
+    achieved_pct: float = Field(0.0, description="Percentage of committed amount achieved")
+    amount_to_achieve: float = Field(0.0, description="Remaining headroom to reach committed target")
+
+
+# Aggregated budget report response
+class BudgetReportResponse(BaseModel):
+    """Aggregated budget performance report with list of budget items."""
+    budgets: List[BudgetReportItem] = Field(default_factory=list, description="Budget performance items")
+    total_committed: float = Field(0.0, description="Sum of all committed amounts")
+    total_achieved: float = Field(0.0, description="Sum of all achieved amounts")
+    overall_achieved_pct: float = Field(0.0, description="Overall percentage achieved across all budgets")
+

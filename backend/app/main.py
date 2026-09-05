@@ -40,6 +40,7 @@ from app.routers import (
     report_router,
     analytic_account_router,
     budget_router,
+    self_service_router,
 )
 
 
@@ -191,4 +192,5 @@ app.include_router(customer_invoice_router, prefix="/api/v1/customer-invoices", 
 app.include_router(report_router, prefix="/api/v1/reports", tags=["Reports"])
 app.include_router(analytic_account_router, prefix="/api/v1/analytic-accounts", tags=["Analytic Accounts"])
 app.include_router(budget_router, prefix="/api/v1/budgets", tags=["Budgets"])
+app.include_router(self_service_router, prefix="/api/v1/self-service", tags=["Self-Service (Contact Role)"])
 

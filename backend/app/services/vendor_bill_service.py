@@ -152,6 +152,26 @@ def create_bill_from_po(db: Session, po_id: int) -> CreateBillResponse:
     default_expense = db.scalar(select(Account).where(Account.code == "5010"))
     default_expense_id = default_expense.id if default_expense else None
 
+    # Budget-exceeded blocking check: validate PO lines with analytic accounts against active budgets
+    from app.services.budget_service import check_budget_exceeded
+    budget_warnings = []
+    for line in po.lines:
+        if line.analytic_account_id:
+            warning = check_budget_exceeded(
+                db,
+                analytic_account_id=line.analytic_account_id,
+                new_amount=line.subtotal,
+                reference_date=po.order_date,
+            )
+            if warning:
+                budget_warnings.append(warning)
+
+    if budget_warnings:
+        raise ConflictException(
+            code="BUDGET_EXCEEDED",
+            message=" | ".join(budget_warnings),
+        )
+
     bill_number = generate_bill_number(db)
     now_utc = datetime.now(timezone.utc)
 
@@ -344,3 +364,27 @@ def list_vendor_bills(
     pages = math.ceil(total / limit) if limit > 0 and total > 0 else 1
 
     return bill_responses, total, page, limit, pages
+
+
+def cancel_vendor_bill(db: Session, bill_id: int) -> VendorBillResponse:
+    """Cancel a Vendor Bill ('open' -> 'cancelled'). Cannot cancel if any payments have been made."""
+    bill = db.scalar(select(VendorBill).where(VendorBill.id == bill_id))
+    if not bill:
+        raise NotFoundException("VendorBill", bill_id)
+
+    if bill.status == "cancelled":
+        raise ValidationException("Vendor Bill is already cancelled")
+    if bill.amount_paid and bill.amount_paid > 0:
+        raise ValidationException("Cannot cancel a Vendor Bill with existing payments")
+    if bill.status in ("paid", "partially_paid"):
+        raise ValidationException(f"Cannot cancel a Vendor Bill in status '{bill.status}'")
+
+    try:
+        bill.status = "cancelled"
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return get_vendor_bill(db, bill_id)
+

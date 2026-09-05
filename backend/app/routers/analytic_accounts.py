@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.analytic_account import (
     AnalyticAccountCreate,
     AnalyticAccountUpdate,
@@ -15,8 +15,8 @@ from app.schemas.analytic_account import (
 )
 from app.services import analytic_account_service
 
-# 'APIRouter' organizes cost centre management routes for modular FastAPI mounting
-router = APIRouter()
+# RBAC guard: only admin and invoicing_user roles can access analytic account management
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 # Registers a new cost or revenue centre

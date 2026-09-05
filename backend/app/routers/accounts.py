@@ -6,11 +6,12 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.account import AccountListResponse
 from app.services import accounting_service
 
-router = APIRouter()
+# RBAC guard: only admin and invoicing_user roles can access Chart of Accounts
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 @router.get("", response_model=AccountListResponse, status_code=status.HTTP_200_OK)

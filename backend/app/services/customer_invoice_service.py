@@ -351,3 +351,27 @@ def list_customer_invoices(
     pages = math.ceil(total / limit) if limit > 0 and total > 0 else 1
 
     return invoice_responses, total, page, limit, pages
+
+
+def cancel_customer_invoice(db: Session, invoice_id: int) -> CustomerInvoiceResponse:
+    """Cancel a Customer Invoice ('open' -> 'cancelled'). Cannot cancel if any payments have been received."""
+    invoice = db.scalar(select(CustomerInvoice).where(CustomerInvoice.id == invoice_id))
+    if not invoice:
+        raise NotFoundException("CustomerInvoice", invoice_id)
+
+    if invoice.status == "cancelled":
+        raise ValidationException("Customer Invoice is already cancelled")
+    if invoice.amount_paid and invoice.amount_paid > 0:
+        raise ValidationException("Cannot cancel a Customer Invoice with existing payments")
+    if invoice.status in ("paid", "partially_paid"):
+        raise ValidationException(f"Cannot cancel a Customer Invoice in status '{invoice.status}'")
+
+    try:
+        invoice.status = "cancelled"
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return get_customer_invoice(db, invoice_id)
+

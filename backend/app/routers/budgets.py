@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_db
+from app.core.deps import get_db, require_roles
 from app.schemas.budget import (
     BudgetCreate,
     BudgetRevise,
@@ -15,8 +15,8 @@ from app.schemas.budget import (
 )
 from app.services import budget_service
 
-# 'APIRouter' handles budget creation, lifecycle updates, and real-time ledger variance queries
-router = APIRouter()
+# RBAC guard: only admin and invoicing_user roles can access budget management
+router = APIRouter(dependencies=[Depends(require_roles(["admin", "invoicing_user"]))])
 
 
 # Creates a new draft Budget

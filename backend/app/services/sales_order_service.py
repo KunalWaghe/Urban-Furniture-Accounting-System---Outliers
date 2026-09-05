@@ -229,3 +229,25 @@ def confirm_sales_order(db: Session, so_id: int) -> SOResponse:
         raise
 
     return get_sales_order(db, so_id)
+
+
+def cancel_sales_order(db: Session, so_id: int) -> SOResponse:
+    """Cancel a Sales Order ('draft' or 'confirmed' -> 'cancelled'). Cannot cancel if already invoiced."""
+    so = db.scalar(select(SalesOrder).where(SalesOrder.id == so_id))
+    if not so:
+        raise NotFoundException("SalesOrder", so_id)
+
+    if so.status == "cancelled":
+        raise ValidationException("Sales Order is already cancelled")
+    if so.status == "invoiced":
+        raise ValidationException("Cannot cancel a Sales Order that has already been invoiced")
+
+    try:
+        so.status = "cancelled"
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return get_sales_order(db, so_id)
+

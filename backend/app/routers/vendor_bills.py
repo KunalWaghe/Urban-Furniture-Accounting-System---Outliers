@@ -78,3 +78,14 @@ def get_bill_payments(
 ):
     """Retrieve all payment records logged against a specific vendor bill."""
     return payment_service.get_payments_for_bill(db, bill_id)
+
+
+# Cancels an open vendor bill that has no existing payments
+@router.patch("/{bill_id}/cancel", response_model=VendorBillResponse, status_code=status.HTTP_200_OK)
+def cancel_vendor_bill(
+    bill_id: int,
+    db: Session = Depends(get_db),
+):
+    """Cancel an open Vendor Bill. Blocked if any payments have been made."""
+    return vendor_bill_service.cancel_vendor_bill(db, bill_id)
+
