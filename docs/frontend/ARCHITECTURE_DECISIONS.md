@@ -61,8 +61,13 @@ src/
 - **Why to Reviewer:** *"The user gets instantaneous UI responsiveness, but the backend remains the strict authority for accounting accuracy."*
 
 ### ADR-06: Route Group Isolation & Feature Collocation for Auth
-- **Decision:** Auth pages (`/login`, `/signup`) are decoupled from the main dashboard shell using Next.js route groups (`(auth)` vs `(app)`), collocating hooks, validation, and presentation under `src/features/auth/`.
-- **Why to Reviewer:** *"This eliminates conditional layout hacks in the root shell, ensuring clean full-screen auth branding while keeping form state hooks independently testable before live API integration."*
+- **Decision:** Auth pages (`/login`, `/signup`, `/forgot-password`) are decoupled from the main dashboard shell using Next.js route groups (`(auth)` vs `(app)`), collocating hooks, validation, and presentation under `src/features/auth/`.
+- **Why to Reviewer:** *"This eliminates conditional layout hacks in the root shell, ensuring clean full-screen auth branding while keeping form state hooks independently testable and API-backed."*
+
+### ADR-07: Login ID and server-authoritative role gates
+- **Decision:** Login submits `login_id` plus password. Email remains a separately unique user field. Public signup never accepts a role and always creates `invoicing_user`; only the Admin Create User flow may select Admin, Accountant, or User.
+- **Why:** The Excalidraw explicitly separates Login ID from email and makes role assignment an authorization concern. The frontend hides unavailable navigation, but the backend remains the security authority.
+- **Consequence:** The existing email-based auth UI is a baseline and must be corrected before auth integration is considered complete. `contact_id` must be included in the authenticated user profile for portal scoping.
 
 ---
 

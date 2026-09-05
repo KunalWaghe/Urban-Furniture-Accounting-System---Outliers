@@ -8,7 +8,7 @@ This document defines the behavioral logic, state handling, golden paths, valida
 
 | Step | Route/Surface | User Action | API Call | Success State | Failure Recovery |
 |---:|---|---|---|---|---|
-| **1** | `/login` | Enter credentials (`admin@urbanfurniture.com` / `password123`) | `POST /api/v1/auth/login` | Token stored in `localStorage` & AuthContext; redirect to `/dashboard` | Display inline validation / error toast; keep credentials input |
+| **1** | `/login` | Enter credentials (`admin001` / `Password@123`) | `POST /api/v1/auth/login` with `login_id` | Token stored in `localStorage` & AuthContext; redirect to `/dashboard` | Display `Invalid Login Id or Password`; keep credentials input |
 | **2** | `/dashboard` | View accounting health KPIs (Cash, Bank, AP, AR, Net Profit) | `GET /api/v1/reports/balance-sheet`, `GET /api/v1/reports/pnl` | Summary cards show live financial metrics | Show fallback skeleton / retry button if data fetch fails |
 | **3** | `/contacts` | Verify/Create Vendor "Azure Furniture" | `GET /api/v1/contacts`, `POST /api/v1/contacts` | Vendor appears in list with badge `Vendor` | Inline field error on duplicate name/invalid email |
 | **4** | `/products` | Verify/Create Product "Wooden Chair" (₹2,500, Tax 18%) | `GET /api/v1/products`, `POST /api/v1/products` | Product appears in table with price and tax rates | Modal remains open with error details; user can fix inputs |
@@ -30,11 +30,13 @@ This document defines the behavioral logic, state handling, golden paths, valida
 
 | Priority | Screen | Route | Job to be Done | Required States | Status |
 |---|---|---|---|---|---|
-| **P0** | Login | `/login` | Authenticate user via JWT | idle / submitting / error / success | Planned |
+| **P0** | Login | `/login` | Authenticate by Login ID via JWT | idle / submitting / error / success | Needs `loginId` correction |
+| **P0** | Forgot Password | `/forgot-password` | Start a password reset request | idle / submitting / error / success/demo | Queued |
+| **P0** | Create User | `/users/new` | Admin creates an Admin, Accountant, or User account | idle / submitting / validation / success | Queued |
 | **P0** | App Shell & Dashboard | `/dashboard` | Provide overview of accounts, quick links to transactions & reports | loading / empty / error / success | Planned |
-| **P0** | Contact Master | `/contacts` | List, search, and create customers and vendors | loading / empty / error / success | Planned |
-| **P0** | Product Master | `/products` | List, search, and create products with pricing and tax rates | loading / empty / error / success | Planned |
-| **P0** | Chart of Accounts | `/accounts` | Display hierarchy of Asset, Liability, Capital, Income, Expense accounts | loading / empty / error / success | Planned |
+| **P0** | Contact Master | `/contacts` | List-first CRUD for customers/vendors with list ↔ kanban and form views | loading / empty / error / success / archived | Planned |
+| **P0** | Product Master | `/products` | List-first CRUD for products, type/category/pricing, with list ↔ kanban and form views | loading / empty / error / success / archived | Planned |
+| **P0** | Chart of Accounts | `/accounts` | Display hierarchy of Asset, Liability, Bank, Cash, Capital, Income, Expense, Other Expense | loading / empty / error / success | Planned |
 | **P0** | Purchase Orders List | `/purchase-orders` | View list of POs, filter by status, quick action to create | loading / empty / error / success | Planned |
 | **P0** | Purchase Order Detail | `/purchase-orders/[id]` | Track PO status, convert to Bill, record vendor payment, inspect journal links | loading / mutating / error / success | Planned |
 | **P0** | Sales Orders List | `/sales-orders` | View list of SOs, filter by status, quick action to create | loading / empty / error / success | Planned |
@@ -42,8 +44,8 @@ This document defines the behavioral logic, state handling, golden paths, valida
 | **P0** | Journal Entries | `/journal-entries` | Audit all double-entry ledger records, verify debit = credit balance | loading / empty / error / success | Planned |
 | **P0** | Balance Sheet | `/reports/balance-sheet` | Display live snapshot of Assets, Liabilities, and Capital | loading / empty / error / success | Planned |
 | **P0** | Profit & Loss (P&L) | `/reports/pnl` | Display real-time Income, Expenses, and Net Profit | loading / empty / error / success | Planned |
-| **P1** | Budget vs Actual | `/reports/budget` | Display budget limits vs actual utilization linked to analytic accounts | loading / empty / error / success | Queued |
-| **P1** | Contact Portal | `/portal` | Restricted self-service portal for contacts to view invoices and pay | loading / unauth / error / success | Queued |
+| **P1** | Analytics & Budget | `/analytics`, `/budgets`, `/reports/budget` | Manage analytic accounts/budgets and display committed vs achieved utilization | loading / empty / error / success / revised | Queued |
+| **P1** | Contact Portal | `/portal` | Restricted self-service portal for User accounts to view own invoices/bills and pay | loading / unauth / forbidden / error / success | Queued |
 
 ---
 
@@ -63,13 +65,15 @@ This document defines the behavioral logic, state handling, golden paths, valida
 
 | Form / Action | Client Validation (Zod) | Backend Authority | Error Presentation |
 |---|---|---|---|
-| **Login** | Non-empty email (valid format), non-empty password | Password verification, account active check | Inline field error; invalid credential banner |
+| **Login** | Non-empty `loginId` (6–12 chars), non-empty password | Login ID lookup, password verification, account active check | Inline field error; `Invalid Login Id or Password` banner |
+| **Public Signup** | Login ID 6–12 chars; valid email shape; password ≥8 chars with lower + upper + special; confirmation matches; no role field | Case-insensitive Login ID/email uniqueness; always creates `invoicing_user` | Inline field errors; never allow the browser to choose Admin/User |
+| **Admin Create User** | Name, Login ID, email, role, password, confirmation; `contact_id` required for `contact` role | Admin-only authorization, uniqueness, role/contact linkage | Inline field errors and 403 for non-Admin |
 | **Contact Creation** | Name required (min 2 chars), valid email, valid 10-digit mobile, valid type (`customer`, `vendor`, `both`) | Duplicate email/mobile check, DB persistence | Inline field error under matching inputs |
 | **Product Creation** | Name required, sales price >= 0, tax percent between 0% and 100% | Valid account references, uniqueness | Inline field error, disable submit until valid |
 | **PO / SO Creation** | Contact selected, at least 1 line item, quantity > 0, unit price > 0 | Inventory availability, current pricing, tax rules | Table row error for invalid lines; banner for missing contact |
 | **Convert PO to Bill** | PO must be in `confirmed` status; cannot already have bill | One-bill-per-PO invariant, PO state validation | Button disabled if already billed; error toast on 409 conflict |
 | **Generate Invoice** | SO must be in `confirmed` status; cannot already have invoice | One-invoice-per-SO invariant, SO state validation | Button disabled if already invoiced; error toast on 409 conflict |
-| **Record Payment** | Payment method (`bank` or `cash`) selected, amount > 0 and <= unpaid balance | Overpayment check, atomic journal entry creation | Cap input max value to remaining balance; inline validation |
+| **Record Payment** | Payment method (`bank` or `cash`) selected, amount > 0 and <= unpaid balance | Overpayment check, portal ownership check, atomic journal entry creation | Cap input max value to remaining balance; inline validation |
 
 ---
 
@@ -89,7 +93,7 @@ All API endpoints return standard errors in the agreed envelope:
 
 | API Code | HTTP | UI Presentation & Action |
 |---|:---:|---|
-| `VALIDATION_ERROR` | 422 | Map `fields` object directly to React Hook Form field errors, scroll to and focus first invalid input. |
+| `VALIDATION_ERROR` | 422 | Map `fields` object directly to React Hook Form field errors, including `login_id`, scroll to and focus first invalid input. |
 | `UNAUTHENTICATED` | 401 | Clear stale token, show toast "Session expired. Please log in again.", redirect to `/login?redirect=...`. |
 | `FORBIDDEN` | 403 | Show access denied banner: "You do not have permission for this action." Disable unauthorized actions. |
 | `NOT_FOUND` | 404 | Show 404 empty state card with button: "Back to list". |
@@ -110,6 +114,8 @@ All API endpoints return standard errors in the agreed envelope:
 - [x] **Ledger Debit/Credit Balance Check:** Journal entry view flags any imbalance in red with `∑ Debit - ∑ Credit = Difference`.
 - [x] **Non-Blocking Background Fetching:** Table pagination or status filtering shows a slim progress indicator without unmounting previous table rows.
 - [x] **Empty States Guide Next Action:** Blank tables display an actionable CTA (e.g. "No contacts yet — Add Contact").
+- [ ] **Role-safe Navigation:** Hide internal accounting routes and actions for `contact`/User accounts; still enforce 403 handling server-side.
+- [ ] **Excalidraw View Convention:** Master pages open in list view by default; Contacts, Products, Analytics, and Budgets offer a list ↔ kanban toggle; New and saved-row actions open the corresponding form state.
 
 ---
 
@@ -121,4 +127,5 @@ All API endpoints return standard errors in the agreed envelope:
   - Master data (Contacts, Products, Accounts): `staleTime = 5 minutes`
   - Transaction lists (POs, SOs, Journal Entries): `staleTime = 30 seconds`, invalidated immediately upon creation or status patch
   - Financial reports: `staleTime = 0` (always fetch latest balances when viewed)
+- **Role-sensitive data:** Portal queries are keyed by authenticated `contact_id`; never reuse an internal list cache for a portal response.
 - **Code Splitting:** Dynamic imports for modal dialogs and heavy charting libraries in reports.

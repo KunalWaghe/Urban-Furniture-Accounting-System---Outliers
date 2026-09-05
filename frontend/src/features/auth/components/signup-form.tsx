@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Check, Mail, ShieldCheck, User } from "lucide-react";
+import { Check, KeyRound, Mail, ShieldCheck, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-
+import { ROLES } from "../validation";
 import { useSignupForm } from "../hooks/use-signup-form";
 import { AuthAlert } from "./auth-alert";
 import { PasswordInput } from "./password-input";
@@ -22,6 +22,7 @@ export function SignupForm() {
         )}
 
         <form className="space-y-4" onSubmit={form.handleSubmit} noValidate>
+          {/* Full name */}
           <TextField
             id="name"
             label="Full name"
@@ -34,6 +35,22 @@ export function SignupForm() {
             required
           />
 
+          {/* Login ID */}
+          <TextField
+            id="login_id"
+            label="Login ID"
+            icon={KeyRound}
+            type="text"
+            autoComplete="username"
+            placeholder="e.g. sourabh01"
+            value={form.fields.login_id}
+            onChange={(value) => form.setField("login_id", value)}
+            error={form.errors.login_id}
+            hint="6–12 letters and numbers — used to sign in"
+            required
+          />
+
+          {/* Work email */}
           <TextField
             id="email"
             label="Work email"
@@ -47,6 +64,35 @@ export function SignupForm() {
             required
           />
 
+          {/* Role selector */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-text">
+              Role <span className="ml-0.5 text-destructive">*</span>
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {ROLES.map((role) => {
+                const isSelected = form.fields.role === role.value;
+                return (
+                  <button
+                    key={role.value}
+                    type="button"
+                    onClick={() => form.setRole(role.value)}
+                    className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${isSelected
+                        ? "border-primary-600 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+                        : "border-border bg-surface text-text-muted hover:bg-surface-muted hover:text-text"
+                      }`}
+                  >
+                    {role.label}
+                  </button>
+                );
+              })}
+            </div>
+            {form.errors.role && (
+              <p className="mt-1 text-xs text-destructive">{form.errors.role}</p>
+            )}
+          </div>
+
+          {/* Password */}
           <div>
             <PasswordInput
               id="password"
@@ -65,6 +111,7 @@ export function SignupForm() {
             )}
           </div>
 
+          {/* Confirm password */}
           <TextField
             id="confirmPassword"
             label="Re-enter password"
@@ -92,15 +139,14 @@ export function SignupForm() {
             }
           />
 
+          {/* Terms */}
           <div className="pt-1">
             <div className="flex items-start">
               <input
                 id="terms"
                 type="checkbox"
                 checked={form.fields.acceptedTerms}
-                onChange={(event) =>
-                  form.setAcceptedTerms(event.target.checked)
-                }
+                onChange={(event) => form.setAcceptedTerms(event.target.checked)}
                 className="mt-0.5 h-4 w-4 rounded border-border accent-primary-600"
               />
               <label
@@ -115,19 +161,19 @@ export function SignupForm() {
               </label>
             </div>
             {form.errors.terms && (
-              <p className="mt-1 text-xs text-destructive">
-                {form.errors.terms}
-              </p>
+              <p className="mt-1 text-xs text-destructive">{form.errors.terms}</p>
             )}
           </div>
 
+          {/* Submit */}
           <div className="flex flex-col gap-3 pt-3 sm:flex-row">
             <Button
               type="submit"
               className="order-1 h-10 flex-1 gap-2 font-semibold sm:order-2"
+              disabled={form.isSubmitting}
             >
-              Create account
-              <Check />
+              {form.isSubmitting ? "Creating account…" : "Create account"}
+              {!form.isSubmitting && <Check />}
             </Button>
             <Link
               href="/login"
@@ -140,10 +186,10 @@ export function SignupForm() {
 
         <div className="mt-6 border-t border-border/60 pt-5 text-center">
           <p className="text-sm text-text-muted">
-            Already have an account?
+            Already have an account?{" "}
             <Link
               href="/login"
-              className="ml-1 font-semibold text-primary-600 hover:text-primary-700 hover:underline"
+              className="font-semibold text-primary-600 hover:text-primary-700 hover:underline"
             >
               Sign in here
             </Link>

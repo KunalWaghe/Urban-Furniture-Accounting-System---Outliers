@@ -13,6 +13,19 @@
 
 Urban Furniture needs a **double-entry accounting system** that covers the full cycle: master data setup → purchase orders → vendor bills → sales orders → customer invoices → payments → automated journal entries → financial reports (Balance Sheet, P&L, Budget).
 
+### Excalidraw clarification pass (5 Sep 2026)
+
+The supplied `excalidraw-board.png` is more specific than the original problem statement and is now the UI/workflow addendum:
+
+- Authentication is by a unique case-insensitive `login_id` (6–12 characters), not by email. Email remains separately unique.
+- Password validation requires at least 8 characters, lowercase, uppercase, and a special character. The mockup's “unique password” wording is resolved as “must not equal login ID or email”; passwords remain hashed.
+- Public Sign Up creates only an Accountant (`invoicing_user`). Admin creates Admin, Accountant, or User/portal accounts from a separate Create User screen; User accounts link to a Contact.
+- Invalid login displays `Invalid Login Id or Password`; Forgot Password is a separate route and must not claim delivery unless reset infrastructure exists.
+- Dashboard navigation includes Sales, Purchase, Accounting, Reports, and Master Data. Master pages are list-first; Contacts, Products, Analytics, and Budgets also support kanban; New/saved rows open forms.
+- Product fields include Goods/Service/Combo type, category (inline-create many-to-one), sales price, cost price, and optional image. Transaction lines carry Chart of Accounts and Budget Analytic references.
+- Analytic type drives mapping: invoice lines use Income analytics; PO/vendor bill lines use Expense analytics. Budgets expose committed, achieved, achieved %, amount to achieve, and revision links.
+- Journal Entry forms block confirmation until debits equal credits. Bills/invoices retain source PO/SO links and expose payment, Print/Send, and invoice PDF actions when export is available.
+
 ### Primary User & Stakeholder
 
 | Role | Description |
@@ -67,19 +80,21 @@ Creating a sale, watching the journal entries auto-generate with balanced debits
 
 | Category | Item |
 |---|---|
-| **Fact** | 3 user roles (Admin, Invoicing User, Contact) |
+| **Fact** | 3 user roles (Admin, Accountant/Invoicing User, User/Contact portal) |
+| **Fact** | Login uses a unique Login ID; public signup creates Accountant only |
 | **Fact** | Double-entry journal entries required |
 | **Fact** | PO → Bill → Payment flow |
 | **Fact** | SO → Invoice → Payment flow |
 | **Fact** | Balance Sheet, P&L, Budget reports |
 | **Fact** | Analytic accounts for budget tracking |
 | **Safe Assumption** | "Tax" mentioned in SO means simple percentage-based tax (GST/VAT style) |
-| **Safe Assumption** | Chart of Accounts follows standard 5-type hierarchy (Assets, Liabilities, Income, Expenses, Capital) |
+| **Resolved from Excalidraw** | Chart of Accounts uses reportable types Asset, Liability, Bank, Cash, Capital, Income, Expense, and Other Expense |
 | **Safe Assumption** | Currency is single (INR) — multi-currency not mentioned |
 | **Risky Assumption** | Spec mentions "Profile Image" for contacts — **default: skip image upload for P0, use initials avatar** |
 | **Risky Assumption** | "Archived" master data behavior — **default: soft delete with is_active flag** |
 | **Unanswered** | Are there specific tax rules (GST with CGST/SGST split) or a single flat tax? **Default: single flat percentage tax** |
-| **Unanswered** | Does the contact portal need separate auth (magic link) or same login? **Default: same login system, role-restricted views** |
+| **Resolved from Excalidraw** | Does the contact portal need separate auth (magic link) or same login? **Same login system, role-restricted views, User role linked to `contact_id`** |
+| **Resolved from Excalidraw** | Does public signup choose a role? **No; backend always assigns `invoicing_user`** |
 
 ---
 
@@ -136,10 +151,10 @@ The Balance Sheet equation `Assets = Liabilities + Capital` holds true after all
 
 | # | Feature | Owner | Dependency | Acceptance Condition | Estimate | Stop-Loss |
 |---|---|---|---|---|---|---|
-| 1 | Auth (login/signup + role-based) | Kunal (BE) + Sourabh (FE) | None | Admin & Invoicing User can log in, Contact sees restricted portal | 2h | Cut Contact portal auth; Admin-only for demo |
-| 2 | Contact CRUD | Both | Auth | Create/edit/list contacts (Customer/Vendor/Both) | 1.5h | Minimum: Create + List |
-| 3 | Product CRUD | Both | Auth | Create/edit/list products with name, price, tax % | 1.5h | Minimum: Create + List |
-| 4 | Chart of Accounts (seeded + CRUD) | Both | Auth | 5-type hierarchy seeded, user can view/add accounts | 1.5h | Seed-only, no custom add |
+| 1 | Auth (Login ID login/signup + role-based) | Kunal (BE) + Sourabh (FE) | None | Login by unique 6–12 char Login ID; public signup creates Accountant; Admin can create User/Contact; invalid credentials use the specified message | 2h | Cut Contact portal auth; keep Admin/Accountant login |
+| 2 | Contact CRUD | Both | Auth | Create/edit/list contacts (Customer/Vendor/Both), phone/address, optional image/initials | 1.5h | Minimum: Create + List |
+| 3 | Product CRUD | Both | Auth | Create/edit/list products with Goods/Service/Combo type, category, sales/cost price, tax % | 1.5h | Minimum: Create + List |
+| 4 | Chart of Accounts (seeded + CRUD) | Both | Auth | Asset, Liability, Bank, Cash, Capital, Income, Expense, Other Expense hierarchy seeded; user can view/add accounts | 1.5h | Seed-only, no custom add |
 | 5 | Journal setup (seeded) | Kunal | CoA | Sales, Purchase, Bank, Cash journals exist | 0.5h | — |
 | 6 | Purchase Order → Vendor Bill → Payment | Both | Contacts, Products, CoA, Journals | Full flow works, journal entries auto-created | 3h | Cut payment; show PO → Bill with journal entries |
 | 7 | Sales Order → Customer Invoice → Payment | Both | Same | Full flow works, journal entries auto-created, tax computed | 3h | Cut payment; show SO → Invoice with journal entries |
@@ -201,6 +216,21 @@ When: Admin submits with empty Name field or invalid email
 Then: Backend rejects with 422 and field-level error, frontend shows inline error, no record created
 ```
 
+### AC-3A: Login ID and signup policy
+```
+Given: A public user is on Login or Sign Up
+When: Login uses an email instead of a Login ID, Login ID is outside 6–12 characters, or password policy fails
+Then: The frontend shows a field-level error and the backend returns 422; no session or user is created.
+
+Given: Public signup passes validation
+When: The request is accepted
+Then: Exactly one user is created with role `invoicing_user`; any client-supplied Admin/User role is ignored or rejected.
+
+Given: Login ID or email already exists
+When: A user is created
+Then: Backend returns 409 with the conflicting field and does not create a duplicate.
+```
+
 ### AC-4: Double-Entry Integrity
 ```
 Given: Any transaction has been recorded
@@ -217,8 +247,8 @@ Then: Report renders with ₹0 balances and a meaningful empty state message, no
 
 ### AC-6: Authorization
 ```
-Given: A Contact user is logged in
-When: Contact attempts to access admin routes (create product, view all invoices, etc.)
+Given: A User/Contact portal account is logged in
+When: The user attempts to access admin routes (create product, view all invoices, etc.)
 Then: Backend returns 403, frontend shows access denied or hides the route entirely
 ```
 
@@ -244,6 +274,10 @@ Then: System rejects with "Bill already paid" error, no duplicate journal entry 
 | 7 | **Archived records cannot be used in new transactions** | Data integrity | Service layer check on FK references | Hide archived items from dropdowns | `RECORD_ARCHIVED` — 422 |
 | 8 | **Balance Sheet = Assets − (Liabilities + Capital) = 0** | Fundamental accounting equation | Derived from journal entries — computed, not stored | Display only | N/A — if wrong, journal entries are broken |
 | 9 | **Tax is computed on line subtotal** | Correct tax calculation | Service layer | Display computed tax | `TAX_COMPUTATION_ERROR` — 500 |
+| 10 | **Login ID is unique and 6–12 characters** | Stable credential distinct from email | Case-insensitive DB unique constraint + service validation | Inline Login ID error | `LOGIN_ID_ALREADY_EXISTS` / `INVALID_LOGIN_ID` — 409/422 |
+| 11 | **Public signup always creates an Accountant** | Prevents privilege escalation | Service ignores/rejects role from public request | Hide role selector | `ROLE_NOT_ALLOWED` — 403/422 |
+| 12 | **Portal data is scoped to linked contact** | Prevents cross-customer disclosure | Query authorization by `contact_id` | Hide internal routes | `FORBIDDEN` — 403 |
+| 13 | **Analytic type matches source line** | Keeps budget actuals meaningful | Service validation | Filter selectable analytics | `INVALID_ANALYTIC_TYPE` — 422 |
 
 ---
 
@@ -256,6 +290,7 @@ erDiagram
     USER ||--o{ SESSION : has
     USER {
         int id PK
+        string login_id UK "6-12 chars, case-insensitive"
         string email UK
         string password_hash
         enum role "admin|invoicing_user|contact"
@@ -277,11 +312,21 @@ erDiagram
         bool is_active
     }
 
+    PRODUCT_CATEGORY {
+        int id PK
+        string name UK
+        bool is_active
+    }
+
     PRODUCT {
         int id PK
         string name
-        decimal price
+        enum product_type "goods|service|combo"
+        int category_id FK
+        decimal sales_price
+        decimal cost_price
         decimal tax_percent
+        string image_url
         string description
         bool is_active
     }
@@ -316,6 +361,8 @@ erDiagram
         int id PK
         int po_id FK
         int product_id FK
+        int account_id FK
+        int analytic_account_id FK
         int quantity
         decimal unit_price
         decimal subtotal
@@ -352,6 +399,8 @@ erDiagram
         int id PK
         int so_id FK
         int product_id FK
+        int account_id FK
+        int analytic_account_id FK
         int quantity
         decimal unit_price
         decimal tax_percent
@@ -415,10 +464,13 @@ erDiagram
         int id PK
         string name
         int analytic_account_id FK
+        int responsible_contact_id FK
         date period_start
         date period_end
         decimal planned_amount
-        string responsible_person
+        decimal achieved_amount
+        enum status "draft|confirmed|revised|cancelled"
+        int original_budget_id FK
     }
 ```
 
@@ -903,9 +955,9 @@ Creates invoice + journal entry (Debit: Accounts Receivable, Credit: Sales Incom
 | 7:00–8:30 | Budget form + budget report page | Analytic Account + Budget models + budget report endpoint |
 | 8:30–10:00 | Contact portal (restricted views for own invoices) | Portal endpoints (filtered by contact_id from auth) |
 
-### Task Board (Initial)
+### Task Board (Initial / historical)
 
-See [`docs/TASK_BOARD.md`](file:///Users/noobieboobie/Documents/ChatGPT/hackathon/docs/TASK_BOARD.md) — will be fully updated after approval.
+See [`docs/TASK_BOARD.md`](docs/TASK_BOARD.md) for the current execution board. The rows below are the original analysis-hour snapshot and are retained for decision history; they are superseded by the Excalidraw-corrected board.
 
 **NOW:**
 - `P0-FE-01` — Sourabh — Next.js project setup + shadcn + API client stub

@@ -1,6 +1,6 @@
 import { CheckCircle2, Circle } from "lucide-react";
-import { cn } from "cn";
 
+import { cn } from "@/lib/utils";
 import type { PasswordStrength } from "../validation";
 
 const SEGMENT_COLORS = [

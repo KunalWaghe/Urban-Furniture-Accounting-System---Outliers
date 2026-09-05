@@ -1,27 +1,39 @@
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
+import { ApiError } from "@/lib/api";
+
+import { useAuth } from "../auth-context";
+import {
+  getAuthErrorMessage,
+  mapApiFieldsToLoginErrors,
+} from "../error-mapping";
 import { validateLoginFields } from "../validation";
 import type { AuthNotice, LoginErrors, LoginFields } from "../validation";
 
-const FIELD_ORDER: Array<keyof LoginFields> = ["email", "password"];
+const FIELD_ORDER: Array<keyof LoginFields> = ["login_id", "password"];
 
 export function useLoginForm() {
+  const router = useRouter();
+  const { login } = useAuth();
+
   const [fields, setFields] = useState<LoginFields>({
-    email: "",
+    login_id: "",
     password: "",
   });
   const [errors, setErrors] = useState<LoginErrors>({});
   const [rememberDevice, setRememberDevice] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [notice, setNotice] = useState<AuthNotice | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function setField(field: keyof LoginFields, value: string) {
     setFields((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors = validateLoginFields(fields);
     setErrors(nextErrors);
@@ -35,14 +47,58 @@ export function useLoginForm() {
       document.getElementById(firstInvalid)?.focus();
       return;
     }
-    // Demo only — real auth wiring happens in P0-INT-01 (spec §Future Seams)
-    console.log("[demo] login submit", { ...fields, rememberDevice });
-    setNotice({
-      kind: "info",
-      title: "Demo mode",
-      message:
-        "Authentication is not connected yet. Your credentials were not sent anywhere.",
-    });
+
+    setIsSubmitting(true);
+    setNotice(null);
+
+    try {
+      await login(
+        {
+          login_id: fields.login_id.trim(),
+          password: fields.password,
+        },
+        rememberDevice
+      );
+      router.push("/");
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.status === 422 && error.fields) {
+          const apiErrors = mapApiFieldsToLoginErrors(error.fields);
+          setErrors((prev) => ({ ...prev, ...apiErrors }));
+          setNotice({
+            kind: "error",
+            title: "Unable to sign in",
+            message: error.message,
+          });
+          const firstApiInvalid = FIELD_ORDER.find((field) => apiErrors[field]);
+          if (firstApiInvalid) {
+            document.getElementById(firstApiInvalid)?.focus();
+          }
+          return;
+        }
+
+        if (error.status === 401) {
+          setNotice({
+            kind: "error",
+            title: "Invalid credentials",
+            message: error.message,
+          });
+          document.getElementById("password")?.focus();
+          return;
+        }
+      }
+
+      setNotice({
+        kind: "error",
+        title: "Unable to sign in",
+        message: getAuthErrorMessage(
+          error,
+          "Something went wrong. Please try again."
+        ),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return {
@@ -55,6 +111,7 @@ export function useLoginForm() {
     toggleShowPassword: () => setShowPassword((value) => !value),
     notice,
     dismissNotice: () => setNotice(null),
+    isSubmitting,
     handleSubmit,
   };
 }

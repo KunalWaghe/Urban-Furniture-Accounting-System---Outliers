@@ -29,15 +29,18 @@ This document is the boundary between Sourabh (Frontend) and Kunal (Backend). Lo
 
 | Priority | Method & Path | Purpose | Auth / Role | Status |
 |---|---|---|---|---|
-| **P0** | `POST /api/v1/auth/register` | User signup | Public | Contract Locked |
-| **P0** | `POST /api/v1/auth/login` | User login (returns JWT) | Public | Contract Locked |
+| **P0** | `POST /api/v1/auth/register` | Public signup; always creates an Accountant (`invoicing_user`) | Public | **Clarified from Excalidraw** |
+| **P0** | `POST /api/v1/auth/login` | User login by `login_id` (returns JWT) | Public | **Clarified from Excalidraw** |
 | **P0** | `GET /api/v1/auth/me` | Current user profile | Bearer Token | Contract Locked |
+| **P0** | `POST /api/v1/users` | Admin creates a user and selects role/contact link | Admin | **Added from Excalidraw** |
+| **P1** | `POST /api/v1/auth/forgot-password` | Request password reset for Login ID/email | Public | **Added from Excalidraw; delivery TBD** |
 | **P0** | `GET /api/v1/contacts` | List contacts (Customer/Vendor) | Any internal | Contract Locked |
 | **P0** | `POST /api/v1/contacts` | Create contact | Admin / Invoicing | Contract Locked |
 | **P0** | `GET /api/v1/products` | List products | Any internal | Contract Locked |
 | **P0** | `POST /api/v1/products` | Create product (with tax %) | Admin / Invoicing | Contract Locked |
 | **P0** | `GET /api/v1/accounts` | Chart of Accounts | Any internal | Contract Locked |
 | **P0** | `GET /api/v1/journals` | List journals (Sales, Purchase, Bank, Cash) | Any internal | Contract Locked |
+| **P0** | `GET /api/v1/analytic-accounts` | List Income/Expense analytic accounts for transaction lines | Any internal | **Added from Excalidraw** |
 | **P0** | `POST /api/v1/purchase-orders` | Create Purchase Order | Admin / Invoicing | Contract Locked |
 | **P0** | `GET /api/v1/purchase-orders` | List Purchase Orders | Any internal | Contract Locked |
 | **P0** | `GET /api/v1/purchase-orders/:id` | PO Detail | Any internal | Contract Locked |
@@ -63,6 +66,17 @@ This document is the boundary between Sourabh (Frontend) and Kunal (Backend). Lo
 ## Detailed Specifications
 
 ### 1. Auth
+
+#### Identity and role rules
+
+- `login_id` is the credential used for login; email is a separate unique contact/recovery field.
+- `login_id` uniqueness is case-insensitive and the value is 6–12 characters. The backend is authoritative for this rule.
+- Email uniqueness is case-insensitive.
+- Passwords are stored only as hashes. The password must be at least 8 characters and contain at least one lowercase letter, one uppercase letter, and one special character. “Unique password” from the mockup is interpreted as “must not equal the login ID or email”; globally unique passwords are neither enforceable safely nor exposed as a database query.
+- API role values are `admin`, `invoicing_user`, and `contact`. The UI labels are **Admin**, **Accountant**, and **User** respectively.
+- Public signup has no role selector and always creates `invoicing_user` (Accountant).
+- Admin-created users may select a role; a `contact` user must be linked to `contact_id` and is restricted to that contact’s portal records.
+- Inactive users cannot log in or use an existing token.
 
 #### `POST /api/v1/auth/register`
 ```json
@@ -90,12 +104,49 @@ This document is the boundary between Sourabh (Frontend) and Kunal (Backend). Lo
 ```json
 // Request (Login by Login ID or Email)
 {
+  "login_id": "riya001",
+  "password": "password123"
   "login_id": "riya_admin",
   "password": "SecureP@ssword123"
 }
 
 // Response 200
 {
+  "token": "eyJhbGciOi...",
+  "token_type": "bearer",
+  "id": 1,
+  "login_id": "riya001",
+  "email": "riya@urbanfurniture.com",
+  "name": "Riya Sharma",
+  "role": "admin",
+  "contact_id": null
+}
+```
+
+Invalid credentials return `401` with the human-readable message **`Invalid Login Id or Password`**. Validation and duplicate conflicts use the standard error envelope (`422` / `409`) with field-level keys such as `login_id` and `email`.
+
+#### `POST /api/v1/auth/register`
+```json
+// Request — public signup; role is not accepted from the browser
+{
+  "login_id": "riya001",
+  "email": "riya@urbanfurniture.com",
+  "password": "Password@123"
+}
+
+// Response 201 — same auth response shape as login, with role = "invoicing_user"
+```
+
+#### `POST /api/v1/users`
+```json
+// Request — Admin-only user creation
+{
+  "name": "Riya Sharma",
+  "login_id": "riya001",
+  "email": "riya@urbanfurniture.com",
+  "password": "Password@123",
+  "role": "invoicing_user",
+  "contact_id": null
   "id": 1,
   "login_id": "riya_admin",
   "email": "riya@urbanfurniture.com",
@@ -104,6 +155,12 @@ This document is the boundary between Sourabh (Frontend) and Kunal (Backend). Lo
   "token": "eyJhbGciOi..."
 }
 ```
+
+The Admin user form may select Admin, Accountant, or User. The User role requires a linked contact; public signup cannot create Admin or User accounts.
+
+#### `POST /api/v1/auth/forgot-password`
+
+The request accepts a Login ID or email. Until an email/OTP delivery provider is configured, the endpoint may return a clearly labeled not-configured response; it must not reveal whether an account exists.
 
 ---
 
@@ -157,6 +214,15 @@ This document is the boundary between Sourabh (Frontend) and Kunal (Backend). Lo
 }
 ```
 
+#### Excalidraw field and view additions
+
+- Contact forms support `profile_image` (P0 may render initials until upload storage exists), name, email, phone/mobile, and address fields. Contact is list-first, with an optional kanban view and a saved-record form.
+- Product forms support `product_type` (`goods`, `service`, `combo`), `category_id` (category can be created inline), `sales_price`, `cost_price`, and optional image. Product is list-first with optional kanban view.
+- Purchase-order and sales-order lines carry both the relevant Chart of Accounts reference and an analytic/budget reference. Purchase lines require an Expense analytic; sales lines require an Income analytic.
+- Journal-entry create/edit screens expose Journal, Accounting Date, Partner, Account, Debit, and Credit. The API rejects an entry when total debits do not equal total credits.
+- P0 list screens default to list view. Contacts, Products, Analytics, and Budgets may toggle list ↔ kanban; clicking New opens a blank form and clicking a saved row opens its populated form.
+- Account type values include `asset`, `liability`, `bank`, `cash`, `capital`, `income`, `expense`, and `other_expense`; the report mapper uses these types to place balances in the correct section.
+
 ---
 
 ### 3. Purchase Flow
@@ -168,7 +234,13 @@ This document is the boundary between Sourabh (Frontend) and Kunal (Backend). Lo
   "vendor_id": 1,
   "order_date": "2026-09-05",
   "lines": [
-    { "product_id": 1, "quantity": 10, "unit_price": 500.00 }
+    {
+      "product_id": 1,
+      "account_id": 501,
+      "analytic_account_id": 10,
+      "quantity": 10,
+      "unit_price": 500.00
+    }
   ]
 }
 
@@ -231,7 +303,14 @@ This document is the boundary between Sourabh (Frontend) and Kunal (Backend). Lo
   "customer_id": 2,
   "order_date": "2026-09-05",
   "lines": [
-    { "product_id": 2, "quantity": 5, "unit_price": 1200.00, "tax_percent": 18.0 }
+    {
+      "product_id": 2,
+      "account_id": 401,
+      "analytic_account_id": 11,
+      "quantity": 5,
+      "unit_price": 1200.00,
+      "tax_percent": 18.0
+    }
   ]
 }
 

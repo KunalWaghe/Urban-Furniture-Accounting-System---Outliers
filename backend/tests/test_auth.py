@@ -18,11 +18,9 @@ def setup_db():
 
 def test_auth_register_and_login_with_login_id():
     with TestClient(app) as client:
-        unique_suffix = uuid.uuid4().hex[:4]
-        test_login_id = f"user_{unique_suffix}"  # 9 chars (6-12 range)
-        test_email = f"user_{unique_suffix}@urbanfurniture.com"
-        test_password = "SecureP@ssword123"  # >8 chars, 1 upper, 1 lower, 1 special
-        test_name = "User Test"
+        test_email = "riya@urbanfurniture.com"
+        test_password = "password"
+        test_name = "Riya Test"
 
         # 1. Register new user with login_id
         reg_payload = {
