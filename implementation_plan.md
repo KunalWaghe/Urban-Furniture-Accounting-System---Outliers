@@ -172,28 +172,33 @@ Same shape as `vendor_bill.py`:
 
 ---
 
-## Phase 4 — Inbound Payment (Invoice Pay)
+## Phase 4 — Inbound Payment (Invoice Pay) [COMPLETED]
 
-> Extend the payment service from Phase 2 to handle customer invoice payments.
+> Extended payment service, schemas, and routers to handle customer invoice collections with automated double-entry postings (Dr 1020 Bank / Cr 1030 Debtors). Completed with full test coverage and seed script integration.
 
 ### [MODIFY] `app/services/payment_service.py`
 
-**Add `create_inbound_payment(db, invoice_id, amount, payment_method, date, note)`**
+- Added `create_inbound_payment(db, invoice_id, amount, payment_method, date, note)`
+- Updated `create_payment(db, req)` to route inbound payments with `invoice_id` validation
+- Updated `list_payments()` to support `invoice_id` filtering and relationship eager loading
+- Added `get_payments_for_invoice(db, invoice_id)`
 
-**Logic (mirror of outbound, accounts flipped):**
-1. Fetch CustomerInvoice, validate status
-2. Validate amount
-3. Journal: BNK or CSH
-4. Lines:
-   - **Debit**: Bank (1020) or Cash (1010)
-   - **Credit**: AR / Debtors (1030)
-5. Call `post_journal_entry()`
-6. Update invoice: `amount_paid += amount`, status transition
+### [MODIFY] `app/schemas/payment.py`
 
-**Endpoint:**
-- `POST /api/v1/customer-invoices/{invoice_id}/pay` or via unified `POST /api/v1/payments`
+- Added `InvoicePayRequest` schema with amount and payment_method validations
+- Updated `PaymentCreate` schema with `invoice_id`
+- Added `invoice_number` to `PaymentResponse`
 
-**Same edge cases as outbound** — overpayment, double-pay, cancelled invoice, etc.
+### [MODIFY] `app/routers/customer_invoices.py` & `app/routers/payments.py`
+
+- Added `POST /api/v1/customer-invoices/{invoice_id}/pay`
+- Added `GET /api/v1/customer-invoices/{invoice_id}/payments`
+- Added `invoice_id` query parameter to `GET /api/v1/payments`
+
+### [MODIFY] `seed.py` & `backend/tests/test_payments.py`
+
+- Added `seed_phase4_payment_data()` for inbound customer collections and outbound settlements
+- Added comprehensive unit and integration tests covering full payment, partial payments, lifecycle transitions, validations (overpayment, double payment, zero/negative amounts), and unified endpoint querying.
 
 ---
 

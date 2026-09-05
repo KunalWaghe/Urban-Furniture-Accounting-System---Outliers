@@ -18,6 +18,7 @@ from app.models import (
     VendorBill,
     SalesOrder,
     CustomerInvoice,
+    Payment,
     JournalEntry,
     JournalItem,
     Account,
@@ -28,6 +29,7 @@ from app.services.purchase_order_service import create_purchase_order, confirm_p
 from app.services.vendor_bill_service import create_bill_from_po
 from app.services.sales_order_service import create_sales_order, confirm_sales_order
 from app.services.customer_invoice_service import create_invoice_from_so
+from app.services import payment_service
 from app.schemas.purchase_order import POCreate, POLineCreate
 from app.schemas.sales_order import SOCreate, SOLineCreate
 from app.core.security import hash_password
@@ -466,6 +468,45 @@ def seed_phase3_sales_data(db):
         print(f"  [DRAFT] SO {so_resp.so_number} (INR {so_resp.total:,.2f}) - Ready to confirm [{sc['customer_name']}]")
 
 
+# Seeds financial settlement payments for bills and customer invoices
+def seed_phase4_payment_data(db):
+    """
+    Seed deterministic dummy payment records for Phase 2 & Phase 4:
+    1. Outbound vendor bill settlement (Dr 2010 Creditors / Cr 1020 Bank)
+    2. Inbound customer invoice settlement (Dr 1020 Bank / Cr 1030 Debtors)
+    """
+    existing_payments = db.query(Payment).count()
+    if existing_payments >= 2:
+        print(f"[INFO] Financial payments dummy data already exists ({existing_payments} payments found). Skipping.")
+        return
+
+    print("\n--- Seeding Financial Payments (Inbound & Outbound) ---")
+
+    # 1. Settle one open vendor bill (Outbound)
+    open_bill = db.query(VendorBill).filter(VendorBill.status == "open").first()
+    if open_bill:
+        pay_bill_resp = payment_service.create_outbound_payment(
+            db=db,
+            bill_id=open_bill.id,
+            amount=open_bill.total,
+            payment_method="bank",
+            note="Full vendor settlement seeded via wire transfer",
+        )
+        print(f"  [PAID BILL] Bill {open_bill.bill_number} -> Payment {pay_bill_resp.payment_number} (INR {pay_bill_resp.amount:,.2f}) -> JE {pay_bill_resp.journal_entry_number}")
+
+    # 2. Settle one open customer invoice (Inbound)
+    open_invoice = db.query(CustomerInvoice).filter(CustomerInvoice.status == "open").first()
+    if open_invoice:
+        pay_inv_resp = payment_service.create_inbound_payment(
+            db=db,
+            invoice_id=open_invoice.id,
+            amount=open_invoice.total,
+            payment_method="bank",
+            note="Full customer invoice collection seeded via wire transfer",
+        )
+        print(f"  [PAID INVOICE] Invoice {open_invoice.invoice_number} -> Payment {pay_inv_resp.payment_number} (INR {pay_inv_resp.amount:,.2f}) -> JE {pay_inv_resp.journal_entry_number}")
+
+
 def run_seed():
     """Main seed orchestrator."""
     Base.metadata.create_all(bind=engine)
@@ -485,6 +526,9 @@ def run_seed():
 
         # 5. Phase 3 Sales Orders, Customer Invoices, and Auto Journal Entries
         seed_phase3_sales_data(db)
+
+        # 6. Phase 4 Inbound & Outbound Payments
+        seed_phase4_payment_data(db)
 
         print("\n[SUCCESS] Master & Dummy data seeded successfully!")
     finally:

@@ -17,11 +17,21 @@ class BillPayRequest(BaseModel):
     note: Optional[str] = Field(None, max_length=255, description="Optional notes or reference memo")
 
 
+# Request schema for direct customer invoice settlement payments
+class InvoicePayRequest(BaseModel):
+    # 'gt' keyword enforces positive currency amounts strictly greater than zero
+    amount: float = Field(gt=0, description="Payment amount must be greater than zero")
+    # 'pattern' keyword ensures only bank or cash instruments are accepted
+    payment_method: str = Field(pattern="^(bank|cash)$", description="Method of payment: 'bank' or 'cash'")
+    date: Optional[datetime] = Field(None, description="Optional payment date, defaults to current UTC time")
+    note: Optional[str] = Field(None, max_length=255, description="Optional notes or reference memo")
+
+
 # General request schema for unified payments endpoint
 class PaymentCreate(BaseModel):
     payment_type: str = Field(pattern="^(outbound|inbound)$", description="'outbound' (vendor) or 'inbound' (customer)")
     bill_id: Optional[int] = Field(None, description="Target Vendor Bill ID (required for outbound bill settlements)")
-    invoice_id: Optional[int] = Field(None, description="Target Customer Invoice ID (reserved for Phase 4)")
+    invoice_id: Optional[int] = Field(None, description="Target Customer Invoice ID (required for inbound customer invoice settlements)")
     # 'gt' keyword guarantees amount is strictly positive
     amount: float = Field(gt=0, description="Monetary amount to settle")
     payment_method: str = Field(pattern="^(bank|cash)$", description="Method: 'bank' or 'cash'")
@@ -39,6 +49,7 @@ class PaymentResponse(BaseModel):
     bill_id: Optional[int] = None
     bill_number: Optional[str] = None
     invoice_id: Optional[int] = None
+    invoice_number: Optional[str] = None
     journal_id: int
     journal_code: Optional[str] = None
     journal_name: Optional[str] = None

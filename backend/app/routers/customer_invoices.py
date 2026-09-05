@@ -1,14 +1,15 @@
 """
-Customer Invoice API endpoints (Phase 3, P0-BE-06 mirror).
+Customer Invoice API endpoints (Phase 3 & Phase 4).
 """
 
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
 from app.schemas.customer_invoice import CustomerInvoiceResponse, CustomerInvoiceListResponse
-from app.services import customer_invoice_service
+from app.schemas.payment import InvoicePayRequest, PaymentResponse
+from app.services import customer_invoice_service, payment_service
 
 router = APIRouter()
 
@@ -45,3 +46,36 @@ def list_customer_invoices(
 def get_customer_invoice(invoice_id: int, db: Session = Depends(get_db)):
     """Get Customer Invoice detail by ID."""
     return customer_invoice_service.get_customer_invoice(db, invoice_id)
+
+
+# Direct customer invoice payment endpoint to settle or partially pay an open customer invoice
+@router.post("/{invoice_id}/pay", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
+def pay_customer_invoice(
+    invoice_id: int,
+    req: InvoicePayRequest,
+    # 'Depends' injects managed SQLAlchemy database session bound to the request context
+    db: Session = Depends(get_db),
+):
+    """
+    Record an inbound payment directly against a specific customer invoice.
+    Posts the corresponding Journal Entry and updates the invoice's paid balance and status.
+    """
+    return payment_service.create_inbound_payment(
+        db=db,
+        invoice_id=invoice_id,
+        amount=req.amount,
+        payment_method=req.payment_method,
+        date=req.date,
+        note=req.note,
+    )
+
+
+# Retrieves all payment history associated with a customer invoice
+@router.get("/{invoice_id}/payments", response_model=List[PaymentResponse], status_code=status.HTTP_200_OK)
+def get_invoice_payments(
+    invoice_id: int,
+    # 'Depends' injects transactional DB session
+    db: Session = Depends(get_db),
+):
+    """Retrieve all payment records logged against a specific customer invoice."""
+    return payment_service.get_payments_for_invoice(db, invoice_id)
