@@ -34,9 +34,12 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useAuth } from "@/features/auth/auth-context";
 import { SiteHeader } from "@/components/site-header";
+import { useMounted } from "@/hooks/use-mounted";
 
 export default function LandingPage() {
+  const mounted = useMounted();
   const { isAuthenticated } = useAuth();
+  const showDashboardCta = mounted && isAuthenticated;
   const containerRef = useRef<HTMLDivElement>(null);
   const heroBadgeRef = useRef<HTMLDivElement>(null);
   const heroTitleRef = useRef<HTMLHeadingElement>(null);
@@ -453,7 +456,7 @@ export default function LandingPage() {
               ref={heroCtaRef}
               className="mt-8 flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto"
             >
-              {isAuthenticated ? (
+              {showDashboardCta ? (
                 <Link
                   href="/dashboard"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-primary hover:bg-primary-700 text-white shadow-md hover:shadow-lg transition-all active:scale-98"
