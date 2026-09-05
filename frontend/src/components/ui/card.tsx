@@ -1,6 +1,12 @@
+/**
+ * Reusable card layout primitive (shadcn-style).
+ * Composable container with header, content, and footer subcomponents.
+ */
+
 import * as React from "react"
 import { cn } from "cn"
 
+/** Root card container; supports `default` or `sm` size. */
 function Card({
   className,
   size = "default",
@@ -19,6 +25,7 @@ function Card({
   )
 }
 
+/** Top section for title, description, and optional action. */
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -32,6 +39,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** Primary heading within a card header. */
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -45,6 +53,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** Secondary muted text beneath the card title. */
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -55,6 +64,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** Optional action slot aligned to the header corner. */
 function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -68,6 +78,7 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** Main body area of the card. */
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -78,6 +89,7 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** Bottom section, typically for actions or metadata. */
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

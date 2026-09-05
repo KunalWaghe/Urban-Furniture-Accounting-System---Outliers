@@ -1,5 +1,13 @@
+/**
+ * Visual status badge for purchase order states.
+ *
+ * Maps each PO status (Draft, Confirmed, Cancelled, Partially Billed) to
+ * a colored pill with a dot indicator. Used on list and detail pages.
+ */
+
 import type { PurchaseOrder } from "@/lib/types";
 
+/** Tailwind classes for each purchase order status variant. */
 const STATUS_STYLES: Record<PurchaseOrder["status"], string> = {
   Draft: "border-amber-200/70 bg-amber-50 text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-400",
   Confirmed:
@@ -11,6 +19,11 @@ const STATUS_STYLES: Record<PurchaseOrder["status"], string> = {
     "border-purple-200/70 bg-purple-50 text-purple-700 dark:border-purple-900/70 dark:bg-purple-950/40 dark:text-purple-400",
 };
 
+/**
+ * Renders a colored badge showing the purchase order status.
+ *
+ * @param status - One of Draft, Confirmed, Cancelled, or Partially Billed.
+ */
 export function PoStatusBadge({ status }: { status: PurchaseOrder["status"] }) {
   return (
     <span

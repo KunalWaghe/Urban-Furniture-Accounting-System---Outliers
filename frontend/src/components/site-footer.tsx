@@ -1,3 +1,18 @@
+/**
+ * SiteFooter — simple footer bar shown at the bottom of app layouts.
+ *
+ * Displays app name and tech stack credit. No interactive state.
+ */
+
+/**
+ * Static footer with app branding and build credit.
+ *
+ * **State OWNED:** none.
+ *
+ * **State CONSUMED:** none — all content is hardcoded.
+ *
+ * **Source of truth:** static JSX (no props or context).
+ */
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-surface">

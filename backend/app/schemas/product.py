@@ -15,6 +15,7 @@ class ProductCreate(BaseModel):
     cost: Optional[float] = Field(default=None, ge=0, description="Cost price")
     tax_percent: float = Field(default=0.0, ge=0, le=100, description="Tax percentage (e.g. 18.0 for 18%)")
     description: Optional[str] = Field(default=None, description="Product description")
+    image_url: Optional[str] = Field(default=None, description="Product image data URL")
 
 
 class ProductUpdate(BaseModel):
@@ -26,6 +27,7 @@ class ProductUpdate(BaseModel):
     cost: Optional[float] = Field(default=None, ge=0)
     tax_percent: Optional[float] = Field(default=None, ge=0, le=100)
     description: Optional[str] = None
+    image_url: Optional[str] = None
     is_active: Optional[bool] = None
 
 
@@ -39,6 +41,7 @@ class ProductResponse(BaseModel):
     cost: Optional[float] = None
     tax_percent: float
     description: Optional[str] = None
+    image_url: Optional[str] = None
     is_active: bool
 
     model_config = {"from_attributes": True}
@@ -51,4 +54,3 @@ class ProductListResponse(BaseModel):
     page: int = 1
     limit: int = 20
     pages: int = 1
-

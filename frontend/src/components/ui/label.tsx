@@ -1,8 +1,14 @@
 "use client"
 
+/**
+ * Reusable form label primitive (shadcn-style).
+ * Presentational label with disabled-state styling via peer/group selectors.
+ */
+
 import * as React from "react"
 import { cn } from "cn"
 
+/** Accessible label for form controls. */
 function Label({ className, ...props }: React.ComponentProps<"label">) {
   return (
     <label

@@ -38,6 +38,7 @@ def create_product(db: Session, req: ProductCreate) -> Product:
         cost=req.cost,
         tax_percent=req.tax_percent,
         description=req.description,
+        image_url=req.image_url,
         is_active=True,
     )
     db.add(product)

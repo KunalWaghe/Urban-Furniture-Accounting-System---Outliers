@@ -1,3 +1,19 @@
+/**
+ * Display formatting helpers for money and dates.
+ *
+ * Role in the app:
+ * - Keeps currency and date output consistent across tables and cards
+ * - Uses Indian locale (`en-IN`) for rupee symbol and date style
+ *
+ * Use these in UI components instead of calling `toLocaleString` inline.
+ */
+
+/**
+ * Formats a number as Indian Rupees (e.g. `₹1,23,456.78`).
+ *
+ * @param value - Numeric amount (not paise — pass rupees directly)
+ * @returns Formatted string with ₹ prefix and Indian grouping
+ */
 export function formatINR(value: number): string {
   return `₹${value.toLocaleString("en-IN", {
     minimumFractionDigits: 0,
@@ -5,6 +21,14 @@ export function formatINR(value: number): string {
   })}`;
 }
 
+/**
+ * Formats an ISO date string for display (e.g. `05 Sep 2026`).
+ *
+ * If the input is not a valid date, returns the original string unchanged
+ * so the UI still shows something rather than "Invalid Date".
+ *
+ * @param value - ISO date string from the API (e.g. `"2026-09-05"`)
+ */
 export function formatDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -15,6 +39,13 @@ export function formatDate(value: string): string {
   });
 }
 
+/**
+ * Formats an ISO datetime string with date and time (e.g. `05 Sep 2026, 9:30 pm`).
+ *
+ * Same fallback behavior as `formatDate` — invalid input is returned as-is.
+ *
+ * @param value - ISO datetime string from the API
+ */
 export function formatDateTime(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;

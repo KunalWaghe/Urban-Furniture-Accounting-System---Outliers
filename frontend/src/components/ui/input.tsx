@@ -1,7 +1,13 @@
+/**
+ * Reusable text input primitive (shadcn-style).
+ * Styled wrapper around Base UI Input with form-state styling.
+ */
+
 import * as React from "react"
 import { Input as InputPrimitive } from "@base-ui/react/input"
 import { cn } from "cn"
 
+/** Single-line text input with focus, disabled, and invalid states. */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <InputPrimitive

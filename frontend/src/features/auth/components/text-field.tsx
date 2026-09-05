@@ -1,3 +1,19 @@
+/**
+ * @file text-field.tsx
+ *
+ * Reusable labeled input with icon, error, hint, and optional addons.
+ *
+ * What this file does:
+ * - Standard auth form field: label, left icon, input, error/hint text
+ * - Supports success styling and right-side addons (e.g. checkmark, toggle)
+ *
+ * State consumed (controlled component):
+ * - `value` and `onChange` come from the parent hook — this component does not store input state
+ *
+ * Who consumes this:
+ * - `LoginForm`, `SignupForm`, and `PasswordInput`
+ */
+
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -21,6 +37,16 @@ interface TextFieldProps {
   rightAddon?: ReactNode;
 }
 
+/**
+ * Controlled text input used across auth forms.
+ *
+ * @param id - HTML id/name — also used to focus invalid fields from hooks
+ * @param error - When set, shows red error text and aria-invalid
+ * @param success - Green border when true and no error (e.g. passwords match)
+ * @param hint - Helper text shown when there is no error
+ * @param labelAddon - Extra content beside the label (e.g. "Forgot password?" link)
+ * @param rightAddon - Icon or button inside the input on the right
+ */
 export function TextField({
   id,
   label,
