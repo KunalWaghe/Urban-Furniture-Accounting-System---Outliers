@@ -1,7 +1,7 @@
 # Graph Report - Urban-Furniture-Accounting-System---Outliers  (2026-09-05)
 
 ## Corpus Check
-- 107 files · ~485,363 words
+- 107 files · ~485,406 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `07c5021f`
+- Built from commit: `d1110b8a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -193,8 +193,8 @@ Cohesion: 0.15
 Nodes (12): 1. Tech Stack (What & Why), 2. Clean Folder Boundaries, 3. Key Architectural Decisions (ADRs) in Plain English, 4. Reviewer Cheat Sheet (How to Answer Questions), ADR-01: Next.js 14 + shadcn/ui for Speed & Polish, ADR-02: Strict State Separation (No Messy Global Store), ADR-03: Single Typed API Client with Standard Error Envelope, ADR-04: Resilient UI States (Zero Broken Demo Screens) (+4 more)
 
 ### Community 18 - "Community 18"
-Cohesion: 0.19
-Nodes (12): BaseModel, LoginRequest, Schema for user login request by Login ID or Email., ProductCreate, ProductListResponse, ProductResponse, ProductUpdate, Pydantic schemas for Product requests and responses. (+4 more)
+Cohesion: 0.20
+Nodes (9): ProductCreate, ProductListResponse, ProductResponse, ProductUpdate, Pydantic schemas for Product requests and responses., Schema for creating a new product., Schema for updating an existing product., Schema for product response. (+1 more)
 
 ### Community 19 - "Community 19"
 Cohesion: 0.15
@@ -217,8 +217,8 @@ Cohesion: 0.27
 Nodes (5): str, AdminUserCreateRequest, Schema for public user registration (creates user/contact role)., Schema for Admin-created user with role selection (Admin only)., RegisterRequest
 
 ### Community 24 - "Community 24"
-Cohesion: 0.20
-Nodes (9): ContactCreate, ContactListResponse, ContactResponse, ContactUpdate, Pydantic schemas for Contact requests and responses., Schema for creating a new contact., Schema for updating an existing contact., Schema for contact response. (+1 more)
+Cohesion: 0.19
+Nodes (12): BaseModel, AuthResponse, Schema for authentication response containing user info and JWT token., ContactCreate, ContactListResponse, ContactResponse, ContactUpdate, Pydantic schemas for Contact requests and responses. (+4 more)
 
 ### Community 25 - "Community 25"
 Cohesion: 0.20
@@ -306,7 +306,7 @@ Nodes (6): Architecture Diagram, Backend Folder Map (Kunal), Frontend Folder Map
 
 ### Community 47 - "Community 47"
 Cohesion: 0.33
-Nodes (5): AuthResponse, Pydantic schemas for authentication requests and responses., Schema for user profile (/me endpoint)., Schema for authentication response containing user info and JWT token., UserProfileResponse
+Nodes (5): LoginRequest, Pydantic schemas for authentication requests and responses., Schema for user profile (/me endpoint)., Schema for user login request by Login ID or Email., UserProfileResponse
 
 ### Community 48 - "Community 48"
 Cohesion: 0.33

@@ -805,7 +805,7 @@
       "label": "AppDashboardPage()",
       "file_type": "code",
       "source_file": "frontend/src/app/(app)/page.tsx",
-      "source_location": "L45",
+      "source_location": "L42",
       "id": "app_page_appdashboardpage",
       "community": 2,
       "norm_label": "appdashboardpage()"
@@ -814,7 +814,7 @@
       "label": "CreateSalesOrderModal()",
       "file_type": "code",
       "source_file": "frontend/src/app/(app)/page.tsx",
-      "source_location": "L1778",
+      "source_location": "L1775",
       "id": "app_page_createsalesordermodal",
       "community": 3,
       "norm_label": "createsalesordermodal()"
@@ -823,7 +823,7 @@
       "label": "CreatePurchaseOrderModal()",
       "file_type": "code",
       "source_file": "frontend/src/app/(app)/page.tsx",
-      "source_location": "L1957",
+      "source_location": "L1954",
       "id": "app_page_createpurchaseordermodal",
       "community": 3,
       "norm_label": "createpurchaseordermodal()"
@@ -4029,7 +4029,7 @@
       "source_file": "",
       "source_location": "",
       "id": "basemodel",
-      "community": 18,
+      "community": 24,
       "norm_label": "basemodel"
     },
     {
@@ -4101,7 +4101,7 @@
       "source_file": "backend/app/schemas/auth.py",
       "source_location": "L81",
       "id": "schemas_auth_loginrequest",
-      "community": 18,
+      "community": 47,
       "norm_label": "loginrequest"
     },
     {
@@ -4110,7 +4110,7 @@
       "source_file": "backend/app/schemas/auth.py",
       "source_location": "L87",
       "id": "schemas_auth_authresponse",
-      "community": 47,
+      "community": 24,
       "norm_label": "authresponse"
     },
     {
@@ -4155,7 +4155,7 @@
       "source_file": "backend/app/schemas/auth.py",
       "source_location": "L82",
       "id": "schemas_auth_rationale_82",
-      "community": 18,
+      "community": 47,
       "norm_label": "schema for user login request by login id or email."
     },
     {
@@ -4164,7 +4164,7 @@
       "source_file": "backend/app/schemas/auth.py",
       "source_location": "L88",
       "id": "schemas_auth_rationale_88",
-      "community": 47,
+      "community": 24,
       "norm_label": "schema for authentication response containing user info and jwt token."
     },
     {
@@ -9679,9 +9679,9 @@
       "source_file": "frontend/src/app/(app)/admin/users/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_app_app_admin_users_page_tsx",
-      "target": "frontend_src_lib_api_ts",
-      "confidence_score": 1.0
+      "target": "frontend_src_lib_api_ts"
     },
     {
       "relation": "imports_from",
@@ -9701,9 +9701,9 @@
       "source_file": "frontend/src/app/(app)/admin/users/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_app_app_admin_users_page_tsx",
-      "target": "lib_api_apifetch",
-      "confidence_score": 1.0
+      "target": "lib_api_apifetch"
     },
     {
       "relation": "imports",
@@ -12317,9 +12317,9 @@
       "source_file": "frontend/src/components/require-auth.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_require_auth_tsx",
-      "target": "frontend_src_hooks_use_mounted_ts",
-      "confidence_score": 1.0
+      "target": "frontend_src_hooks_use_mounted_ts"
     },
     {
       "relation": "imports",
@@ -12328,9 +12328,9 @@
       "source_file": "frontend/src/components/require-auth.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_require_auth_tsx",
-      "target": "hooks_use_mounted_usemounted",
-      "confidence_score": 1.0
+      "target": "hooks_use_mounted_usemounted"
     },
     {
       "relation": "calls",
@@ -12514,9 +12514,9 @@
       "source_file": "frontend/src/components/require-role.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_require_role_tsx",
-      "target": "frontend_src_hooks_use_mounted_ts",
-      "confidence_score": 1.0
+      "target": "frontend_src_hooks_use_mounted_ts"
     },
     {
       "relation": "imports",
@@ -12525,9 +12525,9 @@
       "source_file": "frontend/src/components/require-role.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_require_role_tsx",
-      "target": "hooks_use_mounted_usemounted",
-      "confidence_score": 1.0
+      "target": "hooks_use_mounted_usemounted"
     },
     {
       "relation": "imports",
@@ -12638,9 +12638,9 @@
       "source_file": "frontend/src/components/redirect-if-auth.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_redirect_if_auth_tsx",
-      "target": "frontend_src_hooks_use_mounted_ts",
-      "confidence_score": 1.0
+      "target": "frontend_src_hooks_use_mounted_ts"
     },
     {
       "relation": "imports",
@@ -12649,9 +12649,9 @@
       "source_file": "frontend/src/components/redirect-if-auth.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_components_redirect_if_auth_tsx",
-      "target": "hooks_use_mounted_usemounted",
-      "confidence_score": 1.0
+      "target": "hooks_use_mounted_usemounted"
     },
     {
       "relation": "calls",
@@ -12832,9 +12832,9 @@
       "source_file": "frontend/src/hooks/use-mounted.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_hooks_use_mounted_ts",
-      "target": "hooks_use_mounted_emptysubscribe",
-      "confidence_score": 1.0
+      "target": "hooks_use_mounted_emptysubscribe"
     },
     {
       "relation": "contains",
@@ -12842,9 +12842,9 @@
       "source_file": "frontend/src/hooks/use-mounted.ts",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_hooks_use_mounted_ts",
-      "target": "hooks_use_mounted_usemounted",
-      "confidence_score": 1.0
+      "target": "hooks_use_mounted_usemounted"
     },
     {
       "relation": "conceptually_related_to",
@@ -18768,9 +18768,9 @@
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L222",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_tests_test_auth_py",
-      "target": "tests_test_auth_test_auth_login_and_validations",
-      "confidence_score": 1.0
+      "target": "tests_test_auth_test_auth_login_and_validations"
     },
     {
       "relation": "contains",
@@ -18798,9 +18798,9 @@
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L69",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_tests_test_auth_py",
-      "target": "tests_test_auth_test_create_user_endpoint_strictly_restricted_to_admin",
-      "confidence_score": 1.0
+      "target": "tests_test_auth_test_create_user_endpoint_strictly_restricted_to_admin"
     },
     {
       "relation": "contains",
@@ -18808,9 +18808,9 @@
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L21",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "backend_tests_test_auth_py",
-      "target": "tests_test_auth_test_public_registration_creates_contact_role_only",
-      "confidence_score": 1.0
+      "target": "tests_test_auth_test_public_registration_creates_contact_role_only"
     },
     {
       "relation": "rationale_for",
@@ -18838,9 +18838,9 @@
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_auth_rationale_16",
-      "target": "tests_test_auth_setup_db",
-      "confidence_score": 1.0
+      "target": "tests_test_auth_setup_db"
     },
     {
       "relation": "rationale_for",
@@ -18848,9 +18848,9 @@
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_auth_rationale_22",
-      "target": "tests_test_auth_test_public_registration_creates_contact_role_only",
-      "confidence_score": 1.0
+      "target": "tests_test_auth_test_public_registration_creates_contact_role_only"
     },
     {
       "relation": "rationale_for",
@@ -18858,9 +18858,9 @@
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L70",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_auth_rationale_70",
-      "target": "tests_test_auth_test_create_user_endpoint_strictly_restricted_to_admin",
-      "confidence_score": 1.0
+      "target": "tests_test_auth_test_create_user_endpoint_strictly_restricted_to_admin"
     },
     {
       "relation": "rationale_for",
@@ -18868,9 +18868,9 @@
       "source_file": "backend/tests/test_auth.py",
       "source_location": "L223",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_auth_rationale_223",
-      "target": "tests_test_auth_test_auth_login_and_validations",
-      "confidence_score": 1.0
+      "target": "tests_test_auth_test_auth_login_and_validations"
     },
     {
       "relation": "contains",
@@ -19718,9 +19718,9 @@
       "source_file": ".agents/workflows/graphify.md",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "agents_workflows_graphify_md",
-      "target": "workflows_graphify_workflow_graphify",
-      "confidence_score": 1.0
+      "target": "workflows_graphify_workflow_graphify"
     },
     {
       "relation": "contains",
@@ -19728,9 +19728,9 @@
       "source_file": ".agents/rules/graphify.md",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "agents_rules_graphify_md",
-      "target": "rules_graphify_graphify",
-      "confidence_score": 1.0
+      "target": "rules_graphify_graphify"
     },
     {
       "relation": "contains",
@@ -22344,5 +22344,5 @@
       "source_file": "SPECIFICATION.md"
     }
   ],
-  "built_at_commit": "07c5021f2d9c8b225290679105b2be35312c70dd"
+  "built_at_commit": "d1110b8ae058dca56c67324a50a220d360e3f7ca"
 }

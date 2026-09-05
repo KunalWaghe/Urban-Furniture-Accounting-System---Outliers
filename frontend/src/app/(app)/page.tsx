@@ -1,17 +1,14 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import Link from "next/link";
 import {
   Armchair,
-  ArrowRight,
   BarChart3,
   Check,
   CheckCircle2,
   ChevronDown,
   Clock,
   CreditCard,
-  Download,
   FileText,
   LayoutGrid,
   LineChart,
@@ -113,43 +110,8 @@ export default function AppDashboardPage() {
   }, [showToast]);
 
   useEffect(() => {
-    let ignore = false;
-    async function initData() {
-      try {
-        const [fetchedContacts, fetchedProducts] = await Promise.all([
-          fetchDashboardContacts(),
-          fetchDashboardProducts(),
-        ]);
-
-        if (ignore) return;
-
-        setContacts(fetchedContacts);
-        setProducts(fetchedProducts);
-
-        const dashboardData = buildDashboardDataFromBackend(
-          fetchedContacts,
-          fetchedProducts
-        );
-
-        setSalesOrders(dashboardData.salesOrders);
-        setPurchaseOrders(dashboardData.purchaseOrders);
-        setVendorBills(dashboardData.vendorBills);
-        setBudgetMetric(dashboardData.budgetMetric);
-      } catch (err) {
-        console.error("Failed to load dashboard data:", err);
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void initData();
-
-    return () => {
-      ignore = true;
-    };
-  }, []);
+    void loadBackendData(false);
+  }, [loadBackendData]);
 
   // Keyboard shortcut ⌘K / Ctrl+K to focus search, ESC to close mega menu
   useEffect(() => {
@@ -1991,7 +1953,7 @@ function CreateSalesOrderModal({
 // Subcomponent: Modal to create Purchase Order using backend Vendors & Products
 function CreatePurchaseOrderModal({
   vendors,
-  products: _products,
+  products,
   onClose,
   onCreate,
 }: {
