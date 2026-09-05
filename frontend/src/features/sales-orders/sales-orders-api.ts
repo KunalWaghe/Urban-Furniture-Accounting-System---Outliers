@@ -76,10 +76,16 @@ function mapSoStatus(status: string): SalesOrder["status"] {
       return "Confirmed";
     case "invoiced":
     case "partially billed":
+    case "partially_billed":
+    case "billed":
       return "Partially Billed";
     case "cancelled":
       return "Cancelled";
     default:
+      // Log unrecognised statuses in development to catch backend drift early
+      if (process.env.NODE_ENV === "development") {
+        console.warn(`[SO] Unrecognised status from backend: "${status}". Falling back to "Unknown".`);
+      }
       return "Unknown";
   }
 }
@@ -157,6 +163,21 @@ export async function confirmSalesOrder(id: number): Promise<SalesOrder> {
   });
   return mapSalesOrder(response);
 }
+
+/**
+ * PATCH /api/v1/sales-orders/:id/cancel — cancels a draft or confirmed SO.
+ *
+ * @param id - Numeric sales order ID.
+ * @returns Updated SO with Cancelled status.
+ */
+export async function cancelSalesOrder(id: number): Promise<SalesOrder> {
+  const response = await apiFetch<SalesOrderApi>(`/api/v1/sales-orders/${id}/cancel`, {
+    method: "PATCH",
+    auth: true,
+  });
+  return mapSalesOrder(response);
+}
+
 
 const PICKER_LIMIT = 100;
 

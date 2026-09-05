@@ -22,6 +22,7 @@ import {
   Pencil,
   Receipt,
   Loader2,
+  XCircle,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -31,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import { PaymentModal } from "@/components/payment-modal";
 import { PoStatusBadge } from "@/features/purchase-orders/po-status-badge";
 import {
+  cancelPurchaseOrder,
   confirmPurchaseOrder,
   fetchPurchaseOrderApi,
   mapPurchaseOrder,
@@ -65,6 +67,7 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [billConfirmOpen, setBillConfirmOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   // ── Server state: load the PO by ID ──────────────────────────────────────
   const poQuery = useQuery({
@@ -92,6 +95,17 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
       void queryClient.invalidateQueries({ queryKey: ["vendor-bill-for-po", poId] });
     },
   });
+
+  // ── Mutation: cancel draft or confirmed PO ─────────────────────────────────
+  const cancelMutation = useMutation({
+    mutationFn: () => cancelPurchaseOrder(poId),
+    onSuccess: () => {
+      setCancelOpen(false);
+      void queryClient.invalidateQueries({ queryKey: ["purchase-order", poId] });
+      void queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+    },
+  });
+
 
   // Query bill details if the PO has transitioned to 'billed'
   const billQuery = useQuery<VendorBillData | null>({
@@ -189,6 +203,17 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
             >
               <CreditCard className="h-4 w-4 mr-1.5" />
               Register Payment
+            </Button>
+          )}
+          {(isDraft || isConfirmed) && (
+            <Button
+              variant="outline"
+              onClick={() => setCancelOpen(true)}
+              disabled={cancelMutation.isPending}
+              className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:border-rose-400 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
+            >
+              <XCircle className="h-4 w-4 mr-1.5" />
+              {cancelMutation.isPending ? "Cancelling…" : "Cancel Order"}
             </Button>
           )}
         </div>
@@ -396,6 +421,16 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
           {createBillMutation.error instanceof Error ? createBillMutation.error.message : "Bill creation failed"}
         </p>
       )}
+
+      <ConfirmDialog
+        open={cancelOpen}
+        title="Cancel purchase order"
+        message={`Cancel ${po.po_number}? This cannot be undone. The order will be marked as Cancelled.`}
+        confirmLabel={cancelMutation.isPending ? "Cancelling…" : "Cancel Order"}
+        onConfirm={() => cancelMutation.mutate()}
+        onCancel={() => setCancelOpen(false)}
+        pending={cancelMutation.isPending}
+      />
     </div>
   );
 }

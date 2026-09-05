@@ -173,7 +173,9 @@ function withTimeout(signal: AbortSignal | null | undefined): {
 } {
   const controller = new AbortController();
   let timedOut = false;
-  const timeoutId = window.setTimeout(() => {
+  // Use globalThis instead of window.* so this function is safe on the server
+  // (Next.js Server Components, API routes) where window is not defined.
+  const timeoutId = globalThis.setTimeout(() => {
     timedOut = true;
     controller.abort();
   }, API_CONSTANTS.REQUEST_TIMEOUT);
@@ -185,7 +187,7 @@ function withTimeout(signal: AbortSignal | null | undefined): {
     signal: controller.signal,
     didTimeout: () => timedOut,
     cleanup: () => {
-      window.clearTimeout(timeoutId);
+      globalThis.clearTimeout(timeoutId);
       signal?.removeEventListener("abort", abortFromCaller);
     },
   };

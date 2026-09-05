@@ -22,12 +22,15 @@ import {
   User,
   Calendar,
   CreditCard,
+  Pencil,
+  XCircle,
 } from "lucide-react";
 
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import {
+  cancelSalesOrder,
   confirmSalesOrder,
   fetchSalesOrderApi,
   mapSalesOrder,
@@ -44,6 +47,7 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   // ── Server query: load SO by ID ───────────────────────────────────────────
   const soQuery = useQuery({
@@ -56,6 +60,16 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
     mutationFn: () => confirmSalesOrder(soId),
     onSuccess: () => {
       setConfirmOpen(false);
+      void queryClient.invalidateQueries({ queryKey: ["sales-order", soId] });
+      void queryClient.invalidateQueries({ queryKey: ["sales-orders"] });
+    },
+  });
+
+  // ── Mutation: cancel draft or confirmed SO ─────────────────────────────
+  const cancelMutation = useMutation({
+    mutationFn: () => cancelSalesOrder(soId),
+    onSuccess: () => {
+      setCancelOpen(false);
       void queryClient.invalidateQueries({ queryKey: ["sales-order", soId] });
       void queryClient.invalidateQueries({ queryKey: ["sales-orders"] });
     },
@@ -97,6 +111,8 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
   const isDraft = statusStr === "draft";
   const isConfirmed = statusStr === "confirmed";
   const isInvoiced = statusStr === "invoiced" || statusStr === "partially billed";
+  const isCancelled = statusStr === "cancelled";
+  const isActive = !isCancelled && statusStr !== "unknown";
 
   return (
     <div className="space-y-6 pb-16">
@@ -160,6 +176,29 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
                 View Customer Invoices
               </Button>
             </Link>
+          )}
+          {/* Draft state -> Edit button */}
+          {isDraft && (
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/sales-orders/${soId}/edit`)}
+              className="gap-1.5"
+            >
+              <Pencil className="h-4 w-4" />
+              Edit
+            </Button>
+          )}
+          {/* Cancel for draft or confirmed */}
+          {isActive && (isDraft || isConfirmed) && (
+            <Button
+              variant="outline"
+              onClick={() => setCancelOpen(true)}
+              disabled={cancelMutation.isPending}
+              className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:border-rose-400 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40 gap-1.5"
+            >
+              <XCircle className="h-4 w-4" />
+              {cancelMutation.isPending ? "Cancelling…" : "Cancel Order"}
+            </Button>
           )}
         </div>
       </div>
@@ -280,6 +319,16 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
         confirmLabel={confirmMutation.isPending ? "Confirming..." : "Confirm Order"}
         onConfirm={() => confirmMutation.mutate()}
         pending={confirmMutation.isPending}
+      />
+
+      <ConfirmDialog
+        open={cancelOpen}
+        onCancel={() => setCancelOpen(false)}
+        title="Cancel Sales Order"
+        message={`Cancel ${so.so_number}? This cannot be undone. The order will be marked as Cancelled.`}
+        confirmLabel={cancelMutation.isPending ? "Cancelling…" : "Cancel Order"}
+        onConfirm={() => cancelMutation.mutate()}
+        pending={cancelMutation.isPending}
       />
     </div>
   );
