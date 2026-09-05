@@ -10,7 +10,16 @@ from app.models.contact import Contact
 from app.schemas.contact import ContactCreate, ContactUpdate
 from app.core.exceptions import NotFoundException, ValidationException
 
+import math
+from sqlalchemy import asc, desc
+
 VALID_TYPES = {"customer", "vendor", "both"}
+CONTACT_SORT_MAP = {
+    "name": Contact.name,
+    "type": Contact.type,
+    "city": Contact.city,
+    "id": Contact.id,
+}
 
 
 def create_contact(db: Session, req: ContactCreate) -> Contact:
@@ -39,8 +48,12 @@ def get_contacts(
     type_filter: Optional[str] = None,
     search: Optional[str] = None,
     is_active: Optional[bool] = None,
-) -> Tuple[List[Contact], int]:
-    """Retrieve contacts with optional type, search, and is_active filters."""
+    page: int = 1,
+    limit: int = 20,
+    sort_by: str = "name",
+    sort_order: str = "asc",
+) -> Tuple[List[Contact], int, int, int, int]:
+    """Retrieve contacts with optional filtering, sorting, and pagination."""
     query = db.query(Contact)
 
     if type_filter:
@@ -64,8 +77,15 @@ def get_contacts(
         query = query.filter(Contact.is_active == is_active)
 
     total = query.count()
-    contacts = query.order_by(Contact.name.asc()).all()
-    return contacts, total
+    sort_col = CONTACT_SORT_MAP.get(sort_by, Contact.name)
+    order_func = desc if sort_order.lower() == "desc" else asc
+    query = query.order_by(order_func(sort_col))
+
+    offset = (page - 1) * limit
+    contacts = query.offset(offset).limit(limit).all()
+    pages = math.ceil(total / limit) if limit > 0 and total > 0 else 1
+    return contacts, total, page, limit, pages
+
 
 
 def get_contact_by_id(db: Session, contact_id: int) -> Contact:

@@ -41,6 +41,9 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Backend
 
+- [x] **P0-BE-05** — Purchase Order model & create/confirm endpoints · Kunal · 5 Sep, 4:05 PM — Evidence: `tests/test_purchase_order.py` PASSED (2/2 lifecycle & validation tests passed, sequential PO-0001 generation, line items, status draft -> confirmed) · Integrated & Verified
+- [x] **P0-BE-02R** — Auth identity and role contract correction · Kunal · 5 Sep, 3:40 PM — Evidence: `tests/test_auth.py` PASSED (5/5 auth tests: login_id 6–12 chars, unique email/login_id, password policy, Invalid Login Id or Password error msg, role rules) · Integrated & Verified
+
 - [x] **P0-BE-04** — Chart of Accounts & Journals seed + endpoints · Kunal · 5 Sep, 1:25 PM — Evidence: `tests/test_accounts_and_journals.py` PASSED (5 account types & 4 journals seeded and fetchable) · Integrated & Verified
 - [x] **P0-BE-03** — Contact & Product models + CRUD endpoints · Kunal · 5 Sep, 12:45 PM — Evidence: `tests/test_contacts.py` & `test_products.py` PASSED · Integrated & Verified
 - [x] **P0-BE-02 (baseline)** — User model + JWT Auth endpoints (email-based register/login/me) · Kunal · 5 Sep, 11:35 AM — Evidence: `tests/test_auth.py` PASSED + live HTTP verified · Baseline only; superseded by Excalidraw auth contract correction below
@@ -65,7 +68,6 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Backend
 
-- [ ] **P0-BE-02R** — Auth identity and role contract correction · Kunal · 45m · Depends: P0-BE-02 (baseline) · Started 2:05 PM — Add unique case-insensitive `login_id` (6–12 chars), enforce unique email, password policy, inactive-user rejection, and canonical roles (`admin`, `invoicing_user`, `contact`); public signup always creates `invoicing_user` · Done when: login accepts `login_id`, invalid credentials return `Invalid Login Id or Password`, Admin-only user creation supports role/contact link, and auth tests cover duplicate login ID/email and all role rules
 - [ ] **P0-BE-05** — Purchase Order model & create/confirm endpoints · Kunal · 45m · Depends: P0-BE-03 · Started 1:25 PM — Contract: `POST/GET /api/v1/purchase-orders`, `PATCH /confirm` · Done when: PO created in draft, confirmed changes status
 
 ### Frontend

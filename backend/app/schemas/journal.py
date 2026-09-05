@@ -29,5 +29,10 @@ class JournalResponse(JournalBase):
 
 
 class JournalListResponse(BaseModel):
+    """Paginated list response envelope."""
     data: List[JournalResponse]
     total: int
+    page: int = 1
+    limit: int = 20
+    pages: int = 1
+

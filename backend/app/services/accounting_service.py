@@ -70,13 +70,35 @@ def seed_accounting_defaults(db: Session) -> None:
         db.commit()
 
 
+import math
+from sqlalchemy import asc, desc
+
+ACCOUNT_SORT_MAP = {
+    "code": Account.code,
+    "name": Account.name,
+    "type": Account.type,
+    "id": Account.id,
+}
+
+JOURNAL_SORT_MAP = {
+    "code": Journal.code,
+    "name": Journal.name,
+    "type": Journal.type,
+    "id": Journal.id,
+}
+
+
 def get_accounts(
     db: Session,
     account_type: Optional[str] = None,
     search: Optional[str] = None,
     is_active: Optional[bool] = None,
-) -> Tuple[List[Account], int]:
-    """Retrieve chart of accounts with optional filtering (auto-seeds defaults if DB is fresh)."""
+    page: int = 1,
+    limit: int = 20,
+    sort_by: str = "code",
+    sort_order: str = "asc",
+) -> Tuple[List[Account], int, int, int, int]:
+    """Retrieve chart of accounts with optional filtering, sorting, and pagination."""
     seed_accounting_defaults(db)
 
     query = db.query(Account)
@@ -89,26 +111,45 @@ def get_accounts(
         query = query.filter(Account.is_active == is_active)
 
     total = query.count()
-    accounts = query.order_by(Account.code.asc()).all()
-    return accounts, total
+    sort_col = ACCOUNT_SORT_MAP.get(sort_by, Account.code)
+    order_func = desc if sort_order.lower() == "desc" else asc
+    query = query.order_by(order_func(sort_col))
+
+    offset = (page - 1) * limit
+    accounts = query.offset(offset).limit(limit).all()
+    pages = math.ceil(total / limit) if limit > 0 and total > 0 else 1
+    return accounts, total, page, limit, pages
 
 
 def get_journals(
     db: Session,
     journal_type: Optional[str] = None,
+    search: Optional[str] = None,
     is_active: Optional[bool] = None,
-) -> Tuple[List[JournalResponse], int]:
-    """Retrieve journals with optional filtering (auto-seeds defaults if DB is fresh)."""
+    page: int = 1,
+    limit: int = 20,
+    sort_by: str = "code",
+    sort_order: str = "asc",
+) -> Tuple[List[JournalResponse], int, int, int, int]:
+    """Retrieve journals with optional filtering, sorting, and pagination."""
     seed_accounting_defaults(db)
 
     query = db.query(Journal)
     if journal_type:
         query = query.filter(Journal.type.ilike(f"%{journal_type}%"))
+    if search:
+        pattern = f"%{search}%"
+        query = query.filter((Journal.name.ilike(pattern)) | (Journal.code.ilike(pattern)))
     if is_active is not None:
         query = query.filter(Journal.is_active == is_active)
 
     total = query.count()
-    journals_raw = query.order_by(Journal.id.asc()).all()
+    sort_col = JOURNAL_SORT_MAP.get(sort_by, Journal.code)
+    order_func = desc if sort_order.lower() == "desc" else asc
+    query = query.order_by(order_func(sort_col))
+
+    offset = (page - 1) * limit
+    journals_raw = query.offset(offset).limit(limit).all()
 
     journals_response = []
     for j in journals_raw:
@@ -117,4 +158,6 @@ def get_journals(
             res.default_account_name = j.default_account.name
         journals_response.append(res)
 
-    return journals_response, total
+    pages = math.ceil(total / limit) if limit > 0 and total > 0 else 1
+    return journals_response, total, page, limit, pages
+
