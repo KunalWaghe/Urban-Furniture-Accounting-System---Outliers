@@ -39,7 +39,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 | ID | Pri | Owner | Task | Est. | Depends on | Contract | Acceptance Condition | Started |
 |---|---|---|---|---:|---|---|---|---|
 | P0-FE-01 | P0 | Sourabh | Next.js setup + Tailwind + shadcn shell | 30m | None | — | App runs, Navbar/Sidebar renders, theme active | — |
-| P0-BE-01 | P0 | Kunal | FastAPI scaffold + PostgreSQL + Base setup | 30m | None | — | Healthcheck endpoint responds 200, DB connects | — |
+| P0-BE-03 | P0 | Kunal | Contact & Product models + CRUD endpoints | 45m | P0-BE-02 | `GET/POST /api/v1/contacts`, `GET/POST /api/v1/products` | GET/POST contacts & products with validation | 11:35 AM |
 
 ---
 
@@ -47,12 +47,9 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 | Order | ID | Pri | Owner | Task | Est. | Depends on | Acceptance Condition |
 |---:|---|---|---|---|---:|---|---|
-| 1 | P0-BE-02 | P0 | Kunal | User model + JWT auth endpoints | 45m | P0-BE-01 | Register/login returns valid JWT with role claim |
-| 2 | P0-FE-02 | P0 | Sourabh | Login/Register UI + Auth Context + API client | 45m | P0-FE-01 | Form submits credentials, saves token, handles 401/422 |
-| 3 | P0-INT-01 | P0 | Both | Integrate Auth handshake | 15m | P0-BE-02, P0-FE-02 | User logs in from FE, navigates to dashboard |
-| 4 | P0-BE-03 | P0 | Kunal | Contact & Product models + CRUD endpoints | 45m | P0-BE-02 | GET/POST contacts & products with validation |
-| 5 | P0-FE-03 | P0 | Sourabh | Contact & Product list + modal forms | 45m | P0-FE-02 | Create & list contacts/products against mock or live API |
-| 6 | P0-BE-04 | P0 | Kunal | Chart of Accounts & Journals seed + endpoints | 30m | P0-BE-01 | 5 account types & 4 journals seeded and fetchable |
+| 1 | P0-FE-02 | P0 | Sourabh | Login/Register UI + Auth Context + API client | 45m | P0-FE-01 | Form submits credentials, saves token, handles 401/422 |
+| 2 | P0-INT-01 | P0 | Both | Integrate Auth handshake | 15m | P0-BE-02, P0-FE-02 | User logs in from FE, navigates to dashboard |
+| 3 | P0-BE-04 | P0 | Kunal | Chart of Accounts & Journals seed + endpoints | 30m | P0-BE-01 | 5 account types & 4 journals seeded and fetchable |
 
 ---
 
@@ -130,6 +127,8 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 | 5 Sep, 10:00 AM | A-01 | Both | Evaluated 3 problem statements; selected Urban Furniture (85% feasibility) | `docs/PROBLEM_SELECTION.md` | Decision artifact |
 | 5 Sep, 10:05 AM | A-02 | Both | Completed full Analysis-Hour deliverable & API Contract | `brain/.../analysis_hour_deliverable.md` | Architecture locked |
 | 5 Sep, 10:20 AM | A-03 | Both | Locked atomic task board with P0/P1/Bonus splits | `docs/TASK_BOARD.md` | Task board locked |
+| 5 Sep, 11:25 AM | P0-BE-01 | Kunal | FastAPI scaffold + PostgreSQL setup | `GET /health` returns 200 `connected` | Integrated & Verified |
+| 5 Sep, 11:35 AM | P0-BE-02 | Kunal | User model + JWT Auth endpoints (register/login/me) | `tests/test_auth.py` PASSED + Live HTTP verified | Integrated & Verified |
 
 ---
 
