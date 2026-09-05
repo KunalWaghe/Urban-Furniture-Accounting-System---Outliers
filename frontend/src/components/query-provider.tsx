@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useRef, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -20,15 +20,10 @@ function makeQueryClient() {
 }
 
 export function QueryProvider({ children }: { children: ReactNode }) {
-  // Stable client across renders without escaping to module scope so that
-  // server components get a fresh instance per request.
-  const clientRef = useRef<QueryClient | null>(null);
-  if (clientRef.current === null) {
-    clientRef.current = makeQueryClient();
-  }
+  const [queryClient] = useState(() => makeQueryClient());
 
   return (
-    <QueryClientProvider client={clientRef.current}>
+    <QueryClientProvider client={queryClient}>
       {children}
     </QueryClientProvider>
   );

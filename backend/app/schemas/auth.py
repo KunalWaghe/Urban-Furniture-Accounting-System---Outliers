@@ -8,12 +8,12 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class RegisterRequest(BaseModel):
-    """Schema for user registration / Create User request."""
+    """Schema for public user registration (creates user/contact role)."""
     login_id: str = Field(..., min_length=6, max_length=12, description="Unique login ID (6 to 12 characters)")
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., description="Password (> 8 chars, 1 uppercase, 1 lowercase, 1 special char)")
     name: Optional[str] = Field(default=None, description="User full name (defaults to login_id if not provided)")
-    role: Optional[str] = Field(default="contact", description="Role for public registration (defaults to user/contact, admin not allowed)")
+    role: Optional[str] = Field(default="contact", description="Public signup role (defaults to user/contact, admin not allowed)")
     contact_id: Optional[int] = Field(default=None, description="Optional contact ID link for portal user role")
 
     @field_validator("role")
@@ -48,7 +48,7 @@ class RegisterRequest(BaseModel):
 
 
 class AdminUserCreateRequest(BaseModel):
-    """Schema for Admin-created user with role selection."""
+    """Schema for Admin-created user with role selection (Admin only)."""
     login_id: str = Field(..., min_length=6, max_length=12, description="Unique login ID (6 to 12 characters)")
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., description="Password (> 8 chars, 1 uppercase, 1 lowercase, 1 special char)")
