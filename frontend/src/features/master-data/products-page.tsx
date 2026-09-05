@@ -21,7 +21,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit3, Grid2X2, ImagePlus, List, Package, Plus, Tag, Trash2, X } from "lucide-react";
+import { Edit3, Grid2X2, ImagePlus, List, Package, Plus, RotateCcw, Tag, Trash2, X } from "lucide-react";
 
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable, type DataTableColumn } from "@/components/data-table";
@@ -34,6 +34,7 @@ import {
   createProduct,
   deleteProduct,
   fetchProductsPage,
+  reactivateProduct,
   updateProduct,
   type ProductInput,
 } from "./master-data-api";
@@ -66,6 +67,7 @@ export function ProductsPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [productTypeFilter, setProductTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
@@ -81,7 +83,7 @@ export function ProductsPage() {
     queryKey: [
       "products-paged",
       view,
-      { page, search, categoryFilter, productTypeFilter, sortBy, sortOrder },
+      { page, search, categoryFilter, productTypeFilter, statusFilter, sortBy, sortOrder },
     ],
     queryFn: () =>
       fetchProductsPage({
@@ -92,6 +94,8 @@ export function ProductsPage() {
         search: search.trim() || undefined,
         category: categoryFilter !== "all" ? categoryFilter : undefined,
         product_type: productTypeFilter !== "all" ? productTypeFilter : undefined,
+        is_active:
+          statusFilter === "active" ? true : statusFilter === "inactive" ? false : undefined,
         sort_by: sortBy,
         sort_order: sortOrder,
       }),
@@ -142,6 +146,16 @@ export function ProductsPage() {
       await queryClient.invalidateQueries({ queryKey: ["products-all-categories"] });
       setDeletingProduct(null);
     },
+  });
+
+  const reactivateMutation = useMutation({
+    mutationFn: (id: number) => reactivateProduct(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+      await queryClient.invalidateQueries({ queryKey: ["products-paged"] });
+      await queryClient.invalidateQueries({ queryKey: ["products-all-categories"] });
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : "Could not reactivate product."),
   });
 
   // Moving a Kanban card changes its product category and persists through the
@@ -271,6 +285,15 @@ export function ProductsPage() {
       ),
     },
     {
+      key: "is_active",
+      label: "Status",
+      render: (product) => (
+        <Badge variant={product.is_active ? "default" : "secondary"}>
+          {product.is_active ? "Active" : "Inactive"}
+        </Badge>
+      ),
+    },
+    {
       key: "actions",
       label: "",
       render: (product) => (
@@ -279,7 +302,7 @@ export function ProductsPage() {
             <Edit3 className="h-3.5 w-3.5" />
             Edit
           </Button>
-          {product.is_active && (
+          {product.is_active ? (
             <Button
               type="button"
               variant="ghost"
@@ -288,6 +311,18 @@ export function ProductsPage() {
               className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
             >
               <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => reactivateMutation.mutate(product.id)}
+              disabled={reactivateMutation.isPending}
+              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              Reactivate
             </Button>
           )}
         </div>
@@ -385,6 +420,19 @@ export function ProductsPage() {
                 <option value="service">Service</option>
                 <option value="combo">Combo</option>
               </select>
+              <select
+                value={statusFilter}
+                onChange={(event) => {
+                  setStatusFilter(event.target.value as "all" | "active" | "inactive");
+                  setPage(1);
+                }}
+                className="rounded-lg border border-border bg-surface py-2 px-3 text-xs text-text outline-none focus:border-primary-500"
+                aria-label="Filter products by status"
+              >
+                <option value="all">All statuses</option>
+                <option value="active">Active only</option>
+                <option value="inactive">Inactive only</option>
+              </select>
               <div className="flex rounded-lg border border-border bg-surface-muted p-1">
                 <button
                   type="button"
@@ -441,6 +489,8 @@ export function ProductsPage() {
               products={products}
               onEdit={openEdit}
               onDelete={(p) => setDeletingProduct(p)}
+              onReactivate={(p) => reactivateMutation.mutate(p.id)}
+              reactivating={reactivateMutation.isPending}
               onMove={(product, category) => moveMutation.mutate({ productId: product.id, category })}
               search={search}
               onSearch={(val) => {

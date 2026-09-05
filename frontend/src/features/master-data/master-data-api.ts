@@ -44,6 +44,7 @@ export interface ProductInput {
   tax_percent: number;
   description?: string;
   image_url?: string | null;
+  is_active?: boolean;
 }
 
 /** Optional filters and pagination for the contacts list endpoint. */
@@ -215,6 +216,11 @@ export async function deleteProduct(id: number): Promise<void> {
     method: "DELETE",
     auth: true,
   });
+}
+
+/** Restore a deactivated product by setting is_active=true. */
+export async function reactivateProduct(id: number): Promise<Product> {
+  return updateProduct(id, { is_active: true });
 }
 
 /** Optional filters and pagination for the accounts (chart of accounts) list endpoint. */

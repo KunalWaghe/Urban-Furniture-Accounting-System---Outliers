@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit3, Trash2 } from "lucide-react";
+import { Edit3, RotateCcw, Trash2 } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ export interface ProductKanbanProps {
   products: Product[];
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  onReactivate: (product: Product) => void;
+  reactivating?: boolean;
   onMove: (product: Product, category: string | null) => void;
   search: string;
   onSearch: (value: string) => void;
@@ -42,6 +44,8 @@ export function ProductKanban({
   products,
   onEdit,
   onDelete,
+  onReactivate,
+  reactivating = false,
   onMove,
   search,
   onSearch,
@@ -199,9 +203,10 @@ export function ProductKanban({
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-semibold text-text">{product.name}</p>
-                            <Badge variant="secondary" className="mt-2">
-                              {productTypeLabel(product.product_type)}
-                            </Badge>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              <Badge variant="secondary">{productTypeLabel(product.product_type)}</Badge>
+                              {!product.is_active && <Badge variant="outline">Inactive</Badge>}
+                            </div>
                           </div>
                         </div>
 
@@ -234,7 +239,7 @@ export function ProductKanban({
                         >
                           <Edit3 className="h-3.5 w-3.5" />
                         </button>
-                        {product.is_active && (
+                        {product.is_active ? (
                           <button
                             type="button"
                             onClick={() => onDelete(product)}
@@ -242,6 +247,16 @@ export function ProductKanban({
                             title="Deactivate product"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => onReactivate(product)}
+                            disabled={reactivating}
+                            className="p-1 text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+                            title="Reactivate product"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
                           </button>
                         )}
                       </div>
