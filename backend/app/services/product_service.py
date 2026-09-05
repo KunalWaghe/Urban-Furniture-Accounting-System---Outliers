@@ -11,6 +11,11 @@ from app.schemas.product import ProductCreate, ProductUpdate
 from app.core.exceptions import NotFoundException
 
 
+def _escape_like(s: str) -> str:
+    """Escape LIKE wildcard characters to prevent search manipulation."""
+    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 def create_product(db: Session, req: ProductCreate) -> Product:
     """Create a new product."""
     product = Product(
@@ -38,7 +43,7 @@ def get_products(
     query = db.query(Product)
 
     if search:
-        search_term = f"%{search}%"
+        search_term = f"%{_escape_like(search)}%"
         query = query.filter(
             or_(
                 Product.name.ilike(search_term),
@@ -67,10 +72,9 @@ def update_product(db: Session, product_id: int, req: ProductUpdate) -> Product:
     """Update an existing product."""
     product = get_product_by_id(db, product_id)
 
-    for field in ["name", "product_type", "category", "price", "cost", "tax_percent", "description", "is_active"]:
-        val = getattr(req, field)
-        if val is not None:
-            setattr(product, field, val)
+    update_data = req.model_dump(exclude_unset=True)
+    for field, val in update_data.items():
+        setattr(product, field, val)
 
     db.commit()
     db.refresh(product)

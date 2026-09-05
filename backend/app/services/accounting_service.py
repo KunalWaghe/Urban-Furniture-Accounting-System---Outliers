@@ -29,6 +29,14 @@ DEFAULT_JOURNALS_CONFIG = [
     {"code": "CSH", "name": "Cash Journal", "type": "cash", "account_code": "1010"},
 ]
 
+# Module-level flag to avoid re-seeding on every GET request
+_seeded = False
+
+
+def _escape_like(s: str) -> str:
+    """Escape LIKE wildcard characters to prevent search manipulation."""
+    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
 
 def seed_accounting_defaults(db: Session) -> None:
     """Ensure default Chart of Accounts and Journals are present in the database."""
@@ -70,6 +78,15 @@ def seed_accounting_defaults(db: Session) -> None:
         db.commit()
 
 
+def _ensure_seeded(db: Session) -> None:
+    """Seed defaults only once per process lifetime."""
+    global _seeded
+    if _seeded:
+        return
+    seed_accounting_defaults(db)
+    _seeded = True
+
+
 def get_accounts(
     db: Session,
     account_type: Optional[str] = None,
@@ -77,13 +94,13 @@ def get_accounts(
     is_active: Optional[bool] = None,
 ) -> Tuple[List[Account], int]:
     """Retrieve chart of accounts with optional filtering (auto-seeds defaults if DB is fresh)."""
-    seed_accounting_defaults(db)
+    _ensure_seeded(db)
 
     query = db.query(Account)
     if account_type:
-        query = query.filter(Account.type.ilike(f"%{account_type}%"))
+        query = query.filter(Account.type.ilike(f"%{_escape_like(account_type)}%"))
     if search:
-        pattern = f"%{search}%"
+        pattern = f"%{_escape_like(search)}%"
         query = query.filter((Account.name.ilike(pattern)) | (Account.code.ilike(pattern)))
     if is_active is not None:
         query = query.filter(Account.is_active == is_active)
@@ -99,7 +116,7 @@ def get_journals(
     is_active: Optional[bool] = None,
 ) -> Tuple[List[JournalResponse], int]:
     """Retrieve journals with optional filtering (auto-seeds defaults if DB is fresh)."""
-    seed_accounting_defaults(db)
+    _ensure_seeded(db)
 
     query = db.query(Journal)
     if journal_type:

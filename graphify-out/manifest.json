@@ -35,24 +35,24 @@
     "semantic_hash": "9b77af189a21a7a64e4bd7a426f64176"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/app/layout.tsx": {
-    "mtime": 1788603106.783773,
+    "mtime": 1788605059.6836092,
     "ast_hash": "3238e1a7e028ac63d5d709d4c0511f8c",
     "semantic_hash": "3238e1a7e028ac63d5d709d4c0511f8c"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/app/(app)/layout.tsx": {
-    "mtime": 1788602499.3071153,
+    "mtime": 1788605059.6818728,
     "ast_hash": "821feccf6fd0a560f08d6c697392fb1c",
     "semantic_hash": "821feccf6fd0a560f08d6c697392fb1c"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/app/(app)/page.tsx": {
-    "mtime": 1788604574.0517778,
-    "ast_hash": "9a4165abab3f59563f2c648192e649d9",
-    "semantic_hash": ""
+    "mtime": 1788605059.6833882,
+    "ast_hash": "7151dd5ad71b24580d635897a0b1d673",
+    "semantic_hash": "7151dd5ad71b24580d635897a0b1d673"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/app/(app)/admin/users/page.tsx": {
-    "mtime": 1788603964.1325538,
+    "mtime": 1788605059.6816826,
     "ast_hash": "5c34f4bbe301872febadfb8c9c5b77a9",
-    "semantic_hash": ""
+    "semantic_hash": "5c34f4bbe301872febadfb8c9c5b77a9"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/app/(auth)/layout.tsx": {
     "mtime": 1788599156.7332807,
@@ -70,14 +70,14 @@
     "semantic_hash": "37c25857d562b51231c0f2e1d9e8011f"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/features/auth/validation.ts": {
-    "mtime": 1788601024.6958315,
-    "ast_hash": "42e7a0ca6c0ec122020043b2f68e7b08",
-    "semantic_hash": "42e7a0ca6c0ec122020043b2f68e7b08"
+    "mtime": 1788605940.3572922,
+    "ast_hash": "7fe0173935470c02be6a169e2b1e5501",
+    "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/features/auth/auth-context.tsx": {
-    "mtime": 1788603587.3694208,
+    "mtime": 1788605059.685229,
     "ast_hash": "035aec2e7bad68c61f4604a4b42a52e1",
-    "semantic_hash": ""
+    "semantic_hash": "035aec2e7bad68c61f4604a4b42a52e1"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/features/auth/api.ts": {
     "mtime": 1788599156.734817,
@@ -110,27 +110,27 @@
     "semantic_hash": "eea1dfc5467499505628d0828b64aff7"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/features/auth/components/signup-form.tsx": {
-    "mtime": 1788602459.5820959,
+    "mtime": 1788605059.6854062,
     "ast_hash": "a92589ca604c546906da5b32534a9ccc",
     "semantic_hash": "a92589ca604c546906da5b32534a9ccc"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/features/auth/hooks/use-login-form.ts": {
-    "mtime": 1788599156.737082,
-    "ast_hash": "e1bf6eb54147d1479f733c9ef37f6189",
-    "semantic_hash": "e1bf6eb54147d1479f733c9ef37f6189"
+    "mtime": 1788606095.8509378,
+    "ast_hash": "524d98494aca2e16d4860f17eae28552",
+    "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/features/auth/hooks/use-signup-form.ts": {
-    "mtime": 1788603491.4663806,
+    "mtime": 1788605059.6857202,
     "ast_hash": "b44bf958d58513563e9a21182dec4c00",
     "semantic_hash": "b44bf958d58513563e9a21182dec4c00"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/features/dashboard/dashboard-api.ts": {
-    "mtime": 1788603256.8440242,
+    "mtime": 1788605059.6862142,
     "ast_hash": "4a0cdf33f6a866f91d1ebeaeb4e6e01c",
     "semantic_hash": "4a0cdf33f6a866f91d1ebeaeb4e6e01c"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/components/theme-provider.tsx": {
-    "mtime": 1788603098.714432,
+    "mtime": 1788605059.685018,
     "ast_hash": "99a6dd3d9790778490f03159b3a9c521",
     "semantic_hash": "99a6dd3d9790778490f03159b3a9c521"
   },
@@ -150,14 +150,14 @@
     "semantic_hash": "eabf292db222f3378a9c976d240f165e"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/components/site-sidebar.tsx": {
-    "mtime": 1788600352.9200752,
+    "mtime": 1788605059.6848307,
     "ast_hash": "2bc3ae441ecb02e58b6e87405c882789",
     "semantic_hash": "2bc3ae441ecb02e58b6e87405c882789"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/components/require-auth.tsx": {
-    "mtime": 1788603560.033516,
+    "mtime": 1788605059.6842325,
     "ast_hash": "bd238d68d0e635d969cce9fb73076934",
-    "semantic_hash": ""
+    "semantic_hash": "bd238d68d0e635d969cce9fb73076934"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/components/empty-state.tsx": {
     "mtime": 1788586947.451969,
@@ -165,9 +165,9 @@
     "semantic_hash": "94f92714873605ca07a1ea8ef2f2084f"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/components/site-header.tsx": {
-    "mtime": 1788604523.8279479,
-    "ast_hash": "daab5b10be1c6a686dbe2e88c1608970",
-    "semantic_hash": ""
+    "mtime": 1788605059.6846275,
+    "ast_hash": "6bb6356826f17da9b4fd89dbfb38ba7a",
+    "semantic_hash": "6bb6356826f17da9b4fd89dbfb38ba7a"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/components/site-footer.tsx": {
     "mtime": 1788586937.4581823,
@@ -180,9 +180,9 @@
     "semantic_hash": "83ac70d87dbf5c458cc709cce708ec08"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/components/require-role.tsx": {
-    "mtime": 1788603578.2030468,
+    "mtime": 1788605059.6843884,
     "ast_hash": "7611e3b1b3f326bdb299e447cec8ee8a",
-    "semantic_hash": ""
+    "semantic_hash": "7611e3b1b3f326bdb299e447cec8ee8a"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/components/status-badge.tsx": {
     "mtime": 1788586946.000043,
@@ -195,14 +195,14 @@
     "semantic_hash": "46e9fbd92707ef2597da8b8e44ace867"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/components/query-provider.tsx": {
-    "mtime": 1788600394.7422855,
+    "mtime": 1788605059.683824,
     "ast_hash": "2b0db1ae4769656053a0dafe89c9d535",
     "semantic_hash": "2b0db1ae4769656053a0dafe89c9d535"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/components/redirect-if-auth.tsx": {
-    "mtime": 1788603568.9752476,
+    "mtime": 1788605059.6840339,
     "ast_hash": "bcb5b986577e8c15c79d404dc16bfd07",
-    "semantic_hash": ""
+    "semantic_hash": "bcb5b986577e8c15c79d404dc16bfd07"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/components/ui/card.tsx": {
     "mtime": 1788586480.0430956,
@@ -245,12 +245,12 @@
     "semantic_hash": "f63dbc8b62628ef264e0a50b9d3ff0c8"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/lib/types.ts": {
-    "mtime": 1788603242.8350487,
-    "ast_hash": "4030e1a5e48d0e10821eabcad9716a85",
-    "semantic_hash": "4030e1a5e48d0e10821eabcad9716a85"
+    "mtime": 1788605949.7609456,
+    "ast_hash": "f736dc6ff9da12ee34f8fe25fbbc69d8",
+    "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/seed.py": {
-    "mtime": 1788603168.224205,
+    "mtime": 1788605059.6800234,
     "ast_hash": "b90b04c695cf97291f7814db1b19aa13",
     "semantic_hash": "b90b04c695cf97291f7814db1b19aa13"
   },
@@ -260,22 +260,22 @@
     "semantic_hash": "7973bd73099a13507a8d7a794443f50f"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/main.py": {
-    "mtime": 1788603422.5998363,
-    "ast_hash": "943ad40c6e59a589689d57f474406165",
-    "semantic_hash": "943ad40c6e59a589689d57f474406165"
+    "mtime": 1788605886.5784898,
+    "ast_hash": "0f480667f56884075e7e2069fcb9fd6d",
+    "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/routers/auth.py": {
-    "mtime": 1788604172.3095515,
-    "ast_hash": "c791f6ed3d59a773299584aedbef6935",
+    "mtime": 1788606108.6500857,
+    "ast_hash": "08931af62fc6b4dfa89945d2698a28e4",
     "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/routers/contacts.py": {
-    "mtime": 1788593931.168463,
-    "ast_hash": "7b2147cda9a81fd08a00b4485e02b3d8",
-    "semantic_hash": "7b2147cda9a81fd08a00b4485e02b3d8"
+    "mtime": 1788605997.1658049,
+    "ast_hash": "b9b2e3c322d1734641129845b2076463",
+    "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/routers/users.py": {
-    "mtime": 1788603406.036567,
+    "mtime": 1788605271.9793565,
     "ast_hash": "9107e45b2bf92c8774c319a53cd175c8",
     "semantic_hash": "9107e45b2bf92c8774c319a53cd175c8"
   },
@@ -285,14 +285,14 @@
     "semantic_hash": "0f4a0d6bea388f462d19361a58fd2d64"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/routers/__init__.py": {
-    "mtime": 1788603412.2747252,
-    "ast_hash": "abdf24ebfa035c2fc9e9036a5c60400d",
-    "semantic_hash": "abdf24ebfa035c2fc9e9036a5c60400d"
+    "mtime": 1788605059.6791368,
+    "ast_hash": "93458a2b0bdfd9e2e5a5f5630b87c671",
+    "semantic_hash": "93458a2b0bdfd9e2e5a5f5630b87c671"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/routers/products.py": {
-    "mtime": 1788593931.168584,
-    "ast_hash": "13433eadc86668dd3794486c3280cc24",
-    "semantic_hash": "13433eadc86668dd3794486c3280cc24"
+    "mtime": 1788606012.8214245,
+    "ast_hash": "2fcebd8fe79e575661b8e83e9f8852e9",
+    "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/routers/journals.py": {
     "mtime": 1788599152.3641741,
@@ -305,9 +305,9 @@
     "semantic_hash": "a7150c4641483f773669e2f39cf33fd7"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/core/config.py": {
-    "mtime": 1788588656.2710276,
-    "ast_hash": "44edc754f7afb3da5405a1435c8ae53f",
-    "semantic_hash": "44edc754f7afb3da5405a1435c8ae53f"
+    "mtime": 1788606084.500554,
+    "ast_hash": "56db64405443da26ea37045357cb66b3",
+    "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/core/database.py": {
     "mtime": 1788588656.2711806,
@@ -360,9 +360,9 @@
     "semantic_hash": "d80a528f20a592c38ca478dc24e7cc4b"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/schemas/auth.py": {
-    "mtime": 1788603323.93345,
-    "ast_hash": "8a3876afa3fa1b2b2e231f1e76b2e848",
-    "semantic_hash": "8a3876afa3fa1b2b2e231f1e76b2e848"
+    "mtime": 1788605928.2117753,
+    "ast_hash": "08f26691226ba051b2f52b468ba77ed0",
+    "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/schemas/journal.py": {
     "mtime": 1788599152.3648536,
@@ -390,8 +390,8 @@
     "semantic_hash": "198be13c61d59ff1c4f155ee508bbe8e"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/services/auth_service.py": {
-    "mtime": 1788604139.7644641,
-    "ast_hash": "d620c66003a98c4d0b02c73fa4ad9a08",
+    "mtime": 1788605977.8801126,
+    "ast_hash": "d2a954160057019bde3deea1ff846685",
     "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/services/__init__.py": {
@@ -400,19 +400,19 @@
     "semantic_hash": "f10657770503a05932fa71646a383622"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/services/accounting_service.py": {
-    "mtime": 1788599152.365316,
-    "ast_hash": "0161d4a0a40ee3357170a6da61c927bd",
-    "semantic_hash": "0161d4a0a40ee3357170a6da61c927bd"
+    "mtime": 1788606037.069668,
+    "ast_hash": "01fe43487c83c5b85bd2488af269447f",
+    "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/services/contact_service.py": {
-    "mtime": 1788593931.1691363,
-    "ast_hash": "7128bf37ee43084862253d9b9471bf49",
-    "semantic_hash": "7128bf37ee43084862253d9b9471bf49"
+    "mtime": 1788606053.117547,
+    "ast_hash": "b2258f7a013aab7c23ae68e18d90e091",
+    "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/app/services/product_service.py": {
-    "mtime": 1788599152.3658803,
-    "ast_hash": "77acc56be4139a073765b59b4b6c91ee",
-    "semantic_hash": "77acc56be4139a073765b59b4b6c91ee"
+    "mtime": 1788606066.1059566,
+    "ast_hash": "ab535d8fb8d8a8280db90d59f0bee25f",
+    "semantic_hash": ""
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/tests/test_accounts_and_journals.py": {
     "mtime": 1788599152.3662314,
@@ -425,9 +425,9 @@
     "semantic_hash": "7e4b348a1c6e233799440e811657391e"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/tests/test_auth.py": {
-    "mtime": 1788604204.8456826,
-    "ast_hash": "533cb74ff146e42f286ffe0b72629ca0",
-    "semantic_hash": ""
+    "mtime": 1788605231.8273957,
+    "ast_hash": "3fb871cc16c5c048a7f27e7ed7f9bbc6",
+    "semantic_hash": "3fb871cc16c5c048a7f27e7ed7f9bbc6"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/backend/tests/test_contacts.py": {
     "mtime": 1788593931.1697052,
@@ -475,12 +475,12 @@
     "semantic_hash": "bcd9cb7cbc55e529a741fd45afea1476"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/docs/TASK_BOARD.md": {
-    "mtime": 1788604244.6308262,
+    "mtime": 1788605059.6814106,
     "ast_hash": "0960b2c9fe6bd6f847278d944fdaf669",
-    "semantic_hash": ""
+    "semantic_hash": "0960b2c9fe6bd6f847278d944fdaf669"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/docs/API_CONTRACT.md": {
-    "mtime": 1788599652.7547157,
+    "mtime": 1788605059.6806233,
     "ast_hash": "86e5cc6b0bd8961a0e9ce03ec9c0b003",
     "semantic_hash": "86e5cc6b0bd8961a0e9ce03ec9c0b003"
   },
@@ -555,18 +555,18 @@
     "semantic_hash": "a2760511c65806022ad20adf74370ff3"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/frontend/src/hooks/use-mounted.ts": {
-    "mtime": 1788603550.0755095,
+    "mtime": 1788605059.686862,
     "ast_hash": "7a7de540f561cda860495ac15cc3252f",
-    "semantic_hash": ""
+    "semantic_hash": "7a7de540f561cda860495ac15cc3252f"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/.agents/workflows/graphify.md": {
-    "mtime": 1788603433.9797952,
+    "mtime": 1788605059.678739,
     "ast_hash": "0bc020d491fca99550c1ea3de0a5f862",
-    "semantic_hash": ""
+    "semantic_hash": "0bc020d491fca99550c1ea3de0a5f862"
   },
   "/Users/noobieboobie/Documents/Docs/Urban-Furniture-Accounting-System---Outliers/.agents/rules/graphify.md": {
-    "mtime": 1788603433.979637,
+    "mtime": 1788605059.6785035,
     "ast_hash": "f1e53ecc9194573d3c28fc116c743a2e",
-    "semantic_hash": ""
+    "semantic_hash": "f1e53ecc9194573d3c28fc116c743a2e"
   }
 }

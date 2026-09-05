@@ -8,6 +8,7 @@ from app.models.user import User
 from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, AdminUserCreateRequest
 from app.core.security import hash_password, verify_password, create_access_token
 from app.core.exceptions import ConflictException, UnauthorizedException, ValidationException, ForbiddenException
+from app.models.contact import Contact
 
 
 ROLE_MAP = {
@@ -28,8 +29,12 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
         if check_role in ("admin", "administrator"):
             raise ForbiddenException(message="Registration with admin role is forbidden", code="ROLE_NOT_ALLOWED")
 
-    # Public registration strictly creates standard accountant role (invoicing_user)
-    assigned_role = "invoicing_user"
+    # Map the requested role through ROLE_MAP, defaulting to "invoicing_user"
+    raw_role = req.role.strip().lower() if req.role else "invoicing_user"
+    assigned_role = ROLE_MAP.get(raw_role, "invoicing_user")
+    # Double-check no admin escalation after mapping
+    if assigned_role == "admin":
+        raise ForbiddenException(message="Registration with admin role is forbidden", code="ROLE_NOT_ALLOWED")
 
     # 1. Check if Login ID is already taken
     existing_login = db.query(User).filter(User.login_id == req.login_id).first()
@@ -41,7 +46,13 @@ def register_user(db: Session, req: RegisterRequest) -> AuthResponse:
     if existing_email:
         raise ConflictException(code="EMAIL_ALREADY_EXISTS", message=f"User with email '{req.email}' already exists")
 
-    # 3. Create user record - strictly as user (contact role)
+    # 3. Validate contact_id if provided
+    if req.contact_id is not None:
+        contact = db.query(Contact).filter(Contact.id == req.contact_id).first()
+        if not contact:
+            raise ValidationException(f"Contact with id {req.contact_id} does not exist")
+
+    # 4. Create user record
     name = req.name if req.name and req.name.strip() else req.login_id
     hashed_pw = hash_password(req.password)
     user = User(
@@ -107,7 +118,13 @@ def admin_create_user(db: Session, req: AdminUserCreateRequest) -> User:
             message=f"User with email '{req.email}' already exists",
         )
 
-    # 3. Create user record
+    # 3. Validate contact_id if provided
+    if req.contact_id is not None:
+        contact = db.query(Contact).filter(Contact.id == req.contact_id).first()
+        if not contact:
+            raise ValidationException(f"Contact with id {req.contact_id} does not exist")
+
+    # 4. Create user record
     name = req.name.strip() if req.name and req.name.strip() else req.login_id
     hashed_pw = hash_password(req.password)
     user = User(

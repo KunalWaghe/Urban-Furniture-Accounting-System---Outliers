@@ -5,6 +5,7 @@ Uses Pydantic BaseSettings to read from .env file and environment variables.
 All settings are validated at import time — the app fails fast if config is missing.
 """
 
+import warnings
 from pydantic_settings import BaseSettings
 from typing import List
 
@@ -27,7 +28,7 @@ class Settings(BaseSettings):
 
     # App
     APP_NAME: str = "Urban Furniture Accounting System"
-    DEBUG: bool = True
+    DEBUG: bool = False
 
     model_config = {
         "env_file": ".env",
@@ -38,3 +39,11 @@ class Settings(BaseSettings):
 
 # Singleton instance — import this everywhere
 settings = Settings()
+
+# Warn at startup if using the default insecure secret key
+if settings.SECRET_KEY == "change-me-to-a-random-secret-key":
+    warnings.warn(
+        "⚠️  Using default SECRET_KEY — JWTs can be forged! Set a real secret in .env",
+        stacklevel=1,
+    )
+

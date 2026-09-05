@@ -31,6 +31,7 @@ export interface RegisterRequest {
   password: string;
   name: string;
   role?: string;
+  contact_id?: number | null;
 }
 
 export interface ApiErrorEnvelope {

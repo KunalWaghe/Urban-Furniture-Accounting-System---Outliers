@@ -86,6 +86,15 @@ export function useLoginForm() {
           document.getElementById("password")?.focus();
           return;
         }
+
+        if (error.status === 403) {
+          setNotice({
+            kind: "error",
+            title: "Account Inactive",
+            message: error.message || "Your account has been deactivated. Contact an administrator.",
+          });
+          return;
+        }
       }
 
       setNotice({

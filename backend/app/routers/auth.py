@@ -45,5 +45,9 @@ def get_me(current_user: User = Depends(get_current_user)):
 def logout(current_user: User = Depends(get_current_user)):
     """
     Log out the current authenticated user and invalidate session.
+
+    NOTE: Currently relies on frontend clearing the stored token.
+    The JWT itself remains valid until expiry (hackathon scope).
+    For production, implement a server-side token denylist (Redis/DB).
     """
     return {"message": "Successfully logged out"}

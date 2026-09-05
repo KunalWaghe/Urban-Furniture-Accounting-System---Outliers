@@ -30,7 +30,6 @@ from app.routers import (
     product_router,
     account_router,
     journal_router,
-    user_router,
 )
 
 
@@ -51,7 +50,7 @@ async def lifespan(app: FastAPI):
             conn.execute(text("ALTER TABLE journals ADD COLUMN IF NOT EXISTS default_account_id INTEGER REFERENCES accounts(id)"))
             conn.commit()
         Base.metadata.create_all(bind=engine)
-        print(f"[OK] Database connected & models synchronized: {settings.DATABASE_URL.split('@')[1]}")
+        print("[OK] Database connected & models synchronized")
     except Exception as e:
         print(f"[ERROR] Database connection failed: {e}")
         raise
@@ -125,4 +124,3 @@ app.include_router(contact_router, prefix="/api/v1/contacts", tags=["Contacts"])
 app.include_router(product_router, prefix="/api/v1/products", tags=["Products"])
 app.include_router(account_router, prefix="/api/v1/accounts", tags=["Chart of Accounts"])
 app.include_router(journal_router, prefix="/api/v1/journals", tags=["Journals"])
-app.include_router(user_router, prefix="/api/v1/users", tags=["Users"])
