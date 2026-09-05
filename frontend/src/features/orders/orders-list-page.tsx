@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  ArrowDown,
   ArrowLeft,
+  ArrowUp,
+  ArrowUpDown,
   CalendarDays,
   CheckCircle2,
   Clock3,
@@ -74,29 +77,37 @@ export function OrdersListPage({ kind }: OrdersListPageProps) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
+  // ── Sorting state for purchase orders (backend-supported) ───────────────
+  const [poSortBy, setPoSortBy] = useState("created_at");
+  const [poSortOrder, setPoSortOrder] = useState<"asc" | "desc">("desc");
+
   // ── Pagination state ─────────────────────────────────────────────────────
   const [salesPage, setSalesPage] = useState(1);
   const [purchasePage, setPurchasePage] = useState(1);
 
-  // Reset to page 1 whenever filters change
-  useEffect(() => {
-    setSalesPage(1);
+  function handlePoSort(field: string) {
+    if (poSortBy === field) {
+      setPoSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setPoSortBy(field);
+      setPoSortOrder("asc");
+    }
     setPurchasePage(1);
-  }, [query, statusFilter]);
+  }
 
   // ── Data fetching ────────────────────────────────────────────────────────
   // Sales orders: client-side (data is synthesised locally)
   const salesQuery = useSalesOrders(isSales);
 
-  // Purchase orders: server-side pagination
+  // Purchase orders: server-side pagination, search, filter and sort
   const purchaseQuery = usePaginatedPurchaseOrders(
     {
       page: purchasePage,
       limit: PAGE_SIZE,
       search: query.trim() || undefined,
       status: statusFilter !== "all" ? statusFilter : undefined,
-      sort_by: "created_at",
-      sort_order: "desc",
+      sort_by: poSortBy,
+      sort_order: poSortOrder,
     },
     !isSales
   );
@@ -254,14 +265,22 @@ export function OrdersListPage({ kind }: OrdersListPageProps) {
               <input
                 type="search"
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setSalesPage(1);
+                  setPurchasePage(1);
+                }}
                 placeholder={`Search ${isSales ? "SO #, customer, item" : "PO #, vendor, item"}`}
                 className="w-full rounded-lg border border-border bg-surface-muted py-2 pl-9 pr-3 text-xs text-text outline-none transition-colors focus:border-primary-500 focus:bg-surface focus:ring-2 focus:ring-primary-500/20"
               />
             </div>
             <select
               value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
+              onChange={(event) => {
+                setStatusFilter(event.target.value);
+                setSalesPage(1);
+                setPurchasePage(1);
+              }}
               className="rounded-lg border border-border bg-surface-muted px-3 py-2 text-xs text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
               aria-label="Filter by status"
             >
@@ -297,11 +316,74 @@ export function OrdersListPage({ kind }: OrdersListPageProps) {
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-surface-muted text-[10px] font-semibold uppercase tracking-wider text-text-muted">
                   <tr>
-                    <th className="px-5 py-3">{isSales ? "Sales Order #" : "Purchase Order #"}</th>
+                    <th className="px-5 py-3">
+                      {isSales ? (
+                        "Sales Order #"
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handlePoSort("po_number")}
+                          className="inline-flex items-center gap-1.5 transition-colors hover:text-text"
+                        >
+                          <span>Purchase Order #</span>
+                          {poSortBy === "po_number" ? (
+                            poSortOrder === "asc" ? (
+                              <ArrowUp className="h-3 w-3 text-primary-600" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3 text-primary-600" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-40" />
+                          )}
+                        </button>
+                      )}
+                    </th>
                     <th className="px-5 py-3">{isSales ? "Customer" : "Vendor"}</th>
-                    <th className="px-5 py-3">Date</th>
+                    <th className="px-5 py-3">
+                      {isSales ? (
+                        "Date"
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handlePoSort("order_date")}
+                          className="inline-flex items-center gap-1.5 transition-colors hover:text-text"
+                        >
+                          <span>Date</span>
+                          {poSortBy === "order_date" ? (
+                            poSortOrder === "asc" ? (
+                              <ArrowUp className="h-3 w-3 text-primary-600" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3 text-primary-600" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-40" />
+                          )}
+                        </button>
+                      )}
+                    </th>
                     <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3 text-right">Total</th>
+                    <th className="px-5 py-3 text-right">
+                      {isSales ? (
+                        "Total"
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handlePoSort("total")}
+                          className="inline-flex items-center justify-end gap-1.5 transition-colors hover:text-text"
+                        >
+                          <span>Total</span>
+                          {poSortBy === "total" ? (
+                            poSortOrder === "asc" ? (
+                              <ArrowUp className="h-3 w-3 text-primary-600" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3 text-primary-600" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-40" />
+                          )}
+                        </button>
+                      )}
+                    </th>
                     <th className="px-5 py-3 text-right">Action</th>
                   </tr>
                 </thead>

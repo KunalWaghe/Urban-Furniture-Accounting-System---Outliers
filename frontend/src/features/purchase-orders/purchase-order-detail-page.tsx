@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 
+import { useRouter } from "next/navigation";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import {
   fetchPurchaseOrderApi,
   mapPurchaseOrder,
 } from "@/features/purchase-orders/purchase-orders-api";
+import { createBillFromPo } from "@/features/vendor-bills/vendor-bills-api";
 import { formatDate, formatINR } from "@/lib/format";
 import { apiFetch } from "@/lib/api";
 
@@ -43,6 +45,7 @@ interface VendorBillData {
 }
 
 export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [billConfirmOpen, setBillConfirmOpen] = useState(false);
@@ -272,13 +275,12 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
                   </h4>
                 </div>
                 <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                    currentBill.status === "paid"
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${currentBill.status === "paid"
                       ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                       : currentBill.status === "partially_paid"
-                      ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
-                      : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                  }`}
+                        ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                        : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                    }`}
                 >
                   {currentBill.status}
                 </span>

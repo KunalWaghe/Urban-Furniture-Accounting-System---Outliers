@@ -16,6 +16,19 @@ import type { AuthNotice, LoginErrors, LoginFields } from "../validation";
 
 const FIELD_ORDER: Array<keyof LoginFields> = ["login_id", "password"];
 
+/**
+ * Custom hook for managing login form state and submission
+ * 
+ * Flow:
+ * 1. Manages form fields (login_id, password), validation errors, and UI state
+ * 2. Uses React Query mutation for async login API call
+ * 3. Validates fields locally before submission
+ * 4. On success: Caches user session via AuthContext and redirects to dashboard
+ * 5. On error: Maps API errors to field-specific messages and displays notices
+ * 6. Supports "remember device" option for persistent sessions
+ * 
+ * @returns Form state, handlers, and submission logic for login component
+ */
 export function useLoginForm() {
   const router = useRouter();
   const { login } = useAuth();
@@ -39,11 +52,24 @@ export function useLoginForm() {
     }) => login(payload, remember),
   });
 
+  /**
+   * Updates a single form field and clears its error
+   */
   function setField(field: keyof LoginFields, value: string) {
     setFields((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
+  /**
+   * Handles form submission with validation and authentication
+   * 
+   * Flow:
+   * 1. Validates all fields locally
+   * 2. Focuses first invalid field if validation fails
+   * 3. Calls login API via AuthContext
+   * 4. On success: Redirects to dashboard
+   * 5. On error: Displays appropriate error message and focuses relevant field
+   */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors = validateLoginFields(fields);
@@ -78,6 +104,10 @@ export function useLoginForm() {
     );
   }
 
+  /**
+   * Handles login errors from API
+   * Maps different error types (422 validation, 401 unauthorized, 403 forbidden) to user-friendly messages
+   */
   function handleLoginError(error: unknown) {
     if (error instanceof ApiError) {
       if (error.status === 422 && error.fields) {

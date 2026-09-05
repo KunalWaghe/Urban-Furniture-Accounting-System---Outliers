@@ -23,6 +23,10 @@ import { fetchCurrentUser, loginRequest, registerRequest } from "./api";
 
 const USER_STORAGE_KEY = "uf_auth_user";
 
+/**
+ * Authentication context value interface
+ * Provides user state, authentication methods, and session management
+ */
 interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
@@ -35,6 +39,10 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/**
+ * Reads user data from browser storage (localStorage or sessionStorage)
+ * @returns Parsed AuthUser object or null if not found/invalid
+ */
 function readUserFromStorage(storage: Storage): AuthUser | null {
   try {
     const raw = storage.getItem(USER_STORAGE_KEY);
@@ -48,6 +56,9 @@ function readUserFromStorage(storage: Storage): AuthUser | null {
   }
 }
 
+/**
+ * Retrieves stored user from localStorage or sessionStorage
+ */
 function getStoredUser(): AuthUser | null {
   const storage = getAuthStorage();
   if (!storage) {
@@ -57,6 +68,9 @@ function getStoredUser(): AuthUser | null {
   return readUserFromStorage(storage);
 }
 
+/**
+ * Clears user data from both localStorage and sessionStorage
+ */
 function clearStoredUser(): void {
   if (typeof window === "undefined") {
     return;

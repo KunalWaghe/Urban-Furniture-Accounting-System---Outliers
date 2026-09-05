@@ -14,8 +14,8 @@ export function LoginForm() {
   const form = useLoginForm();
 
   return (
-    <div className="mt-8 w-full">
-      <div className="rounded-2xl border border-border bg-surface px-6 py-8 shadow-sm sm:px-8">
+    <div className="mt-8 w-full max-w-md">
+      <div className="rounded-2xl border border-border bg-surface px-4 py-6 shadow-sm sm:px-8 sm:py-8">
         {form.notice && (
           <AuthAlert {...form.notice} onDismiss={form.dismissNotice} />
         )}

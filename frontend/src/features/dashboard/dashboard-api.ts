@@ -14,7 +14,7 @@ import type {
 
 export async function fetchDashboardContacts(): Promise<Contact[]> {
   try {
-    const res = await apiFetch<ContactListResponse>("/api/v1/contacts?is_active=true", {
+    const res = await apiFetch<ContactListResponse>("/api/v1/contacts?is_active=true&limit=100", {
       auth: true,
     });
     return res.data || [];
@@ -26,7 +26,7 @@ export async function fetchDashboardContacts(): Promise<Contact[]> {
 
 export async function fetchDashboardProducts(): Promise<Product[]> {
   try {
-    const res = await apiFetch<ProductListResponse>("/api/v1/products?is_active=true", {
+    const res = await apiFetch<ProductListResponse>("/api/v1/products?is_active=true&limit=100", {
       auth: true,
     });
     return res.data || [];
@@ -38,7 +38,7 @@ export async function fetchDashboardProducts(): Promise<Product[]> {
 
 export async function fetchDashboardAccounts(): Promise<Account[]> {
   try {
-    const res = await apiFetch<{ data: Account[]; total: number }>("/api/v1/accounts?is_active=true", {
+    const res = await apiFetch<{ data: Account[]; total: number }>("/api/v1/accounts?is_active=true&limit=100", {
       auth: true,
     });
     return res.data || [];
@@ -50,7 +50,7 @@ export async function fetchDashboardAccounts(): Promise<Account[]> {
 
 export async function fetchDashboardJournals(): Promise<Journal[]> {
   try {
-    const res = await apiFetch<{ data: Journal[]; total: number }>("/api/v1/journals?is_active=true", {
+    const res = await apiFetch<{ data: Journal[]; total: number }>("/api/v1/journals?is_active=true&limit=100", {
       auth: true,
     });
     return res.data || [];
