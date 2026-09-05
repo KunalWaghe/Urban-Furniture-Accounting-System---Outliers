@@ -3,6 +3,7 @@ Business logic service for user authentication and registration with Login ID su
 """
 
 from datetime import datetime, timedelta, timezone
+import threading
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from app.models.user import User
@@ -10,6 +11,7 @@ from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, AdminU
 from app.core.security import hash_password, verify_password, create_access_token, generate_reset_token
 from app.core.exceptions import ConflictException, UnauthorizedException, ValidationException, ForbiddenException
 from app.models.contact import Contact
+from app.services import email_service
 
 
 ROLE_MAP = {
@@ -213,9 +215,14 @@ def forgot_password(db: Session, req: ForgotPasswordRequest) -> ForgotPasswordRe
             db.rollback()
             raise
         
-        # TODO: In production, send email with reset link
-        # send_password_reset_email(user.email, reset_token)
-        print(f"[DEBUG] Password reset token for {user.email}: {reset_token}")
+        # Dispatch password reset email asynchronously
+        recipient_email = user.email
+        recipient_name = user.name
+        threading.Thread(
+            target=email_service.send_password_reset_email,
+            args=(recipient_email, reset_token, recipient_name),
+            daemon=True,
+        ).start()
     
     # Always return success to prevent email enumeration
     return ForgotPasswordResponse(

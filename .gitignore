@@ -5,3 +5,4 @@ graphify*.json
 *.graphify
 raw/
 
+.env.local
