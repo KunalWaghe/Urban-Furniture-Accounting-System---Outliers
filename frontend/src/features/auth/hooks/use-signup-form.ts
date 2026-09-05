@@ -185,7 +185,7 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
         password: fields.password,
       },
       {
-        onSuccess: () => router.push("/"),
+        onSuccess: () => router.push("/dashboard"),
         onError: (error) => handleApiError(error, "create account"),
       }
     );

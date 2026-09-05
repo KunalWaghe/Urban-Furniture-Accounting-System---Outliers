@@ -60,6 +60,24 @@ import { SearchableContactSelect } from "@/components/searchable-contact-select"
 import { PaymentModal } from "@/components/payment-modal";
 import { DashboardKpiCards } from "@/features/dashboard/dashboard-kpi-cards";
 
+function csvValue(value: unknown): string {
+  const text = String(value ?? "");
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function downloadCsv(filename: string, rows: unknown[][]): void {
+  const csv = rows.map((row) => row.map(csvValue).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
 /**
  * Main dashboard page — sales, purchase, and budget overview in one scrollable view.
  *
@@ -90,6 +108,9 @@ export default function AppDashboardPage() {
   const [salesFilterStatus, setSalesFilterStatus] = useState<string>("all");
   const [salesSearchQuery, setSalesSearchQuery] = useState<string>("");
   const [purchaseActiveTab, setPurchaseActiveTab] = useState<"po" | "bills">("po");
+  const [dateRangeOpen, setDateRangeOpen] = useState(false);
+  const [dateRangeStart, setDateRangeStart] = useState("");
+  const [dateRangeEnd, setDateRangeEnd] = useState("");
 
   // Selected Order / PO / Bill for Inspection & Payment Modals
   const [selectedSalesOrder, setSelectedSalesOrder] = useState<SalesOrder | null>(null);
@@ -197,9 +218,35 @@ export default function AppDashboardPage() {
     return contacts.filter((c: Contact) => c.type === "vendor" || c.type === "both");
   }, [contacts]);
 
+  const isWithinDateRange = useCallback(
+    (value: string | undefined) => {
+      if (!dateRangeStart && !dateRangeEnd) return true;
+      if (!value) return false;
+      const timestamp = new Date(value).getTime();
+      if (Number.isNaN(timestamp)) return false;
+      const start = dateRangeStart ? new Date(`${dateRangeStart}T00:00:00`).getTime() : -Infinity;
+      const end = dateRangeEnd ? new Date(`${dateRangeEnd}T23:59:59.999`).getTime() : Infinity;
+      return timestamp >= start && timestamp <= end;
+    },
+    [dateRangeEnd, dateRangeStart]
+  );
+
+  const dateFilteredSalesOrders = useMemo(
+    () => salesOrders.filter((order) => isWithinDateRange(order.order_date)),
+    [isWithinDateRange, salesOrders]
+  );
+  const dateFilteredPurchaseOrders = useMemo(
+    () => purchaseOrders.filter((order) => isWithinDateRange(order.po_date)),
+    [isWithinDateRange, purchaseOrders]
+  );
+  const dateFilteredVendorBills = useMemo(
+    () => vendorBills.filter((bill) => isWithinDateRange(bill.due_date)),
+    [isWithinDateRange, vendorBills]
+  );
+
   // Filtered Sales Orders
   const filteredSalesOrders = useMemo(() => {
-    return salesOrders.filter((order) => {
+    return dateFilteredSalesOrders.filter((order) => {
       const matchesStatus =
         salesFilterStatus === "all" ||
         order.status.toLowerCase() === salesFilterStatus.toLowerCase();
@@ -216,19 +263,19 @@ export default function AppDashboardPage() {
 
       return matchesStatus && matchesQuery;
     });
-  }, [salesOrders, salesFilterStatus, salesSearchQuery]);
+  }, [dateFilteredSalesOrders, salesFilterStatus, salesSearchQuery]);
 
   // Sales Stat Computations
   const salesStats = useMemo(() => {
-    const totalCount = salesOrders.length;
-    const confirmedCount = salesOrders.filter((o) => o.status === "Confirmed").length;
-    const draftCount = salesOrders.filter((o) => o.status === "Draft").length;
+    const totalCount = dateFilteredSalesOrders.length;
+    const confirmedCount = dateFilteredSalesOrders.filter((o) => o.status === "Confirmed").length;
+    const draftCount = dateFilteredSalesOrders.filter((o) => o.status === "Draft").length;
 
-    const totalGross = salesOrders.reduce((sum, o) => sum + o.total_amount, 0);
-    const realizedRevenue = salesOrders
+    const totalGross = dateFilteredSalesOrders.reduce((sum, o) => sum + o.total_amount, 0);
+    const realizedRevenue = dateFilteredSalesOrders
       .filter((o) => o.status === "Confirmed")
       .reduce((sum, o) => sum + o.total_amount, 0);
-    const pipelineValue = salesOrders
+    const pipelineValue = dateFilteredSalesOrders
       .filter((o) => o.status === "Draft")
       .reduce((sum, o) => sum + o.total_amount, 0);
 
@@ -240,22 +287,22 @@ export default function AppDashboardPage() {
       realizedRevenue,
       pipelineValue,
     };
-  }, [salesOrders]);
+  }, [dateFilteredSalesOrders]);
 
   // Purchase Stat Computations
   const purchaseStats = useMemo(() => {
-    const totalRecords = purchaseOrders.length + vendorBills.length;
+    const totalRecords = dateFilteredPurchaseOrders.length + dateFilteredVendorBills.length;
     const totalCommitted =
-      purchaseOrders.reduce((sum, p) => sum + p.total_amount, 0) +
-      vendorBills.reduce((sum, b) => sum + b.amount, 0);
+      dateFilteredPurchaseOrders.reduce((sum, p) => sum + p.total_amount, 0) +
+      dateFilteredVendorBills.reduce((sum, b) => sum + b.amount, 0);
 
-    const confirmedCount = purchaseOrders.filter((p) => p.status === "Confirmed").length;
-    const authorizedPayables = purchaseOrders
+    const confirmedCount = dateFilteredPurchaseOrders.filter((p) => p.status === "Confirmed").length;
+    const authorizedPayables = dateFilteredPurchaseOrders
       .filter((p) => p.status === "Confirmed")
       .reduce((sum, p) => sum + p.total_amount, 0);
 
-    const draftCount = purchaseOrders.filter((p) => p.status === "Draft").length;
-    const underReview = purchaseOrders
+    const draftCount = dateFilteredPurchaseOrders.filter((p) => p.status === "Draft").length;
+    const underReview = dateFilteredPurchaseOrders
       .filter((p) => p.status === "Draft")
       .reduce((sum, p) => sum + p.total_amount, 0);
 
@@ -267,7 +314,30 @@ export default function AppDashboardPage() {
       draftCount,
       underReview,
     };
-  }, [purchaseOrders, vendorBills]);
+  }, [dateFilteredPurchaseOrders, dateFilteredVendorBills]);
+
+  const handleExportProcurement = useCallback(() => {
+    const rows: unknown[][] = [["Type", "Number", "Partner", "Date", "Status", "Amount"]];
+    dateFilteredPurchaseOrders.forEach((po) => rows.push(["Purchase Order", po.po_number, po.vendor_name, po.po_date, po.status, po.total_amount]));
+    dateFilteredVendorBills.forEach((bill) => rows.push(["Vendor Bill", bill.bill_number, bill.vendor_name, bill.due_date, bill.payment_status, bill.amount]));
+    downloadCsv("procurement-statement.csv", rows);
+    showToast(`Exported ${rows.length - 1} procurement records.`);
+  }, [dateFilteredPurchaseOrders, dateFilteredVendorBills, showToast]);
+
+  const handleExportAccounting = useCallback(() => {
+    const rows: unknown[][] = [
+      ["Metric", "Value"],
+      ["Sales orders", salesStats.totalCount],
+      ["Sales order gross", salesStats.totalGross],
+      ["Realized revenue", salesStats.realizedRevenue],
+      ["Purchase records", purchaseStats.totalRecords],
+      ["Purchase commitments", purchaseStats.totalCommitted],
+      ["Authorized payables", purchaseStats.authorizedPayables],
+      ["Budget committed", budgetMetric?.committed_amount ?? 0],
+    ];
+    downloadCsv("accounting-summary.csv", rows);
+    showToast("Accounting summary exported.");
+  }, [budgetMetric, purchaseStats, salesStats, showToast]);
 
   /** Creates a vendor bill from a confirmed PO via the backend API. */
   const handleConvertPOToBill = useCallback(
@@ -494,14 +564,31 @@ export default function AppDashboardPage() {
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => showToast("Filtering by current accounting fiscal period (Oct 2025 - Present)")}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5 text-text-muted" />
-              <span>Date Range</span>
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setDateRangeOpen((open) => !open)}
+                className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-surface-muted hover:text-text ${dateRangeStart || dateRangeEnd ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-950/30 dark:text-primary-300" : "border-border bg-surface text-text-muted"}`}
+                aria-expanded={dateRangeOpen}
+                aria-haspopup="dialog"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                <span>{dateRangeStart || dateRangeEnd ? "Date Filtered" : "Date Range"}</span>
+              </button>
+              {dateRangeOpen && (
+                <div className="absolute right-0 top-full z-30 mt-2 w-72 rounded-xl border border-border bg-surface p-4 shadow-xl" role="dialog" aria-label="Filter dashboard by date range">
+                  <p className="text-xs font-semibold text-text">Accounting date range</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="text-xs font-medium text-text-muted">From<input type="date" value={dateRangeStart} onChange={(event) => setDateRangeStart(event.target.value)} className="mt-1 w-full rounded-lg border border-border bg-surface px-2.5 py-2 text-xs text-text" /></label>
+                    <label className="text-xs font-medium text-text-muted">To<input type="date" value={dateRangeEnd} onChange={(event) => setDateRangeEnd(event.target.value)} className="mt-1 w-full rounded-lg border border-border bg-surface px-2.5 py-2 text-xs text-text" /></label>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-text-muted">Applies to dashboard tables and totals.</span>
+                    <button type="button" onClick={() => { setDateRangeStart(""); setDateRangeEnd(""); setDateRangeOpen(false); }} className="text-xs font-semibold text-primary-600 hover:underline">Clear</button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -775,7 +862,7 @@ export default function AppDashboardPage() {
                 }`}
             >
               <FileText className="h-3.5 w-3.5" />
-              <span>Recent Purchase Orders ({purchaseOrders.length})</span>
+              <span>Recent Purchase Orders ({dateFilteredPurchaseOrders.length})</span>
             </button>
             <button
               type="button"
@@ -787,7 +874,7 @@ export default function AppDashboardPage() {
                 }`}
             >
               <Receipt className="h-3.5 w-3.5" />
-              <span>Vendor Bills ({vendorBills.length})</span>
+              <span>Vendor Bills ({dateFilteredVendorBills.length})</span>
             </button>
           </div>
 
@@ -795,7 +882,7 @@ export default function AppDashboardPage() {
             <span className="text-xs text-text-muted">(Click row to view line items)</span>
             <button
               type="button"
-              onClick={() => showToast("Exporting procurement batch statement (CSV)...")}
+              onClick={handleExportProcurement}
               className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
             >
               <FileSpreadsheet className="h-3.5 w-3.5" />
@@ -818,7 +905,7 @@ export default function AppDashboardPage() {
                 </span>
               </div>
               <span className="text-xs text-text-muted">
-                {purchaseOrders.length} orders pending action
+                {dateFilteredPurchaseOrders.length} orders pending action
               </span>
             </div>
 
@@ -841,7 +928,7 @@ export default function AppDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border bg-surface">
-                  {purchaseOrders.map((po) => {
+                  {dateFilteredPurchaseOrders.map((po) => {
                     const initials = po.vendor_name
                       .split(" ")
                       .map((n) => n[0])
@@ -935,7 +1022,7 @@ export default function AppDashboardPage() {
               </div>
               <span className="font-mono text-xs text-text-muted">
                 Total Payables: $
-                {vendorBills
+                {dateFilteredVendorBills
                   .reduce((sum, b) => sum + b.amount, 0)
                   .toLocaleString("en-US", { minimumFractionDigits: 2 })}
               </span>
@@ -955,7 +1042,7 @@ export default function AppDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border bg-surface">
-                  {vendorBills.map((bill) => (
+                  {dateFilteredVendorBills.map((bill) => (
                     <tr
                       key={bill.id}
                       className="transition-colors hover:bg-surface-muted/70"
@@ -1059,7 +1146,7 @@ export default function AppDashboardPage() {
               </Link>
               <button
                 type="button"
-                onClick={() => showToast("Exporting comprehensive cost accounting statement...")}
+              onClick={handleExportAccounting}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-purple-700 active:bg-purple-800"
               >
                 <FileText className="h-3.5 w-3.5" />

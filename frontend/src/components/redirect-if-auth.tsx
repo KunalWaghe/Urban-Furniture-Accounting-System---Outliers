@@ -3,7 +3,7 @@
  *
  * Role in the app:
  * - Wraps the `(auth)` layout (login, register)
- * - Redirects authenticated users to `/` (dashboard)
+ * - Redirects authenticated users to `/dashboard`
  * - Prevents a flash of the login form while `/auth/me` is loading
  *
  * Pair with RequireAuth on the `(app)` layout for the protected area.
@@ -25,7 +25,7 @@ import { useMounted } from "@/hooks/use-mounted";
  * Flow:
  * 1. Before mount → render children (SSR/hydration must match)
  * 2. While bootstrapping → render nothing (avoid login flash)
- * 3. If authenticated → redirect to `/` and render nothing
+ * 3. If authenticated → redirect to `/dashboard` and render nothing
  * 4. If guest → render children (login form)
  *
  * State owned: none (no local useState)
@@ -45,7 +45,7 @@ export function RedirectIfAuth({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (mounted && !bootstrapping && isAuthenticated) {
-      router.replace("/");
+      router.replace("/dashboard");
     }
   }, [mounted, bootstrapping, isAuthenticated, router]);
 

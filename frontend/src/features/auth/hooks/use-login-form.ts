@@ -115,7 +115,7 @@ export function useLoginForm() {
       },
       {
         onSuccess: () => {
-          router.push("/");
+          router.push("/dashboard");
         },
         onError: handleLoginError,
       }

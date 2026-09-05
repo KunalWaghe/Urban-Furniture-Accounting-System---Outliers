@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Banknote, Landmark, ReceiptText, TrendingUp, WalletCards } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
-import { LoadingSpinner } from "@/components/loading-spinner";
+import { SkeletonKpiCard } from "@/components/skeleton-kpi-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatINR } from "@/lib/format";
 import { fetchBalanceSheet, fetchProfitLoss } from "@/features/reports/reports-api";
@@ -16,7 +16,7 @@ function findBalance(lines: { account_name: string; balance: number }[], terms: 
 export function DashboardKpiCards() {
   const balanceQuery = useQuery({ queryKey: ["dashboard", "balance-sheet"], queryFn: () => fetchBalanceSheet() });
   const pnlQuery = useQuery({ queryKey: ["dashboard", "profit-loss"], queryFn: () => fetchProfitLoss() });
-  if (balanceQuery.isLoading || pnlQuery.isLoading) return <Card><CardContent className="flex items-center justify-center py-8"><LoadingSpinner label="Loading financial KPIs…" /></CardContent></Card>;
+  if (balanceQuery.isLoading || pnlQuery.isLoading) return <section aria-label="Financial KPIs" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">{Array.from({ length: 5 }).map((_, i) => <SkeletonKpiCard key={i} />)}</section>;
   if (balanceQuery.isError || pnlQuery.isError || !balanceQuery.data || !pnlQuery.data) return <Card><CardContent className="p-5"><p className="text-sm font-semibold text-text">Financial KPIs unavailable</p><p className="mt-1 text-xs text-text-muted">Connect the reporting API to show Cash, Bank, Receivables, Payables, and Net Profit.</p></CardContent></Card>;
   const balance = balanceQuery.data;
   const metrics = [

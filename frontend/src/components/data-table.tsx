@@ -13,6 +13,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react"
 
 import { EmptyState } from "@/components/empty-state"
 import { LoadingSpinner } from "@/components/loading-spinner"
+import { SkeletonTable } from "@/components/skeleton-table"
 import { TablePagination } from "@/components/ui/table-pagination"
 
 /** Default number of rows shown per page when using client-side pagination. */
@@ -138,8 +139,8 @@ export function DataTable<T extends { id?: string | number }>({
   const totalPages = isServerPagination
     ? serverTotalPages
     : clientPaginationEnabled
-    ? Math.max(1, Math.ceil(filteredData.length / pageSize))
-    : 1
+      ? Math.max(1, Math.ceil(filteredData.length / pageSize))
+      : 1
 
   // Keep client page in bounds if filtered results shrink
   const safeClientPage = Math.min(clientPage, totalPages)
@@ -174,9 +175,12 @@ export function DataTable<T extends { id?: string | number }>({
 
   if (loading) {
     return (
-      <div className="flex justify-center py-16">
-        <LoadingSpinner />
-      </div>
+      <SkeletonTable
+        columns={columns.length}
+        rows={pageSize || 5}
+        showSearch={true}
+        showPagination={pageSize > 0}
+      />
     )
   }
 
@@ -263,9 +267,9 @@ export function DataTable<T extends { id?: string | number }>({
                   {totalRecords === 0
                     ? 0
                     : `${(activePage - 1) * pageSize + 1}–${Math.min(
-                        activePage * pageSize,
-                        totalRecords
-                      )} of ${totalRecords}`}
+                      activePage * pageSize,
+                      totalRecords
+                    )} of ${totalRecords}`}
                 </p>
                 <TablePagination
                   page={activePage}

@@ -1,7 +1,7 @@
 # Urban Furniture Accounting System — Master Task List
 > **Ground source of truth.** Frontend: Sourabh · Backend: Kunal · Integration: Both
-> Last synced: 5 Sep 2026, 11:56 PM IST — backend + frontend contract audit
-> Current checklist: **36/52 complete (69%)**; **16 remain**.
+> Last synced: 6 Sep 2026, 12:20 AM IST — frontend completion + backend contract audit
+> Current checklist: **38/52 complete (73%)**; **14 remain**.
 
 ---
 
@@ -166,13 +166,13 @@
 
 ## Audit Notes
 
-- Frontend `tsc --noEmit` and `next build --webpack` pass; the build contains all 27 authenticated/public routes, including `/analytic-accounts`, `/budgets`, `/reports/budget`, `/payments`, and `/portal`.
+- Frontend `tsc --noEmit` and `next build --webpack` pass; the build contains 30 authenticated/public routes, including `/dashboard`, `/analytic-accounts`, `/budgets`, `/reports/budget`, `/payments`, and `/portal`.
 - Backend route inventory now includes Analytic Accounts, Budgets, Budget Report, and Self-Service routers in addition to the P0 accounting APIs; self-service still needs contact-role/contact-id hardening and dedicated tests.
 - Backend tests collect successfully, but all 54 tests fail during database setup because PostgreSQL on `localhost:5432` is unavailable; runtime API behavior remains unverified in this environment.
 - Purchase and sales integration gates remain open until the complete live golden paths are run against the configured database.
-- Budget and portal API code exists, but frontend integration is not complete: budget request/response field names differ from the backend contract, budget cancel uses `POST` while the backend expects `PATCH`, the budget report response uses `budgets` while the frontend expects `data`, and the portal frontend calls `/api/v1/portal/invoices` while the backend exposes `/api/v1/self-service/my-invoices`.
-- Sales Order invoice generation is implemented, but the frontend still calls `/api/v1/sales-orders/:id/status`; the backend exposes confirm, cancel, and create-invoice routes but no generic status route, so the frontend falls back to localStorage for that transition.
-- The dashboard fiscal-period filter and two export controls remain toast-only; PO detail Edit remains disabled; auth footer/terms links still use placeholder `href="#"` links.
+- Budget and portal frontend integration is now aligned: budget dates/responsible person fields, `PATCH /cancel`, report response normalization, and the ownership-checked `/self-service/my-invoices` list/payment routes are wired.
+- Sales Order invoice generation no longer calls the nonexistent generic status route; the live create-invoice endpoint remains the source of truth for the status transition.
+- Dashboard date filtering and both CSV export controls are wired. Remaining frontend work is browser QA/accessibility polish, PO detail Edit (blocked by a missing backend update endpoint), and replacing auth footer/terms placeholder links.
 
 ## Step 9 — P1: Budget & Contact Portal 🔲
 
@@ -181,13 +181,13 @@
 - [x] 9.1 · BE · Analytic Account & Budget models + endpoints (P1-BE-01)
   - Committed, achieved, achieved %, amount-to-achieve computation
   - Evidence: `backend/app/routers/analytic_accounts.py`, `backend/app/routers/budgets.py`, `backend/app/routers/reports.py`, corresponding models/services/schemas, and `backend/tests/test_budgets.py`.
-- [ ] 9.2 · FE · Analytic/Budget master views + Budget Report page with donut chart (P1-FE-01)
-  - Screens exist with loading, empty, and error states, but the client contract still needs alignment with backend `period_start`/`period_end`, `responsible_person_id`, `PATCH /cancel`, and the `budgets` report response shape.
+- [x] 9.2 · FE · Analytic/Budget master views + Budget Report page with donut chart (P1-FE-01)
+  - `/analytic-accounts`, `/budgets`, and `/reports/budget` are wired to the live contracts, including date/person field normalization, confirm/revise/cancel mutations, loading/error/empty states, and donut utilization.
 - [ ] 9.3 · INT · Verify Budget Flow end-to-end (P1-INT-01)
 - [ ] 9.4 · BE · Contact Portal endpoints — restrict to own invoices/bills (P1-BE-02)
   - Routes exist: `backend/app/routers/self_service.py` exposes `/self-service/my-invoices`, `/my-bills`, and ownership-checked payment routes; however, the router currently resolves contacts by email and does not enforce the documented `contact_id`/contact-role contract. Add dedicated portal isolation tests before marking complete.
-- [ ] 9.5 · FE · Contact Portal restricted view ("My Invoices") + pay action (P1-FE-02)
-  - `/portal` UI and role guard exist, but `portal-api.ts` still calls `/api/v1/portal/invoices` and the unrestricted customer-invoice payment route instead of the ownership-checked self-service endpoints.
+- [x] 9.5 · FE · Contact Portal restricted view ("My Invoices") + pay action (P1-FE-02)
+  - `/portal` uses `/api/v1/self-service/my-invoices` and `/my-invoices/:id/pay`, with paid-state handling, payment method selection, loading/error states, and query invalidation after payment.
 - [ ] 9.6 · INT · Verify Contact Portal end-to-end (P1-INT-02)
 
 ---

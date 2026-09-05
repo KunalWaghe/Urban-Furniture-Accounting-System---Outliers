@@ -6,7 +6,6 @@ import {
   ArrowRight,
   CheckCircle2,
   PlayCircle,
-  Search,
   RefreshCw,
   TrendingUp,
   Receipt,
@@ -35,8 +34,11 @@ import {
 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useAuth } from "@/features/auth/auth-context";
+import { SiteHeader } from "@/components/site-header";
 
 export default function LandingPage() {
+  const { isAuthenticated } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const heroBadgeRef = useRef<HTMLDivElement>(null);
   const heroTitleRef = useRef<HTMLHeadingElement>(null);
@@ -45,9 +47,6 @@ export default function LandingPage() {
   const heroTrustRef = useRef<HTMLDivElement>(null);
   const heroCardRef = useRef<HTMLDivElement>(null);
 
-  const [activeTab, setActiveTab] = useState<string>("features");
-  const [searchModalOpen, setSearchModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [matchVerified, setMatchVerified] = useState(true);
   const [liveReconcileCount, setLiveReconcileCount] = useState(48200);
 
@@ -56,159 +55,204 @@ export default function LandingPage() {
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
-      // 1. Hero Entrance Timeline
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      // 1. Hero Text, Badge & Card Staggered Blur-Appearing Timeline
+      const heroTl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-      tl.fromTo(
-        heroBadgeRef.current,
-        { opacity: 0, y: -20, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.7, delay: 0.1 }
-      )
+      heroTl
         .fromTo(
-          heroTitleRef.current,
-          { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 },
-          "-=0.4"
+          heroBadgeRef.current,
+          { opacity: 0, y: -25, scale: 0.9, filter: "blur(12px)" },
+          { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.8, delay: 0.05 }
         )
         .fromTo(
-          heroSubtitleRef.current,
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.7 },
+          heroTitleRef.current,
+          { opacity: 0, y: 35, filter: "blur(18px)", scale: 0.98 },
+          { opacity: 1, y: 0, filter: "blur(0px)", scale: 1, duration: 1.1, ease: "power3.out" },
           "-=0.5"
         )
         .fromTo(
+          heroSubtitleRef.current,
+          { opacity: 0, y: 25, filter: "blur(14px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.85 },
+          "-=0.6"
+        )
+        .fromTo(
           heroCtaRef.current,
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.6 },
-          "-=0.4"
+          { opacity: 0, y: 20, filter: "blur(10px)", scale: 0.95 },
+          { opacity: 1, y: 0, filter: "blur(0px)", scale: 1, duration: 0.75 },
+          "-=0.5"
         )
         .fromTo(
           heroTrustRef.current,
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6 },
-          "-=0.3"
+          { opacity: 0, y: 15, filter: "blur(8px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.7 },
+          "-=0.4"
         )
         .fromTo(
           heroCardRef.current,
-          { opacity: 0, y: 40, scale: 0.98 },
-          { opacity: 1, y: 0, scale: 1, duration: 1, ease: "power2.out" },
+          { opacity: 0, y: 60, scale: 0.94, filter: "blur(22px)" },
+          { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1.2, ease: "power3.out" },
+          "-=0.5"
+        )
+        // Stagger entrance of the 4 KPI cards inside the hero mockup with blur reveal
+        .fromTo(
+          ".kpi-mock-card",
+          { opacity: 0, y: 25, scale: 0.92, filter: "blur(10px)" },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            filter: "blur(0px)",
+            duration: 0.7,
+            stagger: 0.1,
+            ease: "back.out(1.4)"
+          },
+          "-=0.6"
+        )
+        // Stagger table rows inside mockup with blur reveal
+        .fromTo(
+          ".table-mock-row",
+          { opacity: 0, x: -20, filter: "blur(8px)" },
+          { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.6, stagger: 0.08, ease: "power2.out" },
+          "-=0.5"
+        )
+        // Stagger 3-way audit items with blur reveal
+        .fromTo(
+          ".audit-mock-item",
+          { opacity: 0, x: 20, filter: "blur(8px)" },
+          { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.6, stagger: 0.08, ease: "power2.out" },
+          "-=0.5"
+        )
+        // Floating chips reveal
+        .fromTo(
+          [".floating-chip-left", ".floating-chip-right"],
+          { opacity: 0, scale: 0.8, filter: "blur(8px)" },
+          { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.6, stagger: 0.15 },
           "-=0.4"
         );
 
-      // Floating chips gentle float animation
+      // Continuous Floating effect for tolerance and GL chips
       gsap.to(".floating-chip-left", {
-        y: -6,
-        duration: 2.4,
+        y: -7,
+        duration: 2.5,
         repeat: -1,
         yoyo: true,
         ease: "sine.inOut"
       });
 
       gsap.to(".floating-chip-right", {
-        y: 6,
-        duration: 2.8,
+        y: 7,
+        duration: 3,
         repeat: -1,
         yoyo: true,
         ease: "sine.inOut",
-        delay: 0.4
+        delay: 0.5
       });
 
       // 2. Partner Logos Strip Scroll Animation
-      gsap.fromTo(
+      // Set initial state immediately, then animate
+      gsap.set(".partner-logo", { opacity: 1, y: 0, scale: 1 });
+      gsap.from(
         ".partner-logo",
-        { opacity: 0, y: 15 },
         {
-          opacity: 1,
-          y: 0,
+          opacity: 0,
+          y: 20,
+          scale: 0.9,
           duration: 0.6,
           stagger: 0.1,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: "#partners-section",
-            start: "top 85%",
-            toggleActions: "play none none reverse"
+            start: "top 88%",
+            toggleActions: "play none none none"
           }
         }
       );
 
-      // 3. Workflows Section Entrance
-      gsap.fromTo(
+      // 3. Workflows Section Header & Cards Scroll Animation
+      // Set initial state immediately to prevent invisible cards
+      gsap.set([".workflow-header", ".workflow-card", ".workflow-step"], { opacity: 1, y: 0, x: 0, scale: 1 });
+
+      gsap.from(
         ".workflow-header",
-        { opacity: 0, y: 30 },
         {
-          opacity: 1,
-          y: 0,
+          opacity: 0,
+          y: 30,
           duration: 0.8,
+          ease: "power3.out",
           scrollTrigger: {
             trigger: "#workflows-section",
-            start: "top 80%",
-            toggleActions: "play none none reverse"
+            start: "top 85%",
+            toggleActions: "play none none none"
           }
         }
       );
 
-      gsap.fromTo(
+      gsap.from(
         ".workflow-card",
-        { opacity: 0, y: 40 },
         {
-          opacity: 1,
-          y: 0,
+          opacity: 0,
+          y: 50,
+          scale: 0.95,
           duration: 0.8,
-          stagger: 0.25,
+          stagger: 0.2,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: "#workflows-cards",
+            start: "top 82%",
+            toggleActions: "play none none none"
+          }
+        }
+      );
+
+      gsap.from(
+        ".workflow-step",
+        {
+          opacity: 0,
+          x: -25,
+          duration: 0.6,
+          stagger: 0.12,
           ease: "power2.out",
           scrollTrigger: {
             trigger: "#workflows-cards",
             start: "top 75%",
-            toggleActions: "play none none reverse"
+            toggleActions: "play none none none"
           }
         }
       );
 
-      gsap.fromTo(
-        ".workflow-step",
-        { opacity: 0, x: -15 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.5,
-          stagger: 0.15,
-          scrollTrigger: {
-            trigger: "#workflows-cards",
-            start: "top 70%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      );
+      // 4. Bento Feature Cards Staggered Pop-In Animation
+      // Set initial state immediately to prevent invisible cards
+      gsap.set([".bento-header", ".bento-card"], { opacity: 1, y: 0, scale: 1 });
 
-      // 4. Bento Feature Cards Staggered Reveal
-      gsap.fromTo(
+      gsap.from(
         ".bento-header",
-        { opacity: 0, y: 30 },
         {
-          opacity: 1,
-          y: 0,
+          opacity: 0,
+          y: 30,
           duration: 0.8,
+          ease: "power3.out",
           scrollTrigger: {
             trigger: "#bento-section",
-            start: "top 80%",
-            toggleActions: "play none none reverse"
+            start: "top 85%",
+            toggleActions: "play none none none"
           }
         }
       );
 
-      gsap.fromTo(
+      gsap.from(
         ".bento-card",
-        { opacity: 0, y: 35, scale: 0.96 },
         {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.6,
-          stagger: 0.08,
-          ease: "back.out(1.2)",
+          opacity: 0,
+          y: 45,
+          scale: 0.92,
+          duration: 0.65,
+          stagger: 0.09,
+          ease: "back.out(1.3)",
           scrollTrigger: {
             trigger: "#bento-grid",
-            start: "top 75%",
-            toggleActions: "play none none reverse"
+            start: "top 82%",
+            toggleActions: "play none none none"
           }
         }
       );
@@ -216,15 +260,36 @@ export default function LandingPage() {
       // 5. Analytical Cost Center Widget & Progress Bar Animation
       gsap.fromTo(
         "#telemetry-widget",
-        { opacity: 0, y: 40 },
+        { opacity: 0, y: 45, scale: 0.96 },
         {
           opacity: 1,
           y: 0,
+          scale: 1,
           duration: 0.9,
+          ease: "power3.out",
           scrollTrigger: {
             trigger: "#telemetry-section",
+            start: "top 80%",
+            toggleActions: "play none none none"
+          }
+        }
+      );
+
+      // Stagger stat boxes inside telemetry widget
+      gsap.fromTo(
+        ".telemetry-stat-box",
+        { opacity: 0, y: 20, scale: 0.95 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.12,
+          ease: "back.out(1.2)",
+          scrollTrigger: {
+            trigger: "#telemetry-widget",
             start: "top 75%",
-            toggleActions: "play none none reverse"
+            toggleActions: "play none none none"
           }
         }
       );
@@ -235,11 +300,11 @@ export default function LandingPage() {
         { width: "0%" },
         {
           width: "84%",
-          duration: 1.4,
+          duration: 1.5,
           ease: "power3.out",
           scrollTrigger: {
             trigger: "#telemetry-widget",
-            start: "top 65%"
+            start: "top 70%"
           }
         }
       );
@@ -249,65 +314,78 @@ export default function LandingPage() {
         { width: "0%" },
         {
           width: "10%",
-          duration: 1.4,
-          delay: 0.4,
+          duration: 1.5,
+          delay: 0.35,
           ease: "power3.out",
           scrollTrigger: {
             trigger: "#telemetry-widget",
-            start: "top 65%"
+            start: "top 70%"
           }
         }
       );
 
       // 6. Security Section Entrance
       gsap.fromTo(
-        "#security-section",
+        ".security-header-content",
         { opacity: 0, y: 30 },
         {
           opacity: 1,
           y: 0,
           duration: 0.8,
+          ease: "power3.out",
           scrollTrigger: {
             trigger: "#security-section",
-            start: "top 80%",
-            toggleActions: "play none none reverse"
+            start: "top 85%",
+            toggleActions: "play none none none"
           }
         }
       );
 
-      // 7. CTA Banner Pulsing Glow
       gsap.fromTo(
-        "#cta-banner",
-        { opacity: 0, scale: 0.95 },
+        ".security-badge",
+        { opacity: 0, y: 25, scale: 0.92 },
         {
           opacity: 1,
+          y: 0,
           scale: 1,
-          duration: 0.8,
-          ease: "power2.out",
+          duration: 0.5,
+          stagger: 0.08,
+          ease: "back.out(1.2)",
+          scrollTrigger: {
+            trigger: "#security-section",
+            start: "top 80%",
+            toggleActions: "play none none none"
+          }
+        }
+      );
+
+      // 7. CTA Banner Entrance
+      gsap.fromTo(
+        "#cta-banner",
+        { opacity: 0, y: 40, scale: 0.94 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.85,
+          ease: "power3.out",
           scrollTrigger: {
             trigger: "#cta-banner",
             start: "top 85%",
-            toggleActions: "play none none reverse"
+            toggleActions: "play none none none"
           }
         }
       );
     }, containerRef);
 
-    // Keyboard shortcut for Cmd+K / Ctrl+K
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setSearchModalOpen((prev) => !prev);
-      }
-      if (e.key === "Escape") {
-        setSearchModalOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
+    // Refresh trigger calculations after DOM renders
+    const refreshTimer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 150);
 
     return () => {
+      clearTimeout(refreshTimer);
       ctx.revert();
-      window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
@@ -324,179 +402,8 @@ export default function LandingPage() {
       ref={containerRef}
       className="min-h-screen bg-surface-container-low font-sans text-foreground antialiased selection:bg-primary-container selection:text-on-primary-container relative"
     >
-      {/* ⌘K Command Search Modal */}
-      {searchModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg bg-card rounded-2xl border border-border shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-4 border-b border-border flex items-center gap-3">
-              <Search className="w-5 h-5 text-muted-foreground" />
-              <input
-                type="text"
-                autoFocus
-                placeholder="Search ledger accounts, bills, purchase orders..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground"
-              />
-              <button
-                onClick={() => setSearchModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground text-xs px-2 py-1 rounded bg-surface-container"
-              >
-                ESC
-              </button>
-            </div>
-            <div className="p-3 text-xs text-muted-foreground space-y-1">
-              <div className="px-3 py-1 font-semibold uppercase tracking-wider text-[10px]">
-                Quick Navigation
-              </div>
-              <Link
-                href="/login"
-                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-container hover:text-primary transition-colors text-foreground"
-              >
-                <span className="flex items-center gap-2">
-                  <Receipt className="w-4 h-4 text-primary" /> Chart of Accounts &amp; General Ledger
-                </span>
-                <span className="text-muted-foreground">#1010 - #5100</span>
-              </Link>
-              <Link
-                href="/login"
-                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-container hover:text-primary transition-colors text-foreground"
-              >
-                <span className="flex items-center gap-2">
-                  <ShoppingBag className="w-4 h-4 text-info" /> Purchase Orders &amp; 3-Way Match
-                </span>
-                <span className="text-muted-foreground">PO-0001</span>
-              </Link>
-              <Link
-                href="/login"
-                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-container hover:text-primary transition-colors text-foreground"
-              >
-                <span className="flex items-center gap-2">
-                  <PieChart className="w-4 h-4 text-success" /> Project Cost Center (PRJ-FURN-26)
-                </span>
-                <span className="text-muted-foreground">Budget</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Material 3 Top Navigation Bar */}
-      <header className="sticky top-0 left-0 right-0 w-full z-40 bg-card/95 backdrop-blur-md border-b border-border transition-shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          {/* Brand Logo + Identity */}
-          <div className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-primary rounded-full pr-2"
-            >
-              <div className="w-9 h-9 rounded-2xl bg-primary flex items-center justify-center text-white shadow-sm">
-                <Armchair className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-[17px] tracking-tight text-foreground leading-tight">
-                  Urban Furniture
-                </span>
-                <span className="text-[11px] font-medium text-muted-foreground tracking-wide flex items-center gap-1">
-                  Cloud ERP <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                </span>
-              </div>
-            </Link>
-
-            {/* Material 3 Pill Tabs */}
-            <nav className="hidden lg:flex items-center gap-1 bg-surface-container-high/60 p-1 rounded-full border border-border/60">
-              <a
-                href="#features"
-                onClick={() => setActiveTab("features")}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeTab === "features"
-                    ? "bg-card text-primary shadow-sm font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
-                }`}
-              >
-                Features
-              </a>
-              <a
-                href="#workflows-section"
-                onClick={() => setActiveTab("workflows")}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeTab === "workflows"
-                    ? "bg-card text-primary shadow-sm font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
-                }`}
-              >
-                Workflows
-              </a>
-              <a
-                href="#telemetry-section"
-                onClick={() => setActiveTab("reports")}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeTab === "reports"
-                    ? "bg-card text-primary shadow-sm font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
-                }`}
-              >
-                Financial Reports
-              </a>
-              <a
-                href="#security-section"
-                onClick={() => setActiveTab("security")}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeTab === "security"
-                    ? "bg-card text-primary shadow-sm font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
-                }`}
-              >
-                Security
-              </a>
-              <a
-                href="#pricing"
-                onClick={() => setActiveTab("pricing")}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeTab === "pricing"
-                    ? "bg-card text-primary shadow-sm font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
-                }`}
-              >
-                Pricing
-              </a>
-            </nav>
-          </div>
-
-          {/* Search shortcut & Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={() => setSearchModalOpen(true)}
-              className="hidden md:flex items-center gap-2 bg-surface-container px-3.5 py-1.5 rounded-full border border-border text-muted-foreground text-xs hover:border-muted-foreground transition-colors cursor-pointer"
-            >
-              <Search className="w-4 h-4 text-muted-foreground" />
-              <span>Search docs, ledger codes...</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-card text-[10px] font-semibold text-muted-foreground border border-border shadow-xs">
-                ⌘K
-              </kbd>
-            </button>
-
-            <Link
-              href="/login"
-              className="hidden sm:inline-flex items-center px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-surface-container-high transition-colors"
-            >
-              Sign In
-            </Link>
-
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-primary hover:bg-primary-700 text-white shadow-sm hover:shadow-md transition-all active:scale-98"
-            >
-              <span>Get Started Free</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-
-            <div className="w-8 h-8 rounded-full ring-2 ring-primary/20 overflow-hidden ml-1 hidden sm:flex items-center justify-center bg-primary-100 text-primary font-bold text-xs">
-              UF
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Existing App SiteHeader Navbar */}
+      <SiteHeader />
 
       <main className="w-full">
         {/* Hero Section */}
@@ -544,13 +451,23 @@ export default function LandingPage() {
               ref={heroCtaRef}
               className="mt-8 flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto"
             >
-              <Link
-                href="/signup"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-primary hover:bg-primary-700 text-white shadow-md hover:shadow-lg transition-all active:scale-98"
-              >
-                <span>Get Started Free</span>
-                <ArrowRight className="w-4.5 h-4.5" />
-              </Link>
+              {isAuthenticated ? (
+                <Link
+                  href="/dashboard"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-primary hover:bg-primary-700 text-white shadow-md hover:shadow-lg transition-all active:scale-98"
+                >
+                  <span>Go to ERP Dashboard</span>
+                  <ArrowRight className="w-4.5 h-4.5" />
+                </Link>
+              ) : (
+                <Link
+                  href="/signup"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-primary hover:bg-primary-700 text-white shadow-md hover:shadow-lg transition-all active:scale-98"
+                >
+                  <span>Get Started Free</span>
+                  <ArrowRight className="w-4.5 h-4.5" />
+                </Link>
+              )}
               <a
                 href="#telemetry-section"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-card hover:bg-surface-container text-foreground border border-border shadow-xs transition-all"
@@ -593,7 +510,7 @@ export default function LandingPage() {
               </div>
 
               {/* Chrome Frame */}
-              <div className="w-full bg-card rounded-2xl border border-border shadow-xl overflow-hidden text-left">
+              <div className="w-full bg-card rounded-2xl border border-border shadow-xl overflow-hidden text-left transition-all duration-300 hover:shadow-2xl">
                 {/* Window Sub-Header Bar */}
                 <div className="bg-surface-container-high/60 px-5 py-3 border-b border-border/70 flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -614,7 +531,7 @@ export default function LandingPage() {
                     </span>
                     <button
                       onClick={() => setLiveReconcileCount((c) => c + 100)}
-                      className="p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface-container transition-colors"
+                      className="p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface-container transition-colors cursor-pointer"
                       title="Refresh Telemetry"
                     >
                       <RefreshCw className="w-4 h-4" />
@@ -627,7 +544,7 @@ export default function LandingPage() {
                   {/* 4 Elevated Metric KPI Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* KPI 1 */}
-                    <div className="bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-primary/40 transition-all hover:shadow-sm">
+                    <div className="kpi-mock-card bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-primary/40 transition-all hover:shadow-md hover:-translate-y-1">
                       <div className="flex items-center justify-between text-muted-foreground mb-1">
                         <span className="text-xs font-medium">Total Ledger Revenue</span>
                         <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center">
@@ -642,7 +559,7 @@ export default function LandingPage() {
                     </div>
 
                     {/* KPI 2 */}
-                    <div className="bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-amber-400/40 transition-all hover:shadow-sm">
+                    <div className="kpi-mock-card bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-amber-400/40 transition-all hover:shadow-md hover:-translate-y-1">
                       <div className="flex items-center justify-between text-muted-foreground mb-1">
                         <span className="text-xs font-medium">Accounts Payable</span>
                         <div className="w-7 h-7 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center">
@@ -657,7 +574,7 @@ export default function LandingPage() {
                     </div>
 
                     {/* KPI 3 */}
-                    <div className="bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-blue-400/40 transition-all hover:shadow-sm">
+                    <div className="kpi-mock-card bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-blue-400/40 transition-all hover:shadow-md hover:-translate-y-1">
                       <div className="flex items-center justify-between text-muted-foreground mb-1">
                         <span className="text-xs font-medium">Active Purchase Orders</span>
                         <div className="w-7 h-7 rounded-full bg-blue-500/10 text-blue-600 flex items-center justify-center">
@@ -674,7 +591,7 @@ export default function LandingPage() {
                     </div>
 
                     {/* KPI 4 */}
-                    <div className="bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-emerald-400/40 transition-all hover:shadow-sm">
+                    <div className="kpi-mock-card bg-card p-4 rounded-xl border border-border/60 shadow-xs flex flex-col justify-between hover:border-emerald-400/40 transition-all hover:shadow-md hover:-translate-y-1">
                       <div className="flex items-center justify-between text-muted-foreground mb-1">
                         <span className="text-xs font-medium">Budget Headroom</span>
                         <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
@@ -692,7 +609,7 @@ export default function LandingPage() {
                   {/* Mini Split Preview: Tables & Match Inspection */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
                     {/* Left: Order Ledger Telemetry Table */}
-                    <div className="lg:col-span-7 bg-card rounded-xl p-5 border border-border shadow-xs">
+                    <div className="lg:col-span-7 bg-card rounded-xl p-5 border border-border shadow-xs hover:shadow-md transition-all">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2.5">
                           <span className="text-base font-bold text-foreground">Order Ledger Telemetry</span>
@@ -716,7 +633,7 @@ export default function LandingPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-border/60">
-                            <tr className="hover:bg-surface-container-low transition-colors">
+                            <tr className="table-mock-row hover:bg-surface-container-low transition-colors">
                               <td className="py-3 px-3 font-semibold text-foreground">SO-0892</td>
                               <td className="py-3 px-3">
                                 <div className="font-medium text-foreground">Nordic Living Studio</div>
@@ -736,7 +653,7 @@ export default function LandingPage() {
                                 </span>
                               </td>
                             </tr>
-                            <tr className="hover:bg-surface-container-low transition-colors">
+                            <tr className="table-mock-row hover:bg-surface-container-low transition-colors">
                               <td className="py-3 px-3 font-semibold text-foreground">SO-0891</td>
                               <td className="py-3 px-3">
                                 <div className="font-medium text-foreground">Apex Hospitality Suites</div>
@@ -754,7 +671,7 @@ export default function LandingPage() {
                                 </span>
                               </td>
                             </tr>
-                            <tr className="hover:bg-surface-container-low transition-colors">
+                            <tr className="table-mock-row hover:bg-surface-container-low transition-colors">
                               <td className="py-3 px-3 font-semibold text-foreground">SO-0890</td>
                               <td className="py-3 px-3">
                                 <div className="font-medium text-foreground">Linear Architecture Ltd</div>
@@ -778,7 +695,7 @@ export default function LandingPage() {
                     </div>
 
                     {/* Right: Automated 3-Way Audit Card */}
-                    <div className="lg:col-span-5 bg-card rounded-xl p-5 border border-border shadow-xs flex flex-col justify-between">
+                    <div className="lg:col-span-5 bg-card rounded-xl p-5 border border-border shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-base font-bold text-foreground">Automated 3-Way Audit</span>
@@ -791,7 +708,7 @@ export default function LandingPage() {
                         </p>
                         <div className="space-y-2.5">
                           {/* PO item */}
-                          <div className="flex items-center justify-between p-3 rounded-lg bg-surface-container-low border border-border/60">
+                          <div className="audit-mock-item flex items-center justify-between p-3 rounded-lg bg-surface-container-low border border-border/60 transition-all hover:bg-card">
                             <div className="flex items-center gap-2.5">
                               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                               <div>
@@ -802,7 +719,7 @@ export default function LandingPage() {
                             <span className="text-xs font-bold text-foreground">₹5,000.00</span>
                           </div>
                           {/* GRN item */}
-                          <div className="flex items-center justify-between p-3 rounded-lg bg-surface-container-low border border-border/60">
+                          <div className="audit-mock-item flex items-center justify-between p-3 rounded-lg bg-surface-container-low border border-border/60 transition-all hover:bg-card">
                             <div className="flex items-center gap-2.5">
                               <Boxes className="w-4 h-4 text-emerald-600" />
                               <div>
@@ -815,7 +732,7 @@ export default function LandingPage() {
                             </span>
                           </div>
                           {/* Invoice item */}
-                          <div className="flex items-center justify-between p-3 rounded-lg bg-surface-container-low border border-border/60">
+                          <div className="audit-mock-item flex items-center justify-between p-3 rounded-lg bg-surface-container-low border border-border/60 transition-all hover:bg-card">
                             <div className="flex items-center gap-2.5">
                               <Receipt className="w-4 h-4 text-emerald-600" />
                               <div>
@@ -836,7 +753,7 @@ export default function LandingPage() {
                         </div>
                         <button
                           onClick={handleAuthorizeRelease}
-                          className="px-3.5 py-1.5 rounded-full bg-primary hover:bg-primary-700 text-white text-xs font-semibold transition-all shadow-xs active:scale-95"
+                          className="px-3.5 py-1.5 rounded-full bg-primary hover:bg-primary-700 text-white text-xs font-semibold transition-all shadow-xs active:scale-95 cursor-pointer"
                         >
                           {matchVerified ? "Authorize Release" : "Processing..."}
                         </button>
@@ -856,23 +773,23 @@ export default function LandingPage() {
               Trusted by 450+ furniture manufacturers, timber mills, and retail chains nationwide
             </p>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-8 items-center justify-items-center opacity-85">
-              <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-colors">
+              <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-all duration-300 hover:scale-105">
                 <TreePine className="w-5 h-5 text-primary" />
                 <span>Modern Timber</span>
               </div>
-              <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-colors">
+              <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-all duration-300 hover:scale-105">
                 <Factory className="w-5 h-5 text-primary" />
                 <span>Azure Woodworks</span>
               </div>
-              <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-colors">
+              <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-all duration-300 hover:scale-105">
                 <Armchair className="w-5 h-5 text-primary" />
                 <span>Nordic Furnishings</span>
               </div>
-              <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-colors">
+              <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground hover:text-primary transition-all duration-300 hover:scale-105">
                 <Truck className="w-5 h-5 text-primary" />
                 <span>FleetLogistics</span>
               </div>
-              <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground col-span-2 md:col-span-1 hover:text-primary transition-colors">
+              <div className="partner-logo flex items-center gap-2.5 text-sm font-semibold text-foreground col-span-2 md:col-span-1 hover:text-primary transition-all duration-300 hover:scale-105">
                 <Cpu className="w-5 h-5 text-primary" />
                 <span>Apex Millworks</span>
               </div>
@@ -897,7 +814,7 @@ export default function LandingPage() {
           {/* Stepper / Pipeline Cards */}
           <div id="workflows-cards" className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Workflow 1: Sales & Revenue */}
-            <div className="workflow-card bg-card rounded-2xl p-6 sm:p-8 border border-border shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div className="workflow-card bg-card rounded-2xl p-6 sm:p-8 border border-border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-6 border-b border-border mb-6">
                   <div className="flex items-center gap-3.5">
@@ -921,7 +838,7 @@ export default function LandingPage() {
                     <div className="absolute -left-[25px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center ring-4 ring-card">
                       1
                     </div>
-                    <div className="bg-surface-container-low p-4 rounded-xl border border-border/60">
+                    <div className="bg-surface-container-low p-4 rounded-xl border border-border/60 hover:bg-card transition-all">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-foreground">Sales Order SO-0892</span>
                         <span className="text-[11px] font-semibold text-muted-foreground bg-card px-2 py-0.5 rounded-md border border-border">
@@ -939,7 +856,7 @@ export default function LandingPage() {
                     <div className="absolute -left-[25px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center ring-4 ring-card">
                       2
                     </div>
-                    <div className="bg-surface-container-low p-4 rounded-xl border border-border/60">
+                    <div className="bg-surface-container-low p-4 rounded-xl border border-border/60 hover:bg-card transition-all">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-foreground">Warehouse Dispatch &amp; Invoice INV-2026</span>
                         <span className="text-[11px] font-semibold text-primary bg-blue-100 dark:bg-blue-950/40 px-2 py-0.5 rounded-md">
@@ -957,7 +874,7 @@ export default function LandingPage() {
                     <div className="absolute -left-[25px] top-0 w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center ring-4 ring-card">
                       ✓
                     </div>
-                    <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/40">
+                    <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/40 hover:bg-card transition-all">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-foreground">Bank Settlement &amp; Auto-Credit</span>
                         <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-card px-2 py-0.5 rounded-md border border-emerald-200">
@@ -982,7 +899,7 @@ export default function LandingPage() {
             </div>
 
             {/* Workflow 2: Procurement & AP */}
-            <div className="workflow-card bg-card rounded-2xl p-6 sm:p-8 border border-border shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div className="workflow-card bg-card rounded-2xl p-6 sm:p-8 border border-border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-6 border-b border-border mb-6">
                   <div className="flex items-center gap-3.5">
@@ -1006,7 +923,7 @@ export default function LandingPage() {
                     <div className="absolute -left-[25px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center ring-4 ring-card">
                       1
                     </div>
-                    <div className="bg-surface-container-low p-4 rounded-xl border border-border/60">
+                    <div className="bg-surface-container-low p-4 rounded-xl border border-border/60 hover:bg-card transition-all">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-foreground">Purchase Order PO-0001</span>
                         <span className="text-[11px] font-semibold text-muted-foreground bg-card px-2 py-0.5 rounded-md border border-border">
@@ -1024,7 +941,7 @@ export default function LandingPage() {
                     <div className="absolute -left-[25px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center ring-4 ring-card">
                       2
                     </div>
-                    <div className="bg-surface-container-low p-4 rounded-xl border border-border/60">
+                    <div className="bg-surface-container-low p-4 rounded-xl border border-border/60 hover:bg-card transition-all">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-foreground">Intake Goods Receipt GRN-0142</span>
                         <span className="text-[11px] font-semibold text-primary bg-blue-100 dark:bg-blue-950/40 px-2 py-0.5 rounded-md">
@@ -1042,7 +959,7 @@ export default function LandingPage() {
                     <div className="absolute -left-[25px] top-0 w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center ring-4 ring-card">
                       ✓
                     </div>
-                    <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/40">
+                    <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/40 hover:bg-card transition-all">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-foreground">3-Way Match &amp; Settlement</span>
                         <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-card px-2 py-0.5 rounded-md border border-emerald-200">
@@ -1085,9 +1002,9 @@ export default function LandingPage() {
 
             <div id="bento-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Bento Card 1 */}
-              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer hover:-translate-y-1">
+              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1.5 hover:border-primary/50">
                 <div>
-                  <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-primary flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-primary flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <BarChart3 className="w-6 h-6" />
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-2">Unified Executive Command</h3>
@@ -1097,14 +1014,14 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
                   <span>Executive cockpit</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
 
               {/* Bento Card 2 */}
-              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer hover:-translate-y-1">
+              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1.5 hover:border-emerald-500/50">
                 <div>
-                  <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <Receipt className="w-6 h-6" />
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-2">Sales Order &amp; Invoicing</h3>
@@ -1114,14 +1031,14 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
                   <span>Automated dunning</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
 
               {/* Bento Card 3 */}
-              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer hover:-translate-y-1">
+              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1.5 hover:border-blue-500/50">
                 <div>
-                  <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-primary flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-primary flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-2">Automated 3-Way Match</h3>
@@ -1131,14 +1048,14 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
                   <span>Fraud elimination</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
 
               {/* Bento Card 4 */}
-              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer hover:-translate-y-1">
+              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1.5 hover:border-indigo-500/50">
                 <div>
-                  <div className="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <FileSpreadsheet className="w-6 h-6" />
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-2">Native Double-Entry GL</h3>
@@ -1148,14 +1065,14 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
                   <span>GAAP compliant</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
 
               {/* Bento Card 5 */}
-              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer hover:-translate-y-1">
+              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1.5 hover:border-amber-500/50">
                 <div>
-                  <div className="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <PieChart className="w-6 h-6" />
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-2">Budgets &amp; Cost Centers</h3>
@@ -1165,14 +1082,14 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
                   <span>Variance detection</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
 
               {/* Bento Card 6 */}
-              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer hover:-translate-y-1">
+              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1.5 hover:border-blue-500/50">
                 <div>
-                  <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-primary flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-primary flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <TrendingUp className="w-6 h-6" />
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-2">Real-Time Statements</h3>
@@ -1182,14 +1099,14 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
                   <span>Instant closing</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
 
               {/* Bento Card 7 */}
-              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer hover:-translate-y-1">
+              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1.5 hover:border-primary/50">
                 <div>
-                  <div className="w-11 h-11 rounded-2xl bg-surface-container-high text-primary flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-2xl bg-surface-container-high text-primary flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <Boxes className="w-6 h-6" />
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-2">Master Data Governance</h3>
@@ -1199,14 +1116,14 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
                   <span>BOM synchronization</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
 
               {/* Bento Card 8 */}
-              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer hover:-translate-y-1">
+              <div className="bento-card bg-card p-6 rounded-2xl border border-border shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1.5 hover:border-slate-500/50">
                 <div>
-                  <div className="w-11 h-11 rounded-2xl bg-surface-container-highest text-foreground flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-2xl bg-surface-container-highest text-foreground flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                     <Lock className="w-6 h-6" />
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-2">Role-Based Governance</h3>
@@ -1216,7 +1133,7 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-6 pt-4 border-t border-border text-xs font-semibold text-primary flex items-center gap-1">
                   <span>SOC2 Type II</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             </div>
@@ -1225,7 +1142,7 @@ export default function LandingPage() {
 
         {/* Budget & Double-Entry Ledger Audit Widget */}
         <section id="telemetry-section" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div id="telemetry-widget" className="bg-card rounded-2xl border border-border shadow-lg overflow-hidden">
+          <div id="telemetry-widget" className="bg-card rounded-2xl border border-border shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
             {/* Header Banner */}
             <div className="px-6 py-5 bg-surface-container-high/40 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
@@ -1260,17 +1177,17 @@ export default function LandingPage() {
               {/* Budget Health & Visualization */}
               <div className="lg:col-span-7 space-y-6">
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="p-4 rounded-xl bg-surface-container-low border border-border/60">
+                  <div className="telemetry-stat-box p-4 rounded-xl bg-surface-container-low border border-border/60 hover:bg-card transition-all">
                     <span className="text-xs text-muted-foreground font-medium">Total Budget</span>
                     <div className="text-xl font-bold text-foreground mt-1">₹50,000.00</div>
                     <span className="text-[11px] text-muted-foreground">100% Base Cap</span>
                   </div>
-                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40">
+                  <div className="telemetry-stat-box p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 hover:bg-card transition-all">
                     <span className="text-xs text-muted-foreground font-medium">Total Committed</span>
                     <div className="text-xl font-bold text-primary mt-1">₹47,000.00</div>
                     <span className="text-[11px] text-primary font-semibold">94% Allocated</span>
                   </div>
-                  <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40">
+                  <div className="telemetry-stat-box p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 hover:bg-card transition-all">
                     <span className="text-xs text-muted-foreground font-medium">Free Headroom</span>
                     <div className="text-xl font-bold text-emerald-600 mt-1">₹3,000.00</div>
                     <span className="text-[11px] text-emerald-600 font-semibold">Safe Margin</span>
@@ -1389,7 +1306,7 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-surface-container-low rounded-2xl p-6 sm:p-10 border border-border">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-                <div className="max-w-xl">
+                <div className="security-header-content max-w-xl">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/40 text-primary text-xs font-semibold mb-3">
                     <ShieldCheck className="w-4 h-4" /> Bank-Grade Double-Entry Ledger Environment
                   </div>
@@ -1401,27 +1318,27 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  <div className="bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs">
+                  <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Shield className="w-5 h-5 text-emerald-600" />
                     <span className="text-xs font-semibold text-foreground">SOC2 Type II</span>
                   </div>
-                  <div className="bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs">
+                  <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Database className="w-5 h-5 text-emerald-600" />
                     <span className="text-xs font-semibold text-foreground">Continuous Backups</span>
                   </div>
-                  <div className="bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs">
+                  <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Building2 className="w-5 h-5 text-emerald-600" />
                     <span className="text-xs font-semibold text-foreground">Multi-Entity Ledger</span>
                   </div>
-                  <div className="bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs">
+                  <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Lock className="w-5 h-5 text-emerald-600" />
                     <span className="text-xs font-semibold text-foreground">Immutable Audit Log</span>
                   </div>
-                  <div className="bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs">
+                  <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Zap className="w-5 h-5 text-emerald-600" />
                     <span className="text-xs font-semibold text-foreground">99.99% SLA Uptime</span>
                   </div>
-                  <div className="bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs">
+                  <div className="security-badge bg-card p-3.5 rounded-xl border border-border flex items-center gap-2.5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all">
                     <Users className="w-5 h-5 text-emerald-600" />
                     <span className="text-xs font-semibold text-foreground">SAML / Okta SSO</span>
                   </div>

@@ -14,6 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Armchair,
   ChevronDown,
+  LogIn,
   LogOut,
   Menu,
   Moon,
@@ -250,7 +251,7 @@ export function SiteHeader() {
     >
       <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8 gap-3 sm:gap-4">
         {/* Left: Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+        <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2.5 shrink-0">
           <div className="rounded-xl bg-primary-600 p-2 text-white shadow-sm shadow-primary-500/20">
             <Armchair className="h-5 w-5" />
           </div>
@@ -264,10 +265,10 @@ export function SiteHeader() {
           </div>
         </Link>
 
-        {/* Center: Module Dropdown Pills + Global Search (desktop only) */}
-        <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-1 justify-center max-w-2xl">
-          {/* Module Dropdown Navigation Pill */}
-          <nav className="flex items-center space-x-0.5 sm:space-x-1 rounded-2xl bg-surface-muted/80 p-1 border border-border/60 shadow-xs">
+        {/* Center: Module Dropdowns + Global Search (desktop only) */}
+        <div className="hidden md:flex items-center gap-2 lg:gap-4 flex-1 justify-center max-w-2xl">
+          {/* Module Dropdown Navigation */}
+          <nav className="flex items-center space-x-1">
             {categories.map((cat) => {
               const isOpen = activeDropdown === cat.id;
 
@@ -279,10 +280,10 @@ export function SiteHeader() {
                       setActiveDropdown(isOpen ? null : cat.id);
                     }}
                     className={cn(
-                      "flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all",
+                      "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                       isOpen
-                        ? "bg-surface text-primary-600 shadow-xs font-semibold"
-                        : "text-text-muted hover:bg-surface/70 hover:text-text"
+                        ? "bg-surface-muted text-primary-600 font-semibold"
+                        : "text-text-muted hover:bg-surface-muted hover:text-text"
                     )}
                   >
                     <span>{cat.label}</span>
@@ -428,15 +429,25 @@ export function SiteHeader() {
             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="hidden sm:flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text shadow-xs"
-            aria-label="Sign out"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            <span>Sign out</span>
-          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="hidden sm:flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text shadow-xs"
+              aria-label="Sign out"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>Sign out</span>
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden sm:flex h-9 items-center gap-1.5 rounded-xl bg-primary hover:bg-primary-700 text-white px-3.5 text-xs font-semibold shadow-xs transition-all"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              <span>Sign in</span>
+            </Link>
+          )}
 
           {/* Mobile menu hamburger toggle */}
           <button
@@ -519,14 +530,24 @@ export function SiteHeader() {
           </div>
 
           <div className="border-t border-border pt-3">
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-medium text-text-muted hover:bg-surface-muted hover:text-text"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Sign out</span>
-            </button>
+            {user ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-medium text-text-muted hover:bg-surface-muted hover:text-text"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign out</span>
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary-700 text-white px-3 py-2 text-xs font-semibold"
+              >
+                <LogIn className="h-4 w-4" />
+                <span>Sign in</span>
+              </Link>
+            )}
           </div>
         </div>
       )}

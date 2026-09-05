@@ -8,8 +8,8 @@ This document defines the behavioral logic, state handling, golden paths, valida
 
 | Step | Route/Surface | User Action | API Call | Success State | Failure Recovery |
 |---:|---|---|---|---|---|
-| **1** | `/login` | Enter credentials (`admin001` / `Password@123`) | `POST /api/v1/auth/login` with `login_id` | Token stored in `localStorage` & AuthContext; redirect to `/` | Display `Invalid Login Id or Password`; keep credentials input |
-| **2** | `/` | View accounting health KPIs (Cash, Bank, AP, AR, Net Profit) | `GET /api/v1/reports/balance-sheet`, `GET /api/v1/reports/profit-loss` | Summary cards show live financial metrics | Show fallback skeleton / retry button if data fetch fails |
+| **1** | `/login` | Enter credentials (`admin001` / `Password@123`) | `POST /api/v1/auth/login` with `login_id` | Token stored in `localStorage` & AuthContext; redirect to `/dashboard` | Display `Invalid Login Id or Password`; keep credentials input |
+| **2** | `/dashboard` | View accounting health KPIs (Cash, Bank, AP, AR, Net Profit) | `GET /api/v1/reports/balance-sheet`, `GET /api/v1/reports/profit-loss` | Summary cards show live financial metrics | Show fallback skeleton / retry button if data fetch fails |
 | **3** | `/contacts` | Verify/Create Vendor "Azure Furniture" | `GET /api/v1/contacts`, `POST /api/v1/contacts` | Vendor appears in list with badge `Vendor` | Inline field error on duplicate name/invalid email |
 | **4** | `/products` | Verify/Create Product "Wooden Chair" (₹2,500, Tax 18%) | `GET /api/v1/products`, `POST /api/v1/products` | Product appears in table with price and tax rates | Modal remains open with error details; user can fix inputs |
 | **5** | `/purchase-orders` | Click "New PO", select Azure Furniture, add 10x Wooden Chair, click "Create PO" | `POST /api/v1/purchase-orders` | PO created in `draft` state; auto-navigates to `/purchase-orders/:id` | Line-item validation error displayed (e.g. qty > 0) |
@@ -33,19 +33,19 @@ This document defines the behavioral logic, state handling, golden paths, valida
 | **P0** | Login | `/login` | Authenticate by Login ID via JWT | idle / submitting / error / success | Implemented; browser QA pending |
 | **P0** | Forgot Password | `/forgot-password` | Start a password reset request | idle / submitting / error / success/demo | Implemented; browser QA pending |
 | **P0** | Create User | `/admin/users` | Admin creates an Admin, Accountant, or User account | idle / submitting / validation / success | Implemented; browser QA pending |
-| **P0** | App Shell & Dashboard | `/` | Provide overview of accounts, quick links to transactions & reports | loading / empty / error / success | Implemented; dashboard controls still need wiring |
+| **P0** | App Shell & Dashboard | `/dashboard` | Provide overview of accounts, quick links to transactions & reports | loading / empty / error / success | Implemented; date filter and CSV exports wired; browser QA pending |
 | **P0** | Contact Master | `/contacts` | List-first CRUD for customers/vendors with list ↔ kanban and form views | loading / empty / error / success / archived | Implemented; browser QA pending |
 | **P0** | Product Master | `/products` | List-first CRUD for products, type/category/pricing, with list ↔ kanban and form views | loading / empty / error / success / archived | Implemented; browser QA pending |
 | **P0** | Chart of Accounts | `/chart-of-accounts` | Display hierarchy of Asset, Liability, Bank, Cash, Capital, Income, Expense, Other Expense | loading / empty / error / success | Implemented; browser QA pending |
 | **P0** | Purchase Orders List | `/purchase-orders` | View list of POs, filter by status, quick action to create | loading / empty / error / success | Implemented with live API |
 | **P0** | Purchase Order Detail | `/purchase-orders/[id]` | Track PO status, convert to Bill, record vendor payment, inspect journal links | loading / mutating / error / success | Implemented; Edit action and browser QA pending |
 | **P0** | Sales Orders List | `/sales-orders` | View list of SOs, filter by status, quick action to create | loading / empty / error / success | Implemented with live-first adapter |
-| **P0** | Sales Order Detail | `/sales-orders/[id]` | Track SO status, generate Invoice, record customer payment, inspect journal links | loading / mutating / error / success | Implemented; status update fallback needs API alignment |
+| **P0** | Sales Order Detail | `/sales-orders/[id]` | Track SO status, generate Invoice, record customer payment, inspect journal links | loading / mutating / error / success | Implemented; browser QA pending |
 | **P0** | Journal Entries | `/journal-entries` | Audit all double-entry ledger records, verify debit = credit balance | loading / empty / error / success | Implemented; browser QA pending |
 | **P0** | Balance Sheet | `/reports/balance-sheet` | Display live snapshot of Assets, Liabilities, and Capital | loading / empty / error / success | Implemented; browser QA pending |
 | **P0** | Profit & Loss (P&L) | `/reports/profit-loss` | Display real-time Income, Expenses, and Net Profit | loading / empty / error / success | Implemented; browser QA pending |
-| **P1** | Analytics & Budget | `/analytic-accounts`, `/budgets`, `/reports/budget` | Manage analytic accounts/budgets and display committed vs achieved utilization | loading / empty / error / success / revised | UI implemented; API contract alignment pending |
-| **P1** | Contact Portal | `/portal` | Restricted self-service portal for User accounts to view own invoices/bills and pay | loading / unauth / forbidden / error / success | UI implemented; self-service endpoint alignment pending |
+| **P1** | Analytics & Budget | `/analytic-accounts`, `/budgets`, `/reports/budget` | Manage analytic accounts/budgets and display committed vs achieved utilization | loading / empty / error / success / revised | Implemented with live API contract; browser QA pending |
+| **P1** | Contact Portal | `/portal` | Restricted self-service portal for User accounts to view own invoices/bills and pay | loading / unauth / forbidden / error / success | Implemented with ownership-checked self-service routes; backend isolation tests/browser QA pending |
 
 ---
 

@@ -14,7 +14,7 @@ import { RedirectIfAuth } from "@/components/redirect-if-auth";
 /**
  * Layout for unauthenticated auth pages (login and signup).
  *
- * Auth guard: `RedirectIfAuth` sends logged-in users to the dashboard (`/`)
+ * Auth guard: `RedirectIfAuth` sends logged-in users to the dashboard (`/dashboard`)
  * so they cannot open login/signup while already signed in.
  *
  * @param children - The active auth page (`LoginPage` or `SignupPage`).
