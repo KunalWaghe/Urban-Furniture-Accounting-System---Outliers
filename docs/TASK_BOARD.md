@@ -5,11 +5,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 **How to use:** every task is a tickbox. When a task is done, tick it (`- [x]`) and move it to the **DONE** list at the top. Completed tasks always show on top. Within every section, tasks are grouped **Backend → Frontend → Integration**.
 
-<<<<<<< HEAD
-**Last updated:** 5 September 2026, 4:20 PM — Sales and Purchase Order list routes added; both currently use the dashboard demo adapter until order APIs land
-=======
-**Last updated:** 5 September 2026, 5:07 PM — Master data seed verified (Accounts, Journals, Contacts, Products); Task board cleaned and reconciled
->>>>>>> main
+**Last updated:** 5 September 2026, 5:07 PM — Master data seed verified (Accounts, Journals, Contacts, Products); Purchase Order list uses live server-side pagination/sorting; Sales Orders remain on the demo adapter (no sales-order router yet)
 **Current phase/gate:** 10:00 AM — Foundation & First Vertical Slice  
 **Stable URL:** http://localhost:3000 (dev)  
 **Stable commit/tag:** `a03511e` on `feat/auth`  
@@ -59,6 +55,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 ### Frontend
 
 - [x] **P0-FE-15** — Sales & Purchase Order list routes · Sourabh · 5 Sep, 4:20 PM — Evidence: `/sales-orders` and `/purchase-orders` are navigable from dashboard, header dropdown, and sidebar; both provide search, status filters, summary cards, responsive tables, and detail inspection; `npm run lint`, `npx tsc --noEmit`, and `next build --webpack` pass · Uses demo-derived order data pending P0-BE-05/P0-BE-08
+- [x] **P0-FE-17** — Purchase Order API pagination & sorting · Sourabh · 5 Sep, 4:35 PM — Evidence: `/purchase-orders` calls `GET /api/v1/purchase-orders` with `page`, `limit`, `search`, `status`, `sort_by`, and `sort_order`; sortable reference/date/total columns and Previous/Next controls map the API envelope (`data`, `total`, `pages`); lint and TypeScript checks pass
 - [x] **P0-FE-02R** — Correct auth UI and wire API · Sourabh · 5 Sep, 3:50 PM — Evidence: `loginId` implemented with 6–12 char regex validation; role selection removed from public signup; exact 401/409 error mappings (`Invalid Login Id or Password`, `LOGIN_ID_ALREADY_EXISTS`, `EMAIL_ALREADY_EXISTS`); `npm run lint` & `npm run build` clean (0 errors, 0 warnings) · Integrated & Verified
 - [x] **P0-FE-01** — Next.js 16 + Tailwind 4 + shadcn shell + QueryProvider + AuthProvider · Sourabh · 5 Sep, 1:35 PM — Evidence: `@tanstack/react-query@5.80.7` installed; `QueryProvider` + `AuthProvider` mounted via `AppProviders` in root layout (ThemeProvider › QueryProvider › AuthProvider); `npm run build` clean — TypeScript OK, 4 routes static-prerendered, 0 errors · Integrated & Verified
 - [x] **P0-FE-02 (baseline UI)** — `/login` + `/signup` built with email field and UI-only wiring · Sourabh · 5 Sep, 12:45 PM — Evidence: browser-verified validation, strength meter, match badge, demo notices, dark mode; `npm run build` + lint clean · Baseline only; must be corrected to Excalidraw `loginId` contract
@@ -113,7 +110,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Frontend
 
-- [ ] **P0-FE-16** — Wire Sales & Purchase Order list/detail pages to live order APIs · Sourabh · 45m · Depends: P0-BE-05, P0-BE-08 — Replace `buildDashboardDataFromBackend` adapter in `/sales-orders` and `/purchase-orders` with authenticated `GET /api/v1/sales-orders`, `GET /api/v1/purchase-orders`, and `GET /:id` calls; preserve loading, empty, error, filtering, and detail states
+- [ ] **P0-FE-16** — Wire Sales Order list/detail pages to live APIs · Sourabh · 45m · Depends: P0-BE-08 — Replace `buildDashboardDataFromBackend` adapter in `/sales-orders` with authenticated `GET /api/v1/sales-orders` and `GET /api/v1/sales-orders/:id` calls; preserve server-side pagination/sorting, loading, empty, error, filtering, and detail states once the backend router exists
 - [ ] **P0-FE-03** — Dashboard shell + module navigation · Sourabh · 30m · Depends: P0-INT-01 · Done when: authenticated user sees Sales, Purchase, Accounting, Reports, and Master Data navigation with route visibility by role
 - [ ] **P0-FE-04** — Master-data list/form views for Contacts and Products · Sourabh · 60m · Depends: P0-BE-03R, P0-INT-01 · Done when: list is the default, New opens a blank form, saved rows open in edit form, and Contact/Product can toggle list ↔ kanban; archived records are visibly inactive
 - [ ] **P0-FE-05** — Chart of Accounts hierarchical view · Sourabh · 30m · Depends: P0-BE-04 · Contract: `GET /api/v1/accounts` · Done when: displays Asset, Liability, Bank, Cash, Capital, Income, Expense, Other Expense and default accounts
