@@ -16,8 +16,30 @@ function findBalance(lines: { account_name: string; balance: number }[], terms: 
 export function DashboardKpiCards() {
   const balanceQuery = useQuery({ queryKey: ["dashboard", "balance-sheet"], queryFn: () => fetchBalanceSheet() });
   const pnlQuery = useQuery({ queryKey: ["dashboard", "profit-loss"], queryFn: () => fetchProfitLoss() });
-  if (balanceQuery.isLoading || pnlQuery.isLoading) return <Card><CardContent className="flex items-center justify-center py-8"><LoadingSpinner label="Loading financial KPIs…" /></CardContent></Card>;
-  if (balanceQuery.isError || pnlQuery.isError || !balanceQuery.data || !pnlQuery.data) return <Card><CardContent className="p-5"><p className="text-sm font-semibold text-text">Financial KPIs unavailable</p><p className="mt-1 text-xs text-text-muted">Connect the reporting API to show Cash, Bank, Receivables, Payables, and Net Profit.</p></CardContent></Card>;
+
+  if (balanceQuery.isLoading || pnlQuery.isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <LoadingSpinner label="Loading financial KPIs…" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (balanceQuery.isError || pnlQuery.isError || !balanceQuery.data || !pnlQuery.data) {
+    return (
+      <Card>
+        <CardContent className="p-4 sm:p-5">
+          <p className="text-sm font-semibold text-text">Financial KPIs unavailable</p>
+          <p className="mt-1 text-xs text-text-muted">
+            Connect the reporting API to show Cash, Bank, Receivables, Payables, and Net Profit.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const balance = balanceQuery.data;
   const metrics = [
     { label: "Cash", value: findBalance(balance.assets.lines, ["cash"]), icon: Banknote, tone: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40" },
@@ -26,5 +48,31 @@ export function DashboardKpiCards() {
     { label: "Payables", value: balance.liabilities.total, icon: WalletCards, tone: "text-amber-600 bg-amber-50 dark:bg-amber-950/40" },
     { label: "Net Profit", value: pnlQuery.data.net_income, icon: TrendingUp, tone: pnlQuery.data.net_income >= 0 ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40" : "text-red-600 bg-red-50 dark:bg-red-950/40" },
   ];
-  return <section aria-label="Financial KPIs" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">{metrics.map((metric) => { const Icon = metric.icon; return <Link key={metric.label} href={metric.label === "Net Profit" ? "/reports/profit-loss" : "/reports/balance-sheet"} className="rounded-xl border border-border bg-surface p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><div className="flex items-center gap-3"><div className={`rounded-lg p-2.5 ${metric.tone}`}><Icon className="h-4 w-4" /></div><div className="min-w-0"><p className="text-xs text-text-muted">{metric.label}</p><p className="mt-1 truncate text-base font-bold text-text">{formatINR(metric.value)}</p></div></div></Link>; })}</section>;
+
+  return (
+    <section aria-label="Financial KPIs" className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+      {metrics.map((metric) => {
+        const Icon = metric.icon;
+        return (
+          <Link
+            key={metric.label}
+            href={metric.label === "Net Profit" ? "/reports/profit-loss" : "/reports/balance-sheet"}
+            className="rounded-lg sm:rounded-xl border border-border bg-surface p-3 sm:p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+              <div className={`rounded-md sm:rounded-lg p-2 sm:p-2.5 ${metric.tone} shrink-0`}>
+                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] sm:text-xs text-text-muted">{metric.label}</p>
+                <p className="mt-0.5 sm:mt-1 truncate text-sm sm:text-base font-bold text-text">
+                  {formatINR(metric.value)}
+                </p>
+              </div>
+            </div>
+          </Link>
+        );
+      })}
+    </section>
+  );
 }

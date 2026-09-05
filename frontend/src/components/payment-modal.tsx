@@ -115,17 +115,17 @@ export function PaymentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg rounded-2xl border border-border bg-surface p-6 shadow-2xl space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200">
+      <div className="w-full max-w-lg rounded-xl sm:rounded-2xl border border-border bg-surface p-4 sm:p-5 md:p-6 shadow-2xl space-y-4 sm:space-y-5 md:space-y-6 max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border/70 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
-              <CreditCard className="h-5 w-5" />
+        <div className="flex items-center justify-between border-b border-border/70 pb-3 sm:pb-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
+              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-text">Register Payment</h3>
-              <p className="text-xs text-text-muted">
+              <h3 className="text-base sm:text-lg font-bold text-text">Register Payment</h3>
+              <p className="text-[11px] sm:text-xs text-text-muted">
                 Bill #{billNumber} {vendorName ? `· ${vendorName}` : ""}
               </p>
             </div>
@@ -140,62 +140,60 @@ export function PaymentModal({
         </div>
 
         {/* Financial Summary Card */}
-        <div className="grid grid-cols-3 gap-3 rounded-xl border border-border/80 bg-surface-muted/50 p-3.5 text-center">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 rounded-lg sm:rounded-xl border border-border/80 bg-surface-muted/50 p-2.5 sm:p-3.5 text-center">
           <div>
-            <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">
+            <span className="text-[10px] sm:text-[11px] font-medium text-text-muted uppercase tracking-wider">
               Total Bill
             </span>
-            <p className="font-mono text-sm font-semibold text-text mt-0.5">
+            <p className="font-mono text-xs sm:text-sm font-semibold text-text mt-0.5">
               {formatINR(totalAmount)}
             </p>
           </div>
           <div>
-            <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">
+            <span className="text-[10px] sm:text-[11px] font-medium text-text-muted uppercase tracking-wider">
               Paid to Date
             </span>
-            <p className="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+            <p className="font-mono text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
               {formatINR(amountPaid)}
             </p>
           </div>
           <div>
-            <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">
+            <span className="text-[10px] sm:text-[11px] font-medium text-text-muted uppercase tracking-wider">
               Remaining Due
             </span>
-            <p className="font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
+            <p className="font-mono text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
               {formatINR(remaining)}
             </p>
           </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           {/* Payment Method Selector */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-text">Payment Method</label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setPaymentMethod("bank")}
-                className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-medium transition-all ${
-                  paymentMethod === "bank"
+                className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border p-2.5 sm:p-3 text-[11px] sm:text-xs font-medium transition-all ${paymentMethod === "bank"
                     ? "border-primary-600 bg-primary-50/60 text-primary-700 dark:bg-primary-950/40 dark:text-primary-300 shadow-xs"
                     : "border-border bg-surface hover:bg-surface-muted/70 text-text-muted"
-                }`}
+                  }`}
               >
-                <Building2 className="h-4 w-4 text-primary-600 dark:text-primary-400" />
-                <span>Bank Account (1020)</span>
+                <Building2 className="h-4 w-4 text-primary-600 dark:text-primary-400 shrink-0" />
+                <span className="text-center sm:text-left">Bank Account (1020)</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentMethod("cash")}
-                className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-medium transition-all ${
-                  paymentMethod === "cash"
+                className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border p-2.5 sm:p-3 text-[11px] sm:text-xs font-medium transition-all ${paymentMethod === "cash"
                     ? "border-primary-600 bg-primary-50/60 text-primary-700 dark:bg-primary-950/40 dark:text-primary-300 shadow-xs"
                     : "border-border bg-surface hover:bg-surface-muted/70 text-text-muted"
-                }`}
+                  }`}
               >
-                <Wallet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                <span>Cash Register (1010)</span>
+                <Wallet className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span className="text-center sm:text-left">Cash Register (1010)</span>
               </button>
             </div>
           </div>
@@ -231,11 +229,10 @@ export function PaymentModal({
                   setAmount(e.target.value);
                   setError(null);
                 }}
-                className={`w-full rounded-xl border bg-surface py-2.5 pl-8 pr-4 font-mono text-sm font-medium text-text placeholder:text-text-muted focus:outline-hidden focus:ring-2 ${
-                  isOverpayment
+                className={`w-full rounded-xl border bg-surface py-2.5 pl-8 pr-4 font-mono text-sm font-medium text-text placeholder:text-text-muted focus:outline-hidden focus:ring-2 ${isOverpayment
                     ? "border-red-500 focus:ring-red-500/30"
                     : "border-border focus:border-primary-500 focus:ring-primary-500/20"
-                }`}
+                  }`}
                 placeholder="0.00"
                 required
               />

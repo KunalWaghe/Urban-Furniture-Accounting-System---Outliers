@@ -202,10 +202,10 @@ export function DataTable<T extends { id?: string | number }>({
       {visibleData.length === 0 ? (
         <EmptyState title={emptyTitle} description={emptyDescription} />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="overflow-hidden rounded-lg sm:rounded-xl border border-border bg-surface">
           {/* Horizontal scroll wrapper for tables on mobile */}
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border text-sm">
+            <table className="min-w-full divide-y divide-border text-xs sm:text-sm">
               <thead className="bg-surface-muted">
                 <tr>
                   {columns.map((col) => {
@@ -214,23 +214,23 @@ export function DataTable<T extends { id?: string | number }>({
                     return (
                       <th
                         key={col.key}
-                        className="whitespace-nowrap px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted sm:px-4"
+                        className="whitespace-nowrap px-2 py-2 sm:px-3 sm:py-3 md:px-4 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-text-muted"
                       >
                         {canSort ? (
                           <button
                             type="button"
                             onClick={() => onSort(col.key)}
-                            className="inline-flex items-center gap-1.5 font-semibold text-text-muted transition-colors hover:text-text"
+                            className="inline-flex items-center gap-1 sm:gap-1.5 font-semibold text-text-muted transition-colors hover:text-text"
                           >
                             <span>{col.label}</span>
                             {isSorted ? (
                               sortOrder === "asc" ? (
-                                <ArrowUp className="h-3.5 w-3.5 text-primary-600" />
+                                <ArrowUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary-600" />
                               ) : (
-                                <ArrowDown className="h-3.5 w-3.5 text-primary-600" />
+                                <ArrowDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary-600" />
                               )
                             ) : (
-                              <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
+                              <ArrowUpDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 opacity-50" />
                             )}
                           </button>
                         ) : (
@@ -243,9 +243,9 @@ export function DataTable<T extends { id?: string | number }>({
               </thead>
               <tbody className="divide-y divide-border">
                 {visibleData.map((row, index) => (
-                  <tr key={row.id ?? index} className="hover:bg-surface-muted/60">
+                  <tr key={row.id ?? index} className="hover:bg-surface-muted/60 transition-colors">
                     {columns.map((col) => (
-                      <td key={col.key} className="px-3 py-3 text-text sm:px-4">
+                      <td key={col.key} className="px-2 py-2 sm:px-3 sm:py-3 md:px-4 text-text">
                         {col.render
                           ? col.render(row)
                           : ((row as Record<string, unknown>)[col.key] as ReactNode)}
@@ -259,9 +259,9 @@ export function DataTable<T extends { id?: string | number }>({
 
           {/* Pagination footer — hidden when only one page exists */}
           {totalPages > 1 && (
-            <div className="border-t border-border px-3 sm:px-4">
+            <div className="border-t border-border px-2 sm:px-3 md:px-4">
               <div className="flex flex-col items-center justify-between gap-2 py-2 sm:flex-row sm:gap-0">
-                <p className="text-xs text-text-muted">
+                <p className="text-[11px] sm:text-xs text-text-muted">
                   {totalRecords === 0
                     ? 0
                     : `${(activePage - 1) * pageSize + 1}–${Math.min(

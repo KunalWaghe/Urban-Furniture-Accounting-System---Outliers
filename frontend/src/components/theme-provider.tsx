@@ -55,10 +55,10 @@ function getServerDarkModeSnapshot() {
 
 /**
  * Inline script injected before first paint.
- * Reads localStorage or system preference and sets the `dark` class immediately
+ * Reads localStorage or defaults to light mode and sets the `dark` class immediately
  * to prevent a flash of the wrong theme.
  */
-const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}})();`
+const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");var d=t?t==="dark":false;document.documentElement.classList.toggle("dark",d);}catch(e){}})();`
 
 /**
  * Provides theme state and a toggle function to descendants.

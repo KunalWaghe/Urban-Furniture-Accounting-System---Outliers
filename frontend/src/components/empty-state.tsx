@@ -26,12 +26,12 @@ interface EmptyStateProps {
  */
 export function EmptyState({ title, description, action }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface px-6 py-12 text-center">
-      <h3 className="text-lg font-semibold text-text">{title}</h3>
+    <div className="flex flex-col items-center justify-center rounded-lg sm:rounded-xl border border-dashed border-border bg-surface px-4 py-8 sm:px-6 sm:py-12 text-center">
+      <h3 className="text-base sm:text-lg font-semibold text-text">{title}</h3>
       {description && (
-        <p className="mt-2 max-w-md text-sm text-text-muted">{description}</p>
+        <p className="mt-1.5 sm:mt-2 max-w-md text-xs sm:text-sm text-text-muted">{description}</p>
       )}
-      {action && <div className="mt-6">{action}</div>}
+      {action && <div className="mt-4 sm:mt-6">{action}</div>}
     </div>
   )
 }

@@ -535,15 +535,8 @@ export default function AppDashboardPage() {
               </Link>
             </div>
           </div>
-          href="/sales-invoices"
-          className="rounded-md px-2 py-0.5 font-medium text-text-muted hover:bg-surface-muted hover:text-primary-600 transition-colors"
-              >
-          Receipts ({invoiceStats?.paid ?? 0})
-        </Link>
-    </div>
-          </div >
 
-    <div className="overflow-x-auto">
+          <div className="overflow-x-auto">
       <table className="w-full text-left text-xs text-text-muted">
         <thead className="border-b border-border bg-surface-muted/40 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
           <tr>
