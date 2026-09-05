@@ -10,11 +10,12 @@ export interface AuthResponse extends AuthUser {
 }
 
 export interface LoginRequest {
-  email: string;
+  login_id: string;
   password: string;
 }
 
 export interface RegisterRequest {
+  login_id: string;
   email: string;
   password: string;
   name: string;

@@ -1,8 +1,10 @@
 # Auth Pages (Login / Signup) Implementation Plan
 
+> **Superseded for new work:** This plan describes the original email-based, UI-only baseline. The Excalidraw clarification requires `loginId`, API-backed auth, public signup locked to `invoicing_user`, Admin-created roles, and a Forgot Password route. Do not execute the old email/stub steps unchanged; use `P0-BE-02R`, `P0-FE-02R`, `P0-INT-01`, and `P0-FE-14` in `docs/TASK_BOARD.md` and the updated auth spec/API contract.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build `/login` and `/signup` pages matching the approved spec (`docs/superpowers/specs/2026-09-05-auth-pages-design.md`) — Stitch-based UI, Urban Furniture branding, fully interactive locally, no auth API calls.
+**Goal (historical baseline):** Build `/login` and `/signup` pages matching the original approved spec — Stitch-based UI, Urban Furniture branding, fully interactive locally, no auth API calls.
 
 **Architecture:** Next.js route groups separate the app shell from auth pages. Feature folder `src/features/auth/` colocates UI components, hooks (all form state/validation), and pure validation helpers. Hooks own state; components only render.
 

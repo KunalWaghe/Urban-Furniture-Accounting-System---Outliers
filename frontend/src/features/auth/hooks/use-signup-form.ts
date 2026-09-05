@@ -10,13 +10,15 @@ import {
   mapApiFieldsToSignupErrors,
 } from "../error-mapping";
 import { getPasswordStrength, validateSignupFields } from "../validation";
-import type { AuthNotice, SignupErrors, SignupFields } from "../validation";
+import type { AuthNotice, RoleValue, SignupErrors, SignupFields } from "../validation";
 
 const FIELD_ORDER: Array<keyof SignupErrors> = [
   "name",
+  "login_id",
   "email",
   "password",
   "confirmPassword",
+  "role",
   "terms",
 ];
 
@@ -26,9 +28,11 @@ export function useSignupForm() {
 
   const [fields, setFields] = useState<SignupFields>({
     name: "",
+    login_id: "",
     email: "",
     password: "",
     confirmPassword: "",
+    role: "invoicing_user",
     acceptedTerms: false,
   });
   const [errors, setErrors] = useState<SignupErrors>({});
@@ -47,6 +51,11 @@ export function useSignupForm() {
   ) {
     setFields((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
+  }
+
+  function setRole(value: RoleValue) {
+    setFields((prev) => ({ ...prev, role: value }));
+    setErrors((prev) => ({ ...prev, role: undefined }));
   }
 
   function setAcceptedTerms(value: boolean) {
@@ -75,8 +84,10 @@ export function useSignupForm() {
     try {
       await register({
         name: fields.name.trim(),
+        login_id: fields.login_id.trim(),
         email: fields.email.trim(),
         password: fields.password,
+        role: fields.role,
       });
       router.push("/");
     } catch (error) {
@@ -128,6 +139,7 @@ export function useSignupForm() {
     fields,
     setField,
     errors,
+    setRole,
     setAcceptedTerms,
     showPassword,
     toggleShowPassword: () => setShowPassword((value) => !value),

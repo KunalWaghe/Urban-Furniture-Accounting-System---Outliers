@@ -4,12 +4,14 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 
 import {
+  ApiError,
   clearStoredToken,
   getAuthStorage,
   getStoredToken,
@@ -17,7 +19,7 @@ import {
 } from "@/lib/api";
 import type { AuthUser, LoginRequest, RegisterRequest } from "@/lib/types";
 
-import { loginRequest, registerRequest } from "./api";
+import { fetchCurrentUser, loginRequest, registerRequest } from "./api";
 
 const USER_STORAGE_KEY = "uf_auth_user";
 
@@ -25,6 +27,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
   isAuthenticated: boolean;
+  bootstrapping: boolean;
   login: (payload: LoginRequest, rememberDevice?: boolean) => Promise<AuthUser>;
   register: (payload: RegisterRequest) => Promise<AuthUser>;
   logout: () => void;
@@ -116,6 +119,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState(getInitialSession);
   const { user, token } = session;
 
+  // true while the /auth/me bootstrap call is in-flight.
+  // Initialise to true only when a stored token exists — no token means no
+  // async work to do and we can render immediately.
+  const [bootstrapping, setBootstrapping] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return Boolean(getStoredToken());
+  });
+
   const login = useCallback(
     async (payload: LoginRequest, rememberDevice = true) => {
       const response = await loginRequest(payload);
@@ -130,10 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(async (payload: RegisterRequest) => {
-    const response = await registerRequest({
-      ...payload,
-      role: payload.role ?? "invoicing_user",
-    });
+    const response = await registerRequest(payload);
     const nextUser = toAuthUser(response);
 
     persistSession(nextUser, response.token, true);
@@ -147,16 +155,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession({ user: null, token: null });
   }, []);
 
+  // On mount: re-validate the stored token against /auth/me.
+  // If the token is expired or invalid the backend returns 401 → we log out.
+  useEffect(() => {
+    const storedToken = getStoredToken();
+    if (!storedToken) {
+      setBootstrapping(false);
+      return;
+    }
+
+    fetchCurrentUser()
+      .then((response) => {
+        setSession((prev) => ({
+          ...prev,
+          user: toAuthUser(response),
+        }));
+      })
+      .catch((error: unknown) => {
+        if (error instanceof ApiError && error.status === 401) {
+          clearSession();
+          setSession({ user: null, token: null });
+        }
+        // Any other error (network down, etc.) — keep the cached session so
+        // the user isn't logged out on a temporary server hiccup.
+      })
+      .finally(() => {
+        setBootstrapping(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       token,
       isAuthenticated: Boolean(user && token),
+      bootstrapping,
       login,
       register,
       logout,
     }),
-    [user, token, login, register, logout]
+    [user, token, bootstrapping, login, register, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

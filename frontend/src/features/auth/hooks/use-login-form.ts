@@ -12,14 +12,14 @@ import {
 import { validateLoginFields } from "../validation";
 import type { AuthNotice, LoginErrors, LoginFields } from "../validation";
 
-const FIELD_ORDER: Array<keyof LoginFields> = ["email", "password"];
+const FIELD_ORDER: Array<keyof LoginFields> = ["login_id", "password"];
 
 export function useLoginForm() {
   const router = useRouter();
   const { login } = useAuth();
 
   const [fields, setFields] = useState<LoginFields>({
-    email: "",
+    login_id: "",
     password: "",
   });
   const [errors, setErrors] = useState<LoginErrors>({});
@@ -54,7 +54,7 @@ export function useLoginForm() {
     try {
       await login(
         {
-          email: fields.email.trim(),
+          login_id: fields.login_id.trim(),
           password: fields.password,
         },
         rememberDevice

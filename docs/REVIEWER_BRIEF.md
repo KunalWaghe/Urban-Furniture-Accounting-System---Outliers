@@ -3,10 +3,14 @@
 
 > Update at every phase gate. Keep this file factual and short enough to explain in five minutes.
 
-**Last updated:** 5 September 2026, 10:45 AM  
-**Current gate:** Phase 1 — Foundation & First Vertical Slice  
-**Stable deployment:** Staging setup in progress  
-**Stable commit/tag:** `phase-0-architecture-locked`
+**Last updated:** 5 September 2026, 2:05 PM
+**Current gate:** Excalidraw requirements reconciled; Auth correction before integration
+**Stable deployment:** Local Dev Environment (FastAPI + PostgreSQL / Next.js)
+**Stable commit/tag:** `a03511e` on `feat/auth` (baseline; email-based auth is not final)
+
+## Current clarification
+
+The authoritative UI addendum is `excalidraw-board.png`. Login now uses a unique 6–12 character `login_id`; email remains separately unique. Public Sign Up creates only an Accountant (`invoicing_user`), while Admin creates Admin/Accountant/User accounts and links User accounts to a Contact. The current email-based auth implementation is recorded as a completed baseline and is reopened as `P0-BE-02R` + `P0-FE-02R` in [`docs/TASK_BOARD.md`](docs/TASK_BOARD.md).
 
 ---
 **Last updated:** 5 September 2026 — 10:20 AM  
@@ -76,14 +80,14 @@ Python FastAPI -> service layer -> SQLAlchemy 2.0 ORM -> PostgreSQL DB
 ### Implemented and Verified
 - [x] Phase 0 Problem Selection: Urban Furniture Accounting System evaluated and selected (Feasibility: 85%).
 - [x] Full System Specification & Domain Model locked (`SPECIFICATION.md`, `docs/ANALYSIS_DELIVERABLE.md`).
-- [x] Shared API Contract locked with 22 endpoints and standard error envelope (`docs/API_CONTRACT.md`).
+- [x] Shared API Contract locked with 31 endpoints and standard error envelope (`docs/API_CONTRACT.md`).
 - [x] Frontend Architecture & Logic finalized (`docs/frontend/ARCHITECTURE_DECISIONS.md`, `docs/frontend/LOGIC.md`).
 - [x] Backend Architecture Decisions finalized (`docs/backend/ARCHITECTURE_DECISIONS.md`).
 - [x] Atomic Task Board locked with 15–60 min tasks (`docs/TASK_BOARD.md`).
 
 ### In Progress
-- [ ] `P0-FE-01`: Next.js 14 + Tailwind + shadcn/ui shell setup (Sourabh).
-- [ ] `P0-BE-01`: FastAPI scaffold + PostgreSQL + Base setup (Kunal).
+- [ ] `P0-BE-02R`: Replace email identity with Login ID, enforce password/role policy, and add Admin user creation (Kunal).
+- [ ] `P0-FE-02R`: Replace email fields with Login ID and wire corrected auth API/session behavior (Sourabh).
 
 ### Planned, Not Yet Implemented
 - P0 Vertical Slices: Auth handshake, Contacts & Products CRUD, Purchase Order → Bill → Payment, Sales Order → Invoice → Payment, General Ledger, Balance Sheet & P&L.
@@ -102,13 +106,13 @@ Python FastAPI -> service layer -> SQLAlchemy 2.0 ORM -> PostgreSQL DB
 
 ### In progress
 
-- **P0-BE-01 & P0-BE-02**: Auth system, User models, and JWT authentication endpoints.
-- **P0-FE-01 & P0-FE-02**: Next.js frontend UI shell, authentication context, and typed API client.
+- **P0-BE-02R**: Corrected Login ID auth, public signup role restriction, and Admin user creation.
+- **P0-FE-02R**: Corrected Login ID UI and API-backed authentication flow.
 
 ### Planned, not yet implemented
 
 - Contact & Product CRUD APIs and UI tables/forms.
-- Seeded Chart of Accounts (5 types) and Journal definitions.
+- Seeded Chart of Accounts (8 reportable types) and Journal definitions.
 - Purchase Order $\rightarrow$ Vendor Bill $\rightarrow$ Payment engine & auto-journal entries.
 - Sales Order $\rightarrow$ Customer Invoice $\rightarrow$ Payment engine & auto-journal entries.
 - Balance Sheet and Profit & Loss report computation endpoints and presentation pages.
@@ -119,7 +123,7 @@ Python FastAPI -> service layer -> SQLAlchemy 2.0 ORM -> PostgreSQL DB
 
 - Multi-currency support (single currency INR assumed).
 - CGST/SGST tax split (flat percentage tax applied for P0).
-- Contact profile image upload (replaced by initials avatars).
+- Contact image upload implementation (P0 may use initials avatars; field remains in the requirement).
 - Redis / Queue infrastructure (kept inside transactional FastAPI service layer to reduce complexity).
 
 ## Evidence
@@ -127,7 +131,7 @@ Python FastAPI -> service layer -> SQLAlchemy 2.0 ORM -> PostgreSQL DB
 | Evidence | Result | How to Reproduce |
 |---|---|---|
 | Problem Selection | Score: 8.5/10 (Highest feasibility & impact) | Review `docs/PROBLEM_SELECTION.md` |
-| API Contract | 22 endpoints documented with JSON samples | Review `docs/API_CONTRACT.md` |
+| API Contract | 31 endpoints documented with JSON samples | Review `docs/API_CONTRACT.md` |
 | Architecture Docs | Complete module boundaries & ADRs | Review `docs/frontend/` and `docs/backend/` |
 
 ---
@@ -151,5 +155,3 @@ Python FastAPI -> service layer -> SQLAlchemy 2.0 ORM -> PostgreSQL DB
 | Time | Feedback | Classification | Owner/action |
 |---|---|---|---|
 | 5 Sep, 10:00 AM | Architecture & Analysis deliverable review approved | Accept now | Kunal & Sourabh — proceed with P0 Foundation implementation |
-
-

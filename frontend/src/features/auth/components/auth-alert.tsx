@@ -1,6 +1,6 @@
 import { AlertCircle, Info, X } from "lucide-react";
-import { cn } from "cn";
 
+import { cn } from "@/lib/utils";
 import type { AuthNotice } from "../validation";
 
 interface AuthAlertProps extends AuthNotice {

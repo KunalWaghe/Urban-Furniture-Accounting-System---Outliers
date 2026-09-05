@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Mail } from "lucide-react";
+import { ArrowRight, KeyRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -22,15 +22,16 @@ export function LoginForm() {
 
         <form className="space-y-4" onSubmit={form.handleSubmit} noValidate>
           <TextField
-            id="email"
-            label="Email"
-            icon={Mail}
-            type="email"
-            autoComplete="email"
-            placeholder="admin@urbanfurniture.com"
-            value={form.fields.email}
-            onChange={(value) => form.setField("email", value)}
-            error={form.errors.email}
+            id="login_id"
+            label="Login ID"
+            icon={KeyRound}
+            type="text"
+            autoComplete="username"
+            placeholder="e.g. riya001"
+            value={form.fields.login_id}
+            onChange={(value) => form.setField("login_id", value)}
+            error={form.errors.login_id}
+            hint="6–12 alphanumeric characters"
             required
           />
 
@@ -85,10 +86,10 @@ export function LoginForm() {
 
         <div className="mt-6 border-t border-border/60 pt-5 text-center">
           <p className="text-sm text-text-muted">
-            Don&apos;t have an account?
+            Don&apos;t have an account?{" "}
             <Link
               href="/signup"
-              className="ml-1 font-semibold text-primary-600 hover:text-primary-700 hover:underline"
+              className="font-semibold text-primary-600 hover:text-primary-700 hover:underline"
             >
               Sign up here
             </Link>
