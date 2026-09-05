@@ -5,7 +5,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 **How to use:** every task is a tickbox. When a task is done, tick it (`- [x]`) and move it to the **DONE** list at the top. Completed tasks always show on top. Within every section, tasks are grouped **Backend → Frontend → Integration**.
 
-**Last updated:** 5 September 2026, 5:07 PM — Master data seed verified (Accounts, Journals, Contacts, Products); Purchase Order list uses live server-side pagination/sorting; Sales Orders remain on the demo adapter (no sales-order router yet)
+**Last updated:** 5 September 2026, 6:10 PM — Purchase Orders module fully live: list/new/edit/detail screens wired to authenticated API with confirm/cancel/edit lifecycle, analytic-account budgets, and demo seed (PO-0001..0003); header simplified to Stitch clean top nav
 **Current phase/gate:** 10:00 AM — Foundation & First Vertical Slice  
 **Stable URL:** http://localhost:3000 (dev)  
 **Stable commit/tag:** `a03511e` on `feat/auth`  
@@ -45,6 +45,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Backend
 
+- [x] **P0-BE-05R** — Purchase Order workflow completion · Kunal · 5 Sep, 6:05 PM — Evidence: `tests/test_purchase_orders.py` PASSED (7/7: lifecycle, validation, auth-required, `confirmed_at`, cancel, draft-only edit, analytic budgets); PO router now requires JWT; new `PUT /purchase-orders/:id` (draft-only full line replacement), `PATCH /:id/cancel`, `GET /api/v1/analytic-accounts` (budget/committed/remaining); `seed.py` adds 3 vendors, 4 products, 3 analytics, and demo POs PO-0001..0003 · Integrated & Verified
 - [x] **P0-BE-05** — Purchase Order model & create/confirm endpoints · Kunal · 5 Sep, 4:05 PM — Evidence: `tests/test_purchase_order.py` PASSED (2/2 lifecycle & validation tests passed, sequential PO-0001 generation, line items, status draft -> confirmed) · Integrated & Verified
 - [x] **P0-BE-02R** — Auth identity and role contract correction · Kunal · 5 Sep, 3:45 PM — Evidence: `tests/test_auth.py` PASSED (3/3 auth tests, 9/9 backend suite); public registration strictly creates `invoicing_user`; privilege escalation to admin rejected with 422; Admin user creation protected via `POST /api/v1/users` (403 for non-admins, 201 for admin); login uses `login_id` with 401 "Invalid Login Id or Password" · Integrated & Verified
 - [x] **P0-BE-04** — Chart of Accounts & Journals seed + endpoints · Kunal · 5 Sep, 1:25 PM — Evidence: `tests/test_accounts_and_journals.py` PASSED (5 account types & 4 journals seeded and fetchable); `seed.py` deterministic master data run verified · Integrated & Verified
@@ -54,6 +55,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Frontend
 
+- [x] **P0-FE-18** — Purchase Orders module screens (Stitch clean top nav) · Sourabh · 5 Sep, 6:05 PM — Evidence: `/purchase-orders` list (summary cards, debounced search, status filter, sortable columns, pagination), `/purchase-orders/new` + `/[id]/edit` form (searchable vendor, line items with live totals, Purchase Expense default, budget-exceeded warning), `/purchase-orders/[id]` detail (Confirm/Edit/Cancel for drafts, disabled Create Bill for confirmed, status banners); header simplified to flat nav pills; all screens reuse `DashboardPanel`/`DashboardMetricCard`/`DashboardTableCard`; `npm run lint`, `npx tsc --noEmit`, and `npm run build` pass · Integrated & Verified
 - [x] **P0-FE-15** — Sales & Purchase Order list routes · Sourabh · 5 Sep, 4:20 PM — Evidence: `/sales-orders` and `/purchase-orders` are navigable from dashboard, header dropdown, and sidebar; both provide search, status filters, summary cards, responsive tables, and detail inspection; `npm run lint`, `npx tsc --noEmit`, and `next build --webpack` pass · Uses demo-derived order data pending P0-BE-05/P0-BE-08
 - [x] **P0-FE-17** — Purchase Order API pagination & sorting · Sourabh · 5 Sep, 4:35 PM — Evidence: `/purchase-orders` calls `GET /api/v1/purchase-orders` with `page`, `limit`, `search`, `status`, `sort_by`, and `sort_order`; sortable reference/date/total columns and Previous/Next controls map the API envelope (`data`, `total`, `pages`); lint and TypeScript checks pass
 - [x] **P0-FE-02R** — Correct auth UI and wire API · Sourabh · 5 Sep, 3:50 PM — Evidence: `loginId` implemented with 6–12 char regex validation; role selection removed from public signup; exact 401/409 error mappings (`Invalid Login Id or Password`, `LOGIN_ID_ALREADY_EXISTS`, `EMAIL_ALREADY_EXISTS`); `npm run lint` & `npm run build` clean (0 errors, 0 warnings) · Integrated & Verified
@@ -78,7 +80,7 @@ This is the team's execution source of truth. Every task is atomic (15–60 mins
 
 ### Frontend
 
-- [ ] **P0-FE-05** — Purchase Order UI & create/confirm flow · Sourabh · 45m · Depends: P0-BE-05 · Start purchase workflow wiring with vendor selection & backend PO models
+_None — Purchase Orders module shipped (see P0-FE-18 in DONE)._
 
 ---
 

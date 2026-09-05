@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Shield, UserPlus, Users, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { Shield, UserPlus, Users, RefreshCw, Plus } from "lucide-react";
 
 import { RequireRole } from "@/components/require-role";
 import { SignupForm } from "@/features/auth/components/signup-form";
@@ -46,19 +47,28 @@ export default function AdminUsersPage() {
     <RequireRole allowedRoles={["admin"]}>
       <div className="space-y-8">
         {/* Header */}
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
-              Admin Area
-            </span>
-            <span className="text-xs text-text-muted">· Role-Gated Endpoint</span>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                Admin Area
+              </span>
+              <span className="text-xs text-text-muted">· Role-Gated Endpoint</span>
+            </div>
+            <h1 className="mt-2 text-2xl font-bold text-text sm:text-3xl">
+              User Management
+            </h1>
+            <p className="mt-1 text-sm text-text-muted">
+              Manage internal users and authorize accounts for Administrators and Accountants.
+            </p>
           </div>
-          <h1 className="mt-2 text-2xl font-bold text-text sm:text-3xl">
-            Create User &amp; Role Allocation
-          </h1>
-          <p className="mt-1 text-sm text-text-muted">
-            Authorize internal accounts for Administrators and Accountants.
-          </p>
+          <Link
+            href="/users/new"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700"
+          >
+            <Plus className="h-4 w-4" />
+            Create New User
+          </Link>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-12">

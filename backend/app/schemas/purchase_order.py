@@ -48,6 +48,7 @@ class POResponse(BaseModel):
     total: float
     order_date: datetime
     created_at: datetime
+    confirmed_at: Optional[datetime] = None
     lines: List[POLineResponse] = []
 
     model_config = {"from_attributes": True}

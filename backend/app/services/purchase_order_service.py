@@ -48,6 +48,7 @@ def _build_po_response(po: PurchaseOrder) -> POResponse:
         total=po.total,
         order_date=po.order_date,
         created_at=po.created_at,
+        confirmed_at=po.confirmed_at,
         lines=lines_resp,
     )
 
@@ -212,6 +213,81 @@ def confirm_purchase_order(db: Session, po_id: int) -> POResponse:
         raise ValidationException(f"Cannot confirm Purchase Order in status '{po.status}'")
 
     po.status = "confirmed"
+    po.confirmed_at = datetime.now(timezone.utc)
+    db.commit()
+    # Sessions use expire_on_commit=False; refresh so the response carries the
+    # DB-round-tripped timestamp (naive, session TZ) and matches later GETs.
+    db.refresh(po)
+
+    return get_purchase_order(db, po_id)
+
+
+def cancel_purchase_order(db: Session, po_id: int) -> POResponse:
+    """Cancel a Purchase Order ('draft' -> 'cancelled')."""
+    po = db.scalar(select(PurchaseOrder).where(PurchaseOrder.id == po_id))
+    if not po:
+        raise NotFoundException("PurchaseOrder", po_id)
+
+    if po.status != "draft":
+        raise ValidationException(f"Cannot cancel Purchase Order in status '{po.status}'")
+
+    po.status = "cancelled"
+    db.commit()
+
+    return get_purchase_order(db, po_id)
+
+
+def update_purchase_order(db: Session, po_id: int, po_in: POCreate) -> POResponse:
+    """Update a draft Purchase Order: vendor, order date, and full line replacement."""
+    po = db.scalar(select(PurchaseOrder).where(PurchaseOrder.id == po_id))
+    if not po:
+        raise NotFoundException("PurchaseOrder", po_id)
+
+    if po.status != "draft":
+        raise ValidationException(f"Cannot edit Purchase Order in status '{po.status}'")
+
+    vendor = db.scalar(select(Contact).where(Contact.id == po_in.vendor_id))
+    if not vendor:
+        raise NotFoundException("Contact", po_in.vendor_id)
+
+    default_account = db.scalar(select(Account).where(Account.code == "5010"))
+    default_account_id = default_account.id if default_account else None
+
+    po.vendor_id = po_in.vendor_id
+    if po_in.order_date:
+        po.order_date = po_in.order_date
+
+    # Replace all lines (relationship cascade="all, delete-orphan" removes old rows)
+    po.lines.clear()
+    db.flush()
+
+    total_amount = 0.0
+    for line_in in po_in.lines:
+        product = db.scalar(select(Product).where(Product.id == line_in.product_id))
+        if not product:
+            raise NotFoundException("Product", line_in.product_id)
+
+        account_id = line_in.account_id or default_account_id
+        if account_id:
+            acc = db.scalar(select(Account).where(Account.id == account_id))
+            if not acc:
+                raise NotFoundException("Account", account_id)
+
+        subtotal = round(line_in.quantity * line_in.unit_price, 2)
+        total_amount += subtotal
+
+        # Append via the relationship (not db.add with po_id) so the in-memory
+        # collection stays correct — sessions run with expire_on_commit=False.
+        po.lines.append(PurchaseOrderLine(
+            product_id=line_in.product_id,
+            account_id=account_id,
+            analytic_account_id=line_in.analytic_account_id,
+            quantity=line_in.quantity,
+            unit_price=line_in.unit_price,
+            subtotal=subtotal,
+        ))
+
+    po.total = round(total_amount, 2)
     db.commit()
 
     return get_purchase_order(db, po_id)

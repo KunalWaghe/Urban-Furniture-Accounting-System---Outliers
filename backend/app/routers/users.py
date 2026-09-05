@@ -18,6 +18,7 @@ router = APIRouter()
 
 @router.post("", response_model=UserProfileResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=UserProfileResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
+@router.post("/new", response_model=UserProfileResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_user(
     req: AdminUserCreateRequest,
     db: Session = Depends(get_db),

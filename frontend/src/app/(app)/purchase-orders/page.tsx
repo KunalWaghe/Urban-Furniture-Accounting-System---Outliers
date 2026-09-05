@@ -1,5 +1,5 @@
-import { OrdersListPage } from "@/features/orders/orders-list-page";
+import { PurchaseOrdersListPage } from "@/features/purchase-orders/purchase-orders-list-page";
 
 export default function PurchaseOrdersPage() {
-  return <OrdersListPage kind="purchase" />;
+  return <PurchaseOrdersListPage />;
 }

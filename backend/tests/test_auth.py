@@ -21,15 +21,14 @@ def setup_db():
 
 
 def test_public_registration_creates_accountant_role_only():
-    """Public registration should not accept admin roles and strictly assign invoicing_user (accountant) role."""
+    """Public registration creates contact/user role by default and rejects admin role in payload."""
     with TestClient(app) as client:
         unique_suffix = uuid.uuid4().hex[:4]
-        test_login_id = f"user_{unique_suffix}"
-        test_email = f"user_{unique_suffix}@urbanfurniture.com"
+        test_login_id = f"user{unique_suffix}"
+        test_email = f"user{unique_suffix}@urbanfurniture.com"
         test_password = "SecureP@ssword123!"
         test_name = "Regular Portal User"
 
-        # 1. Public signup without role specified -> defaults to invoicing_user (Accountant)
         # 1. Register new user with login_id (public signup creates user/contact role)
         reg_payload = {
             "login_id": test_login_id,
@@ -43,14 +42,13 @@ def test_public_registration_creates_accountant_role_only():
         assert data["login_id"] == test_login_id
         assert data["email"] == test_email
         assert data["name"] == test_name
-        assert data["role"] == "invoicing_user"
         assert data["role"] == "contact"
         assert "token" in data
 
         # 2. Attempt to register directly with admin role -> rejected
         admin_attempt_payload = {
-            "login_id": f"adm_{unique_suffix}",
-            "email": f"adm_{unique_suffix}@urbanfurniture.com",
+            "login_id": f"adm{unique_suffix}",
+            "email": f"adm{unique_suffix}@urbanfurniture.com",
             "password": test_password,
             "name": "Malicious Admin",
             "role": "admin",
@@ -60,8 +58,8 @@ def test_public_registration_creates_accountant_role_only():
 
         # 3. Attempt with administrator role -> rejected
         admin_attempt_payload2 = {
-            "login_id": f"adm2_{unique_suffix}",
-            "email": f"adm2_{unique_suffix}@urbanfurniture.com",
+            "login_id": f"adm2{unique_suffix}",
+            "email": f"adm2{unique_suffix}@urbanfurniture.com",
             "password": test_password,
             "name": "Malicious Admin 2",
             "role": "administrator",
@@ -76,15 +74,15 @@ def test_create_user_endpoint_strictly_restricted_to_admin():
     - Anonymous: 401 Unauthorized
     - Portal user ('contact'): 403 Forbidden
     - Accountant ('invoicing_user'): 403 Forbidden
-    - Admin ('admin'): 201 Created
+    - Admin ('admin'): 201 Created (tested on /users and alias /users/new)
     """
     with TestClient(app) as client:
         unique_suffix = uuid.uuid4().hex[:4]
 
         # 1. Anonymous attempt -> 401
         new_user_payload = {
-            "login_id": f"new_{unique_suffix}",
-            "email": f"new_{unique_suffix}@urbanfurniture.com",
+            "login_id": f"new{unique_suffix}",
+            "email": f"new{unique_suffix}@urbanfurniture.com",
             "password": "SecureP@ssword123!",
             "name": "New Employee",
             "role": "invoicing_user",
@@ -93,7 +91,7 @@ def test_create_user_endpoint_strictly_restricted_to_admin():
         assert anon_res.status_code == 401
 
         # 2. Register a standard portal user (contact)
-        contact_login = f"cnt_{unique_suffix}"
+        contact_login = f"cnt{unique_suffix}"
         reg_contact = client.post(
             "/api/v1/auth/register",
             json={
@@ -116,8 +114,8 @@ def test_create_user_endpoint_strictly_restricted_to_admin():
         assert "not authorized" in contact_res.json()["error"]["message"].lower()
 
         # 3. Create DB records for Accountant and Admin
-        acc_login = f"acc_{unique_suffix}"
-        adm_login = f"adm_{unique_suffix}"
+        acc_login = f"acc{unique_suffix}"
+        adm_login = f"adm{unique_suffix}"
         with SessionLocal() as db:
             acc_user = User(
                 login_id=acc_login,
@@ -173,31 +171,11 @@ def test_create_user_endpoint_strictly_restricted_to_admin():
 
         # Admin calling POST /api/v1/users to create an Accountant -> 201 Created
         admin_create_acc_payload = {
-            "login_id": f"acct_{unique_suffix}",
-            "email": f"acct_{unique_suffix}@urbanfurniture.com",
+            "login_id": f"acct{unique_suffix}",
+            "email": f"acct{unique_suffix}@urbanfurniture.com",
             "password": "SecureP@ssword123!",
             "name": "Created Accountant",
             "role": "invoicing_user",
-        dup_email_res = client.post("/api/v1/auth/register", json=dup_email_payload)
-        assert dup_email_res.status_code == 409
-        assert dup_email_res.json()["error"]["code"] == "EMAIL_ALREADY_EXISTS"
-
-        # 4. Login using Login ID -> Expect 200
-        login_payload = {
-            "login_id": test_login_id,
-            "password": test_password
-        }
-        login_response = client.post("/api/v1/auth/login", json=login_payload)
-        assert login_response.status_code == 200, login_response.text
-        login_data = login_response.json()
-        assert login_data["login_id"] == test_login_id
-        assert login_data["role"] == "contact"
-        assert "token" in login_data
-
-        # 5. Login with wrong password -> Expect 401 with "Invalid Login Id or Password"
-        bad_login_payload = {
-            "login_id": test_login_id,
-            "password": "WrongP@ssword123"
         }
         admin_acc_res = client.post(
             "/api/v1/users",
@@ -209,10 +187,27 @@ def test_create_user_endpoint_strictly_restricted_to_admin():
         assert created_acc["login_id"] == admin_create_acc_payload["login_id"]
         assert created_acc["role"] == "invoicing_user"
 
+        # Admin calling POST /api/v1/users/new alias -> 201 Created
+        admin_path_payload = {
+            "login_id": f"path{unique_suffix}",
+            "email": f"path{unique_suffix}@urbanfurniture.com",
+            "password": "SecureP@ssword123!",
+            "name": "Created Path User",
+            "role": "invoicing_user",
+        }
+        admin_path_res = client.post(
+            "/api/v1/users/new",
+            json=admin_path_payload,
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert admin_path_res.status_code == 201, admin_path_res.text
+        created_path_user = admin_path_res.json()
+        assert created_path_user["login_id"] == admin_path_payload["login_id"]
+
         # Admin calling POST /api/v1/users to create another Admin -> 201 Created
         admin_create_adm_payload = {
-            "login_id": f"admn_{unique_suffix}",
-            "email": f"admn_{unique_suffix}@urbanfurniture.com",
+            "login_id": f"admn{unique_suffix}",
+            "email": f"admn{unique_suffix}@urbanfurniture.com",
             "password": "SecureP@ssword123!",
             "name": "Created Administrator",
             "role": "admin",
@@ -243,23 +238,12 @@ def test_create_user_endpoint_strictly_restricted_to_admin():
         assert list_res_contact.status_code == 403
 
 
-def test_auth_login_and_validations():
-    """Verify login authentication and input validations."""
-        # 6. Fetch /me profile with valid token -> Expect 200
-        headers = {"Authorization": f"Bearer {token}"}
-        me_response = client.get("/api/v1/auth/me", headers=headers)
-        assert me_response.status_code == 200, me_response.text
-        me_data = me_response.json()
-        assert me_data["login_id"] == test_login_id
-        assert me_data["email"] == test_email
-        assert me_data["role"] == "contact"
-
 
 def test_auth_validations():
     with TestClient(app) as client:
         unique_suffix = uuid.uuid4().hex[:4]
-        test_login_id = f"user_{unique_suffix}"
-        test_email = f"user_{unique_suffix}@urbanfurniture.com"
+        test_login_id = f"user{unique_suffix}"
+        test_email = f"user{unique_suffix}@urbanfurniture.com"
         test_password = "SecureP@ssword123!"
 
         # Register
@@ -294,7 +278,7 @@ def test_auth_validations():
         # Check /me endpoint
         me_res = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert me_res.status_code == 200
-        assert me_res.json()["role"] == "invoicing_user"
+        assert me_res.json()["role"] == "contact"
 
         # Invalid Login ID (< 6 chars)
         short_res = client.post(
@@ -329,8 +313,8 @@ def test_role_gates_and_admin_user_creation():
 
     with TestClient(app) as client:
         unique = uuid.uuid4().hex[:4]
-        admin_login_id = f"admin_{unique}"
-        admin_email = f"admin_{unique}@urbanfurniture.com"
+        admin_login_id = f"admin{unique}"
+        admin_email = f"admin{unique}@urbanfurniture.com"
         admin_pw = "AdminSecureP@ss1"
 
         # 1. Seed an admin user directly into the database
@@ -359,10 +343,10 @@ def test_role_gates_and_admin_user_creation():
         admin_headers = {"Authorization": f"Bearer {admin_token}"}
 
         # 3. Admin creates an Accountant (invoicing_user)
-        acct_login_id = f"acct_{unique}"
+        acct_login_id = f"acct{unique}"
         acct_res = client.post("/api/v1/users", headers=admin_headers, json={
             "login_id": acct_login_id,
-            "email": f"acct_{unique}@urbanfurniture.com",
+            "email": f"acct{unique}@urbanfurniture.com",
             "password": "SecureP@ssword123!",
             "name": "Head Accountant",
             "role": "invoicing_user",
@@ -371,10 +355,10 @@ def test_role_gates_and_admin_user_creation():
         assert acct_res.json()["role"] == "invoicing_user"
 
         # 4. Admin creates a Portal Contact User
-        portal_login_id = f"port_{unique}"
+        portal_login_id = f"port{unique}"
         portal_res = client.post("/api/v1/users", headers=admin_headers, json={
             "login_id": portal_login_id,
-            "email": f"portal_{unique}@urbanfurniture.com",
+            "email": f"portal{unique}@urbanfurniture.com",
             "password": "SecureP@ssword123!",
             "name": "Nimesh Pathak",
             "role": "contact",
@@ -395,8 +379,8 @@ def test_role_gates_and_admin_user_creation():
 
         # Accountant denied Admin-only route
         acct_forbidden_res = client.post("/api/v1/users", headers=acct_headers, json={
-            "login_id": f"fail_{unique}",
-            "email": f"fail_{unique}@test.com",
+            "login_id": f"fail{unique}1",
+            "email": f"fail{unique}1@test.com",
             "password": "SecureP@ssword123!",
             "name": "Fail User",
             "role": "admin",
@@ -413,8 +397,8 @@ def test_role_gates_and_admin_user_creation():
         portal_headers = {"Authorization": f"Bearer {portal_token}"}
 
         portal_forbidden_res = client.post("/api/v1/users", headers=portal_headers, json={
-            "login_id": f"fail2_{unique}",
-            "email": f"fail2_{unique}@test.com",
+            "login_id": f"fail{unique}2",
+            "email": f"fail{unique}2@test.com",
             "password": "SecureP@ssword123!",
             "name": "Fail User 2",
             "role": "admin",
@@ -423,8 +407,8 @@ def test_role_gates_and_admin_user_creation():
 
         # 7. Unauthenticated request to Admin-only route denied
         unauth_res = client.post("/api/v1/users", json={
-            "login_id": f"fail3_{unique}",
-            "email": f"fail3_{unique}@test.com",
+            "login_id": f"fail{unique}3",
+            "email": f"fail{unique}3@test.com",
             "password": "SecureP@ssword123!",
             "name": "Fail User 3",
             "role": "admin",
@@ -455,8 +439,8 @@ def test_auth_register_rejects_admin_role_in_payload():
 
         # 1. Reject 'admin' in role payload
         admin_payload = {
-            "login_id": f"admin_{unique}",
-            "email": f"admin_{unique}@test.com",
+            "login_id": f"admin{unique}",
+            "email": f"admin{unique}@test.com",
             "password": "SecureP@ssword123!",
             "name": "Attacker Admin",
             "role": "admin",
@@ -468,8 +452,8 @@ def test_auth_register_rejects_admin_role_in_payload():
 
         # 2. Reject 'administrator' in role payload
         admin_alias_payload = {
-            "login_id": f"adm2_{unique}",
-            "email": f"adm2_{unique}@test.com",
+            "login_id": f"adm2{unique}",
+            "email": f"adm2{unique}@test.com",
             "password": "SecureP@ssword123!",
             "name": "Attacker Administrator",
             "role": "administrator",
@@ -480,8 +464,8 @@ def test_auth_register_rejects_admin_role_in_payload():
 
         # 3. Reject case variations like 'ADMIN'
         admin_upper_payload = {
-            "login_id": f"adm3_{unique}",
-            "email": f"adm3_{unique}@test.com",
+            "login_id": f"adm3{unique}",
+            "email": f"adm3{unique}@test.com",
             "password": "SecureP@ssword123!",
             "name": "Attacker Upper",
             "role": "ADMIN",
@@ -493,16 +477,16 @@ def test_auth_register_rejects_admin_role_in_payload():
         # 4. Verify no user was created in the database for rejected attempts
         db = SessionLocal()
         try:
-            assert db.query(User).filter(User.login_id == f"admin_{unique}").first() is None
-            assert db.query(User).filter(User.login_id == f"adm2_{unique}").first() is None
-            assert db.query(User).filter(User.login_id == f"adm3_{unique}").first() is None
+            assert db.query(User).filter(User.login_id == f"admin{unique}").first() is None
+            assert db.query(User).filter(User.login_id == f"adm2{unique}").first() is None
+            assert db.query(User).filter(User.login_id == f"adm3{unique}").first() is None
         finally:
             db.close()
 
         # 5. Verify legitimate signup with omitted role succeeds as invoicing_user
         valid_payload = {
-            "login_id": f"legit_{unique}",
-            "email": f"legit_{unique}@test.com",
+            "login_id": f"legit{unique}",
+            "email": f"legit{unique}@test.com",
             "password": "SecureP@ssword123!",
             "name": "Legit User",
         }

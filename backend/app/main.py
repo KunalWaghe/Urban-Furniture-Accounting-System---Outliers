@@ -32,6 +32,7 @@ from app.routers import (
     journal_router,
     user_router,
     purchase_order_router,
+    analytic_account_router,
 )
 
 
@@ -51,6 +52,7 @@ async def lifespan(app: FastAPI):
             conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS category VARCHAR(100)"))
             conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS cost NUMERIC(10, 2)"))
             conn.execute(text("ALTER TABLE journals ADD COLUMN IF NOT EXISTS default_account_id INTEGER REFERENCES accounts(id)"))
+            conn.execute(text("ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS confirmed_at TIMESTAMP"))
             conn.commit()
         Base.metadata.create_all(bind=engine)
         print("[OK] Database connected & models synchronized")
@@ -129,4 +131,5 @@ app.include_router(account_router, prefix="/api/v1/accounts", tags=["Chart of Ac
 app.include_router(journal_router, prefix="/api/v1/journals", tags=["Journals"])
 app.include_router(user_router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(purchase_order_router, prefix="/api/v1/purchase-orders", tags=["Purchase Orders"])
+app.include_router(analytic_account_router, prefix="/api/v1/analytic-accounts", tags=["Analytic Accounts"])
 

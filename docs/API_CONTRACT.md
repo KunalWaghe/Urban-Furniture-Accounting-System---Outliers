@@ -68,6 +68,9 @@ This document is the authoritative boundary between Frontend and Backend. Lock e
 | **P0** | `GET /api/v1/purchase-orders` | List Purchase Orders | Any internal | **Contract Locked** |
 | **P0** | `GET /api/v1/purchase-orders/:id` | Purchase Order detail | Any internal | **Contract Locked** |
 | **P0** | `PATCH /api/v1/purchase-orders/:id/confirm` | Confirm PO (`draft` -> `confirmed`) | Admin / Invoicing | **Contract Locked** |
+| **P0** | `PUT /api/v1/purchase-orders/:id` | Edit draft PO (vendor, date, full line replacement) | Admin / Invoicing | **Implemented** |
+| **P0** | `PATCH /api/v1/purchase-orders/:id/cancel` | Cancel PO (`draft` -> `cancelled`) | Admin / Invoicing | **Implemented** |
+| **P0** | `GET /api/v1/analytic-accounts` | List analytics with budget/committed/remaining | Any internal | **Implemented** |
 | **P0** | `POST /api/v1/purchase-orders/:id/create-bill` | Convert PO to Vendor Bill + auto Journal Entry | Admin / Invoicing | **Contract Locked** |
 | **P0** | `GET /api/v1/vendor-bills/:id` | Vendor Bill detail | Any internal | **Contract Locked** |
 | **P0** | `POST /api/v1/sales-orders` | Create Sales Order (in `draft`) | Admin / Invoicing | **Contract Locked** |
@@ -557,7 +560,8 @@ Retrieve Income/Expense analytic tags used for budget tracking.
 #### `POST /api/v1/purchase-orders`
 
 Create a Purchase Order in `draft` status.
-- Lines require `product_id`, `account_id` (pointing to an Expense account such as Purchase Expense `5010`), optional `analytic_account_id` (Expense analytic tag), `quantity`, and `unit_price`.
+- Lines require `product_id`, `quantity`, and `unit_price`; `account_id` is optional and defaults to Purchase Expense (`5010`); `analytic_account_id` is optional (Expense analytic tag).
+- Responses additionally include `order_date`, `created_at`, and `confirmed_at` (`null` until confirmed).
 
 ```json
 // Request
@@ -600,14 +604,36 @@ Create a Purchase Order in `draft` status.
 
 #### `PATCH /api/v1/purchase-orders/:id/confirm`
 
-Confirm a draft Purchase Order (`status` -> `confirmed`).
+Confirm a draft Purchase Order (`status` -> `confirmed`, sets `confirmed_at`). Returns the full PO response. Non-draft orders return `422 VALIDATION_ERROR`.
 
 ```json
 // Response 200 OK
 {
   "id": 1,
   "po_number": "PO-0001",
-  "status": "confirmed"
+  "status": "confirmed",
+  "confirmed_at": "2026-09-05T18:30:00"
+}
+```
+
+#### `PUT /api/v1/purchase-orders/:id`
+
+Edit a **draft** Purchase Order. Same request body as `POST`; replaces all lines and recomputes the total. Non-draft orders return `422 VALIDATION_ERROR`.
+
+#### `PATCH /api/v1/purchase-orders/:id/cancel`
+
+Cancel a **draft** Purchase Order (`status` -> `cancelled`). Returns the full PO response. Non-draft orders return `422 VALIDATION_ERROR`.
+
+#### `GET /api/v1/analytic-accounts`
+
+List active analytic accounts with live budget tracking. `committed_amount` sums PO line subtotals on **confirmed** POs; `remaining_amount = budget_amount - committed_amount`.
+
+```json
+// Response 200 OK
+{
+  "data": [
+    { "id": 1, "name": "Furniture Project", "budget_amount": 50000.0, "committed_amount": 13400.0, "remaining_amount": 36600.0 }
+  ]
 }
 ```
 

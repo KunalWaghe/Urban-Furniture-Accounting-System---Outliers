@@ -166,3 +166,11 @@ export interface BudgetMetric {
   available_capacity_percent: number;
 }
 
+export interface AnalyticAccount {
+  id: number;
+  name: string;
+  budget_amount: number;
+  committed_amount: number;
+  remaining_amount: number;
+}
+

@@ -3,10 +3,88 @@ Deterministic Demo Seed Script for Urban Furniture Accounting System.
 Run via: .venv/bin/python seed.py
 """
 
+from datetime import datetime
+
 from app.core.database import SessionLocal, engine, Base
 from app.models.contact import Contact
 from app.models.product import Product
+from app.models.purchase_order import PurchaseOrder
+from app.models.analytic_account import AnalyticAccount
 from app.services.accounting_service import seed_accounting_defaults
+from app.services import purchase_order_service
+from app.schemas.purchase_order import POCreate, POLineCreate
+
+
+ANALYTICS_DATA = [
+    {"name": "Furniture Project", "budget_amount": 50000.0},
+    {"name": "Office Renovation", "budget_amount": 100000.0},
+    {"name": "General Operations", "budget_amount": 25000.0},
+]
+
+
+def seed_analytic_accounts(db):
+    for item in ANALYTICS_DATA:
+        existing = db.query(AnalyticAccount).filter(AnalyticAccount.name == item["name"]).first()
+        if not existing:
+            db.add(AnalyticAccount(**item))
+    db.commit()
+
+
+def seed_purchase_orders(db):
+    """Seed the 3 demo POs. Skips entirely if any PO already exists,
+    so PO numbers land on PO-0001..PO-0003 on a fresh table."""
+    if db.query(PurchaseOrder).first():
+        return
+
+    vendor = {c.name: c for c in db.query(Contact).filter(Contact.type == "vendor").all()}
+    product = {p.name: p for p in db.query(Product).all()}
+    analytic = {a.name: a for a in db.query(AnalyticAccount).all()}
+
+    # PO-0001 — Azure Furniture — 05 Sep 2026 — Confirmed — ₹5,000
+    po1 = purchase_order_service.create_purchase_order(db, POCreate(
+        vendor_id=vendor["Azure Furniture"].id,
+        order_date=datetime(2026, 9, 5),
+        lines=[POLineCreate(
+            product_id=product["Wooden Chair"].id,
+            analytic_account_id=analytic["Furniture Project"].id,
+            quantity=10,
+            unit_price=500.0,
+        )],
+    ))
+    purchase_order_service.confirm_purchase_order(db, po1.id)
+
+    # PO-0002 — Modern Office Supplies — 04 Sep 2026 — Draft — ₹12,500
+    purchase_order_service.create_purchase_order(db, POCreate(
+        vendor_id=vendor["Modern Office Supplies"].id,
+        order_date=datetime(2026, 9, 4),
+        lines=[
+            POLineCreate(
+                product_id=product["Office Chair"].id,
+                analytic_account_id=analytic["Office Renovation"].id,
+                quantity=5,
+                unit_price=1200.0,
+            ),
+            POLineCreate(
+                product_id=product["Storage Cabinet"].id,
+                analytic_account_id=analytic["Office Renovation"].id,
+                quantity=1,
+                unit_price=6500.0,
+            ),
+        ],
+    ))
+
+    # PO-0003 — Woodcraft Vendors — 01 Sep 2026 — Confirmed — ₹8,400
+    po3 = purchase_order_service.create_purchase_order(db, POCreate(
+        vendor_id=vendor["Woodcraft Vendors"].id,
+        order_date=datetime(2026, 9, 1),
+        lines=[POLineCreate(
+            product_id=product["Office Chair"].id,
+            analytic_account_id=analytic["Furniture Project"].id,
+            quantity=7,
+            unit_price=1200.0,
+        )],
+    ))
+    purchase_order_service.confirm_purchase_order(db, po3.id)
 
 
 def run_seed():
@@ -98,6 +176,36 @@ def run_seed():
                 "pincode": "360002",
                 "is_active": True,
             },
+            {
+                "name": "Azure Furniture",
+                "type": "vendor",
+                "email": "sales@azurefurniture.in",
+                "mobile": "+91 98110 22334",
+                "city": "Bengaluru",
+                "state": "Karnataka",
+                "pincode": "560001",
+                "is_active": True,
+            },
+            {
+                "name": "Modern Office Supplies",
+                "type": "vendor",
+                "email": "orders@modernoffice.in",
+                "mobile": "+91 99220 44556",
+                "city": "Mumbai",
+                "state": "Maharashtra",
+                "pincode": "400001",
+                "is_active": True,
+            },
+            {
+                "name": "Woodcraft Vendors",
+                "type": "vendor",
+                "email": "supply@woodcraft.in",
+                "mobile": "+91 99330 55667",
+                "city": "Jaipur",
+                "state": "Rajasthan",
+                "pincode": "302001",
+                "is_active": True,
+            },
         ]
 
         for cd in contacts_data:
@@ -161,6 +269,46 @@ def run_seed():
                 "description": "Velvet upholstery lounge chair with brass legs",
                 "is_active": True,
             },
+            {
+                "name": "Wooden Chair",
+                "product_type": "goods",
+                "category": "Seating",
+                "price": 800.0,
+                "cost": 500.0,
+                "tax_percent": 18.0,
+                "description": "Solid wood dining chair",
+                "is_active": True,
+            },
+            {
+                "name": "Office Chair",
+                "product_type": "goods",
+                "category": "Office Furniture",
+                "price": 1800.0,
+                "cost": 1200.0,
+                "tax_percent": 18.0,
+                "description": "Ergonomic office chair",
+                "is_active": True,
+            },
+            {
+                "name": "Conference Table",
+                "product_type": "goods",
+                "category": "Office Furniture",
+                "price": 12000.0,
+                "cost": 8000.0,
+                "tax_percent": 18.0,
+                "description": "8-seater conference table",
+                "is_active": True,
+            },
+            {
+                "name": "Storage Cabinet",
+                "product_type": "goods",
+                "category": "Storage",
+                "price": 9500.0,
+                "cost": 6500.0,
+                "tax_percent": 18.0,
+                "description": "Lockable office storage cabinet",
+                "is_active": True,
+            },
         ]
 
         for pd in products_data:
@@ -173,7 +321,14 @@ def run_seed():
                     setattr(product, k, v)
 
         db.commit()
-        print("[SUCCESS] Master data seeded: Accounts, Journals, Contacts, Products.")
+
+        # 4. Seed Analytic Accounts
+        seed_analytic_accounts(db)
+
+        # 5. Seed demo Purchase Orders (skipped if any PO exists)
+        seed_purchase_orders(db)
+
+        print("[SUCCESS] Master data seeded: Accounts, Journals, Contacts, Products, Analytics, Purchase Orders.")
     finally:
         db.close()
 

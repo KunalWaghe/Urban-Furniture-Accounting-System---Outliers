@@ -21,6 +21,13 @@ import {
   X,
   FileSpreadsheet,
 } from "lucide-react";
+import {
+  DashboardMetricCard,
+  DashboardModal,
+  DashboardPanel,
+  DashboardPanelHeader,
+  DashboardTableCard,
+} from "@/features/dashboard/components/dashboard-card";
 
 import type {
   Contact,
@@ -335,31 +342,15 @@ export default function AppDashboardPage() {
       {/* ========================================================================= */}
       {/* SECTION 1: Sales Module Card */}
       {/* ========================================================================= */}
-      <section
-        id="sales-section"
-        className="rounded-2xl border border-border bg-surface p-6 shadow-sm space-y-5"
-        data-purpose="sales-card"
-      >
-        {/* Card Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-4">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-100/80 bg-blue-50 text-blue-600 font-bold dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-400 shadow-xs">
-              <LineChart className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold tracking-tight text-text">Sales</h2>
-                <span className="rounded-full border border-blue-200/50 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-400">
-                  Customer Invoicing &amp; Dispatch
-                </span>
-              </div>
-              <p className="mt-0.5 text-xs text-text-muted">
-                Furniture sales contracts, commercial invoicing &amp; collections
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 self-end sm:self-auto">
+      <DashboardPanel id="sales-section" purpose="sales-card">
+        <DashboardPanelHeader
+          icon={LineChart}
+          tone="blue"
+          title="Sales"
+          badge="Customer Invoicing & Dispatch"
+          description="Furniture sales contracts, commercial invoicing & collections"
+          actions={
+            <>
             <Link
               href="/sales-orders"
               className="inline-flex items-center gap-1 text-xs font-semibold text-primary-600 hover:text-primary-700 hover:underline transition-colors"
@@ -384,86 +375,37 @@ export default function AppDashboardPage() {
               <Plus className="h-3.5 w-3.5" />
               <span>Create New Order</span>
             </button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
-        {/* Metric Stat Tiles (All, Confirmed, Draft) */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {/* All Tile */}
-          <div className="rounded-xl border border-border/80 bg-surface-muted/60 p-4 transition-all hover:bg-surface-muted">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-                All
-              </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface border border-border text-text-muted">
-                <Package className="h-3.5 w-3.5" />
-              </div>
-            </div>
-            <div className="mt-2.5 flex items-baseline gap-2">
-              <span className="text-2xl font-bold tracking-tight text-text">
-                {salesStats.totalCount}
-              </span>
-              <span className="text-xs font-medium text-text-muted">active orders</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2 text-[11px]">
-              <span className="text-text-muted">Total Gross</span>
-              <span className="font-semibold text-text font-mono">
-                ${salesStats.totalGross.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-          </div>
-
-          {/* Confirmed Tile */}
-          <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/40 p-4 transition-all hover:bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-emerald-950/20">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
-                Confirmed
-              </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
-                <Check className="h-3.5 w-3.5" />
-              </div>
-            </div>
-            <div className="mt-2.5 flex items-baseline gap-2">
-              <span className="text-2xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
-                {salesStats.confirmedCount}
-              </span>
-              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-500">
-                ready / billed
-              </span>
-            </div>
-            <div className="mt-2 flex items-center justify-between border-t border-emerald-200/40 pt-2 text-[11px] dark:border-emerald-900/40">
-              <span className="text-emerald-700/70 dark:text-emerald-500">Realized Revenue</span>
-              <span className="font-semibold text-emerald-800 dark:text-emerald-300 font-mono">
-                ${salesStats.realizedRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-          </div>
-
-          {/* Draft Tile */}
-          <div className="rounded-xl border border-amber-200/60 bg-amber-50/40 p-4 transition-all hover:bg-amber-50/70 dark:border-amber-900/60 dark:bg-amber-950/20">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-400">
-                Draft
-              </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100/80 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
-                <Clock className="h-3.5 w-3.5" />
-              </div>
-            </div>
-            <div className="mt-2.5 flex items-baseline gap-2">
-              <span className="text-2xl font-bold tracking-tight text-amber-700 dark:text-amber-400">
-                {salesStats.draftCount}
-              </span>
-              <span className="text-xs font-medium text-amber-600 dark:text-amber-500">
-                quotations
-              </span>
-            </div>
-            <div className="mt-2 flex items-center justify-between border-t border-amber-200/40 pt-2 text-[11px] dark:border-amber-900/40">
-              <span className="text-amber-700/70 dark:text-amber-500">Pipeline Value</span>
-              <span className="font-semibold text-amber-800 dark:text-amber-300 font-mono">
-                ${salesStats.pipelineValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-          </div>
+          <DashboardMetricCard
+            title="All"
+            icon={Package}
+            value={salesStats.totalCount}
+            valueDetail="active orders"
+            footerLabel="Total Gross"
+            footerValue={`$${salesStats.totalGross.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+          />
+          <DashboardMetricCard
+            title="Confirmed"
+            icon={Check}
+            tone="emerald"
+            value={salesStats.confirmedCount}
+            valueDetail="ready / billed"
+            footerLabel="Realized Revenue"
+            footerValue={`$${salesStats.realizedRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+          />
+          <DashboardMetricCard
+            title="Draft"
+            icon={Clock}
+            tone="amber"
+            value={salesStats.draftCount}
+            valueDetail="quotations"
+            footerLabel="Pipeline Value"
+            footerValue={`$${salesStats.pipelineValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+          />
         </div>
 
         {/* Search & Filter Controls */}
@@ -527,19 +469,11 @@ export default function AppDashboardPage() {
           </div>
         </div>
 
-        {/* Recent Sales Orders Table */}
-        <div className="rounded-xl border border-border/80 overflow-hidden bg-surface shadow-xs">
-          <div className="flex items-center justify-between border-b border-border/80 bg-surface-muted/80 px-4 py-2.5">
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary-600"></span>
-              <span className="text-xs font-bold uppercase tracking-wider text-text">
-                Recent Sales Orders
-              </span>
-              <span className="text-[11px] font-normal text-text-muted">
-                (Click row to inspect order details)
-              </span>
-            </div>
-            <div className="flex items-center gap-2.5 text-xs">
+        <DashboardTableCard
+          title="Recent Sales Orders"
+          count="(Click row to inspect order details)"
+          actions={
+            <>
               <button
                 onClick={() => showToast("Showing 8 linked Customer Invoices")}
                 className="rounded-md px-2 py-0.5 font-medium text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/40 transition-colors"
@@ -553,8 +487,9 @@ export default function AppDashboardPage() {
               >
                 Receipts (10)
               </button>
-            </div>
-          </div>
+            </>
+          }
+        >
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-text-muted">
@@ -658,37 +593,21 @@ export default function AppDashboardPage() {
               </tbody>
             </table>
           </div>
-        </div>
-      </section>
+        </DashboardTableCard>
+      </DashboardPanel>
 
       {/* ========================================================================= */}
       {/* SECTION 2: Purchase Module Card */}
       {/* ========================================================================= */}
-      <section
-        id="purchase-section"
-        className="rounded-2xl border border-border bg-surface p-6 shadow-sm space-y-5"
-        data-purpose="purchase-card"
-      >
-        {/* Card Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-4">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-100/80 bg-indigo-50 text-indigo-600 font-bold dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-400 shadow-xs">
-              <ShoppingCart className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold tracking-tight text-text">Purchase</h2>
-                <span className="rounded-full border border-indigo-200/50 bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-400">
-                  Procurement &amp; Payables
-                </span>
-              </div>
-              <p className="mt-0.5 text-xs text-text-muted">
-                Raw materials procurement, timber/hardware supplies &amp; vendor payables
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 self-end sm:self-auto">
+      <DashboardPanel id="purchase-section" purpose="purchase-card">
+        <DashboardPanelHeader
+          icon={ShoppingCart}
+          tone="indigo"
+          title="Purchase"
+          badge="Procurement & Payables"
+          description="Raw materials procurement, timber/hardware supplies & vendor payables"
+          actions={
+            <>
             <Link
               href="/purchase-orders"
               className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors dark:text-indigo-400"
@@ -704,84 +623,37 @@ export default function AppDashboardPage() {
               <Plus className="h-3.5 w-3.5" />
               <span>Create PO</span>
             </button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
-        {/* Metric Stat Tiles (All Bills/POs, Confirmed, Draft) */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {/* All Bills / POs */}
-          <div className="rounded-xl border border-border/80 bg-surface-muted/60 p-4 transition-all hover:bg-surface-muted">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-                All Bills / POs
-              </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface border border-border text-text-muted">
-                <Receipt className="h-3.5 w-3.5" />
-              </div>
-            </div>
-            <div className="mt-2.5 flex items-baseline gap-2">
-              <span className="text-2xl font-bold tracking-tight text-text">
-                {purchaseStats.totalRecords}
-              </span>
-              <span className="text-xs font-medium text-text-muted">records filed</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2 text-[11px]">
-              <span className="text-text-muted">Total Committed</span>
-              <span className="font-semibold text-text font-mono">
-                ${purchaseStats.totalCommitted.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-          </div>
-
-          {/* Confirmed POs */}
-          <div className="rounded-xl border border-blue-200/60 bg-blue-50/40 p-4 transition-all hover:bg-blue-50/70 dark:border-blue-900/60 dark:bg-blue-950/20">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-800 dark:text-blue-400">
-                Confirmed
-              </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100/80 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                <Check className="h-3.5 w-3.5" />
-              </div>
-            </div>
-            <div className="mt-2.5 flex items-baseline gap-2">
-              <span className="text-2xl font-bold tracking-tight text-blue-700 dark:text-blue-400">
-                {purchaseStats.confirmedCount}
-              </span>
-              <span className="text-xs font-medium text-blue-600 dark:text-blue-500">approved</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between border-t border-blue-200/40 pt-2 text-[11px] dark:border-blue-900/40">
-              <span className="text-blue-700/70 dark:text-blue-500">Authorized Payables</span>
-              <span className="font-semibold text-blue-800 dark:text-blue-300 font-mono">
-                ${purchaseStats.authorizedPayables.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-          </div>
-
-          {/* Draft POs */}
-          <div className="rounded-xl border border-amber-200/60 bg-amber-50/40 p-4 transition-all hover:bg-amber-50/70 dark:border-amber-900/60 dark:bg-amber-950/20">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-400">
-                Draft
-              </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100/80 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
-                <Clock className="h-3.5 w-3.5" />
-              </div>
-            </div>
-            <div className="mt-2.5 flex items-baseline gap-2">
-              <span className="text-2xl font-bold tracking-tight text-amber-700 dark:text-amber-400">
-                {purchaseStats.draftCount}
-              </span>
-              <span className="text-xs font-medium text-amber-600 dark:text-amber-500">
-                pending approval
-              </span>
-            </div>
-            <div className="mt-2 flex items-center justify-between border-t border-amber-200/40 pt-2 text-[11px] dark:border-amber-900/40">
-              <span className="text-amber-700/70 dark:text-amber-500">Under Review</span>
-              <span className="font-semibold text-amber-800 dark:text-amber-300 font-mono">
-                ${purchaseStats.underReview.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-          </div>
+          <DashboardMetricCard
+            title="All Bills / POs"
+            icon={Receipt}
+            value={purchaseStats.totalRecords}
+            valueDetail="records filed"
+            footerLabel="Total Committed"
+            footerValue={`$${purchaseStats.totalCommitted.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+          />
+          <DashboardMetricCard
+            title="Confirmed"
+            icon={Check}
+            tone="blue"
+            value={purchaseStats.confirmedCount}
+            valueDetail="approved"
+            footerLabel="Authorized Payables"
+            footerValue={`$${purchaseStats.authorizedPayables.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+          />
+          <DashboardMetricCard
+            title="Draft"
+            icon={Clock}
+            tone="amber"
+            value={purchaseStats.draftCount}
+            valueDetail="pending approval"
+            footerLabel="Under Review"
+            footerValue={`$${purchaseStats.underReview.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+          />
         </div>
 
         {/* Segmented View Selector (POs vs Vendor Bills) */}
@@ -830,22 +702,13 @@ export default function AppDashboardPage() {
 
         {/* VIEW 1: Recent Purchase Orders Table */}
         {purchaseActiveTab === "po" && (
-          <div
+          <DashboardTableCard
             id="poView"
-            className="rounded-xl border border-border/80 overflow-hidden bg-surface shadow-xs animate-in fade-in duration-150"
+            tone="indigo"
+            title="Procurement Orders"
+            count={`${purchaseOrders.length} orders pending action`}
+            className="animate-in fade-in duration-150"
           >
-            <div className="flex items-center justify-between border-b border-border/80 bg-surface-muted/80 px-4 py-2.5">
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-indigo-500"></span>
-                <span className="text-xs font-bold uppercase tracking-wider text-text">
-                  Procurement Orders
-                </span>
-              </div>
-              <span className="text-xs text-text-muted">
-                {purchaseOrders.length} orders pending action
-              </span>
-            </div>
-
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-text-muted">
                 <thead className="border-b border-border bg-surface-muted/40 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
@@ -941,30 +804,24 @@ export default function AppDashboardPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </DashboardTableCard>
         )}
 
         {/* VIEW 2: Vendor Bills Table */}
         {purchaseActiveTab === "bills" && (
-          <div
+          <DashboardTableCard
             id="billsView"
-            className="rounded-xl border border-border/80 overflow-hidden bg-surface shadow-xs animate-in fade-in duration-150"
-          >
-            <div className="flex items-center justify-between border-b border-border/80 bg-surface-muted/80 px-4 py-2.5">
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-                <span className="text-xs font-bold uppercase tracking-wider text-text">
-                  Active Vendor Bills
-                </span>
-              </div>
+            tone="blue"
+            title="Active Vendor Bills"
+            count={
               <span className="font-mono text-xs text-text-muted">
-                Total Payables: $
-                {vendorBills
+                Total Payables: ${vendorBills
                   .reduce((sum, b) => sum + b.amount, 0)
                   .toLocaleString("en-US", { minimumFractionDigits: 2 })}
               </span>
-            </div>
-
+            }
+            className="animate-in fade-in duration-150"
+          >
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-text-muted">
                 <thead className="border-b border-border bg-surface-muted/40 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
@@ -1012,41 +869,23 @@ export default function AppDashboardPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </DashboardTableCard>
         )}
-      </section>
+      </DashboardPanel>
 
       {/* ========================================================================= */}
       {/* SECTION 3: Budget Reports Module Card */}
       {/* ========================================================================= */}
       {budgetMetric && (
-        <section
-          id="budget-section"
-          className="rounded-2xl border border-border bg-surface p-6 shadow-sm space-y-5"
-          data-purpose="budget-card"
-        >
-          {/* Card Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-4">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-100/80 bg-purple-50 text-purple-600 font-bold dark:border-purple-900/60 dark:bg-purple-950/40 dark:text-purple-400 shadow-xs">
-                <BarChart3 className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-bold tracking-tight text-text">
-                    Budget Reports
-                  </h2>
-                  <span className="rounded-full border border-purple-200/50 bg-purple-50 px-2 py-0.5 text-[11px] font-medium text-purple-700 dark:border-purple-900/50 dark:bg-purple-950/40 dark:text-purple-400">
-                    Cost Accounting
-                  </span>
-                </div>
-                <p className="mt-0.5 text-xs text-text-muted">
-                  Analytical cost centers, operating budgets &amp; variance tracking
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 self-end sm:self-auto">
+        <DashboardPanel id="budget-section" purpose="budget-card">
+          <DashboardPanelHeader
+            icon={BarChart3}
+            tone="purple"
+            title="Budget Reports"
+            badge="Cost Accounting"
+            description="Analytical cost centers, operating budgets & variance tracking"
+            actions={
+              <>
               <button
                 type="button"
                 onClick={() => showToast("Loading Full Analytical Profit & Loss report...")}
@@ -1063,84 +902,37 @@ export default function AppDashboardPage() {
                 <FileText className="h-3.5 w-3.5" />
                 <span>Report</span>
               </button>
-            </div>
-          </div>
+              </>
+            }
+          />
 
-          {/* Metric Stat Tiles: Achieved, Budget, Committed */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {/* Achieved Card */}
-            <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/40 p-4 transition-all hover:bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-emerald-950/20">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
-                  Achieved
-                </span>
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100/80 text-xs font-bold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
-                  ✓
-                </div>
-              </div>
-              <div className="mt-2.5 flex items-baseline gap-2">
-                <span className="text-2xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
-                  {budgetMetric.achieved_count}
-                </span>
-                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-500">
-                  {budgetMetric.achieved_target_percent}% target
-                </span>
-              </div>
-              <div className="mt-2 flex items-center justify-between border-t border-emerald-200/40 pt-2 text-[11px] dark:border-emerald-900/40">
-                <span className="text-emerald-700/70 dark:text-emerald-500">Revenue Targets</span>
-                <span className="font-semibold text-emerald-800 dark:text-emerald-300">
-                  Reached
-                </span>
-              </div>
-            </div>
-
-            {/* Budget Card */}
-            <div className="rounded-xl border border-blue-200/60 bg-blue-50/40 p-4 transition-all hover:bg-blue-50/70 dark:border-blue-900/60 dark:bg-blue-950/20">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-800 dark:text-blue-400">
-                  Budget
-                </span>
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100/80 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                  <CreditCard className="h-3.5 w-3.5" />
-                </div>
-              </div>
-              <div className="mt-2.5 flex items-baseline gap-2">
-                <span className="text-2xl font-bold tracking-tight text-blue-700 dark:text-blue-400">
-                  {budgetMetric.budget_count}
-                </span>
-                <span className="text-xs font-bold text-blue-600 dark:text-blue-500">
-                  ${budgetMetric.budget_cap.toLocaleString("en-US")}
-                </span>
-              </div>
-              <div className="mt-2 flex items-center justify-between border-t border-blue-200/40 pt-2 text-[11px] dark:border-blue-900/40">
-                <span className="text-blue-700/70 dark:text-blue-500">Active Cap</span>
-                <span className="font-semibold text-blue-800 dark:text-blue-300">Allocations</span>
-              </div>
-            </div>
-
-            {/* Committed Card */}
-            <div className="rounded-xl border border-border/80 bg-surface-muted/60 p-4 transition-all hover:bg-surface-muted">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-                  Committed
-                </span>
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface border border-border text-text-muted">
-                  <Truck className="h-3.5 w-3.5" />
-                </div>
-              </div>
-              <div className="mt-2.5 flex items-baseline gap-2">
-                <span className="text-2xl font-bold tracking-tight text-text">
-                  {budgetMetric.committed_count}
-                </span>
-                <span className="text-xs font-bold text-text-muted">
-                  ${budgetMetric.committed_amount.toLocaleString("en-US")}
-                </span>
-              </div>
-              <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2 text-[11px]">
-                <span className="text-text-muted">Total Allocated</span>
-                <span className="font-semibold text-text">{budgetMetric.committed_percent}%</span>
-              </div>
-            </div>
+            <DashboardMetricCard
+              title="Achieved"
+              icon={Check}
+              tone="emerald"
+              value={budgetMetric.achieved_count}
+              valueDetail={`${budgetMetric.achieved_target_percent}% target`}
+              footerLabel="Revenue Targets"
+              footerValue="Reached"
+            />
+            <DashboardMetricCard
+              title="Budget"
+              icon={CreditCard}
+              tone="blue"
+              value={budgetMetric.budget_count}
+              valueDetail={`$${budgetMetric.budget_cap.toLocaleString("en-US")}`}
+              footerLabel="Active Cap"
+              footerValue="Allocations"
+            />
+            <DashboardMetricCard
+              title="Committed"
+              icon={Truck}
+              value={budgetMetric.committed_count}
+              valueDetail={`$${budgetMetric.committed_amount.toLocaleString("en-US")}`}
+              footerLabel="Total Allocated"
+              footerValue={`${budgetMetric.committed_percent}%`}
+            />
           </div>
 
           {/* Analytical Center Progress Bar & Direct Quick Links */}
@@ -1210,39 +1002,41 @@ export default function AppDashboardPage() {
               </div>
             </div>
           </div>
-        </section>
+        </DashboardPanel>
       )}
 
       {/* ========================================================================= */}
       {/* MODAL 1: Sales Order Details Modal */}
       {/* ========================================================================= */}
       {selectedSalesOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-2xl rounded-2xl border border-border bg-surface p-6 shadow-2xl animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-text">
-                    Order Details: {selectedSalesOrder.order_number}
-                  </h3>
-                  <p className="text-xs text-text-muted">
-                    Customer dispatch record &amp; line breakdown
-                  </p>
-                </div>
-              </div>
+        <DashboardModal
+          icon={FileText}
+          tone="blue"
+          title={`Order Details: ${selectedSalesOrder.order_number}`}
+          description="Customer dispatch record & line breakdown"
+          onClose={() => setSelectedSalesOrder(null)}
+          footer={
+            <>
               <button
                 type="button"
                 onClick={() => setSelectedSalesOrder(null)}
-                className="rounded-lg p-1.5 text-text-muted hover:bg-surface-muted hover:text-text"
+                className="rounded-xl border border-border px-4 py-2 text-xs font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
               >
-                <X className="h-5 w-5" />
+                Close
               </button>
-            </div>
-
-            <div className="mt-4 space-y-4">
+              <button
+                type="button"
+                onClick={() => {
+                  showToast(`Invoice generated for ${selectedSalesOrder.order_number}`);
+                  setSelectedSalesOrder(null);
+                }}
+                className="rounded-xl bg-primary-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-primary-700"
+              >
+                Generate Customer Invoice
+              </button>
+            </>
+          }
+        >
               {/* Customer Info Box */}
               <div className="grid grid-cols-2 gap-3 rounded-xl bg-surface-muted p-3.5 text-xs">
                 <div>
@@ -1327,61 +1121,38 @@ export default function AppDashboardPage() {
                   </span>
                 </div>
               </div>
-            </div>
-
-            <div className="mt-6 flex items-center justify-end gap-2 border-t border-border pt-4">
-              <button
-                type="button"
-                onClick={() => setSelectedSalesOrder(null)}
-                className="rounded-xl border border-border px-4 py-2 text-xs font-medium text-text-muted hover:bg-surface-muted hover:text-text transition-colors"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  showToast(`Invoice generated for ${selectedSalesOrder.order_number}`);
-                  setSelectedSalesOrder(null);
-                }}
-                className="rounded-xl bg-primary-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-primary-700 transition-colors"
-              >
-                Generate Customer Invoice
-              </button>
-            </div>
-          </div>
-        </div>
+        </DashboardModal>
       )}
 
       {/* ========================================================================= */}
       {/* MODAL 2: Purchase Order Details Modal */}
       {/* ========================================================================= */}
       {selectedPurchaseOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-2xl rounded-2xl border border-border bg-surface p-6 shadow-2xl animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
-                  <ShoppingCart className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-text">
-                    Purchase Order: {selectedPurchaseOrder.po_number}
-                  </h3>
-                  <p className="text-xs text-text-muted">
-                    Vendor procurement order &amp; raw materials
-                  </p>
-                </div>
-              </div>
+        <DashboardModal
+          icon={ShoppingCart}
+          tone="indigo"
+          title={`Purchase Order: ${selectedPurchaseOrder.po_number}`}
+          description="Vendor procurement order & raw materials"
+          onClose={() => setSelectedPurchaseOrder(null)}
+          footer={
+            <>
               <button
                 type="button"
                 onClick={() => setSelectedPurchaseOrder(null)}
-                className="rounded-lg p-1.5 text-text-muted hover:bg-surface-muted hover:text-text"
+                className="rounded-xl border border-border px-4 py-2 text-xs font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
               >
-                <X className="h-5 w-5" />
+                Close
               </button>
-            </div>
-
-            <div className="mt-4 space-y-4">
+              <button
+                type="button"
+                onClick={() => handleConvertPOToBill(selectedPurchaseOrder)}
+                className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+              >
+                Convert to Vendor Bill
+              </button>
+            </>
+          }
+        >
               {/* Vendor Info Box */}
               <div className="grid grid-cols-2 gap-3 rounded-xl bg-surface-muted p-3.5 text-xs">
                 <div>
@@ -1465,26 +1236,7 @@ export default function AppDashboardPage() {
                   </span>
                 </div>
               </div>
-            </div>
-
-            <div className="mt-6 flex items-center justify-end gap-2 border-t border-border pt-4">
-              <button
-                type="button"
-                onClick={() => setSelectedPurchaseOrder(null)}
-                className="rounded-xl border border-border px-4 py-2 text-xs font-medium text-text-muted hover:bg-surface-muted hover:text-text transition-colors"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={() => handleConvertPOToBill(selectedPurchaseOrder)}
-                className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
-              >
-                Convert to Vendor Bill
-              </button>
-            </div>
-          </div>
-        </div>
+        </DashboardModal>
       )}
 
       {/* ========================================================================= */}

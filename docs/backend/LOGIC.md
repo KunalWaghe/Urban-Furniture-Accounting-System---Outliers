@@ -44,6 +44,15 @@ This is the reviewer-readable source of truth for business behavior. Update it w
 **Expected failures:** `INVALID_LOGIN_ID`/`VALIDATION_ERROR` (422), invalid credentials (401), inactive account (401)
 **Side effects:** No mutation; login attempt may be logged without credentials
 
+## Purchase Order lifecycle (implemented 5 Sep 2026)
+
+- **Endpoints:** `POST/GET /api/v1/purchase-orders`, `GET/PUT /api/v1/purchase-orders/{id}`, `PATCH .../confirm`, `PATCH .../cancel`, `GET /api/v1/analytic-accounts`. All require a valid JWT (`get_current_user`).
+- **Status machine:** `draft` → `confirmed` (sets `confirmed_at` timestamp) and `draft` → `cancelled`. Confirmed or cancelled POs cannot be edited, confirmed, or cancelled again — every invalid transition returns `VALIDATION_ERROR` (422).
+- **Edit:** `PUT` performs full line replacement inside one transaction; vendor is re-validated and the total is recomputed from line subtotals.
+- **Defaults:** PO numbers are sequential (`PO-0001`, …). Line `account_id` defaults to the `Purchase Expense` account (code `5010`) when omitted.
+- **Budget analytics:** `GET /api/v1/analytic-accounts` returns each active analytic with `budget_amount`, `committed_amount` (sum of line subtotals on **confirmed** POs), and `remaining_amount`. The frontend warns "Exceeds Approved Budget" when a draft's per-analytic total exceeds the remaining budget; the backend does not block over-budget orders (warning-only by design).
+- **Timestamps:** stored as naive `TIMESTAMP` in the Postgres session timezone; API responses serialize them without a timezone suffix.
+
 ## Business invariants
 
 | ID | Invariant | Enforced in | Error code | Test |
