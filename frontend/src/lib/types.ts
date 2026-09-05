@@ -58,6 +58,9 @@ export interface Contact {
 export interface ContactListResponse {
   data: Contact[];
   total: number;
+  page?: number;
+  limit?: number;
+  pages?: number;
 }
 
 export interface Product {
@@ -75,6 +78,9 @@ export interface Product {
 export interface ProductListResponse {
   data: Product[];
   total: number;
+  page?: number;
+  limit?: number;
+  pages?: number;
 }
 
 export interface Account {
@@ -86,6 +92,14 @@ export interface Account {
   is_active: boolean;
 }
 
+export interface AccountListResponse {
+  data: Account[];
+  total: number;
+  page?: number;
+  limit?: number;
+  pages?: number;
+}
+
 export interface Journal {
   id: number;
   code: string;
@@ -94,6 +108,14 @@ export interface Journal {
   default_account_id?: number | null;
   default_account_name?: string | null;
   is_active: boolean;
+}
+
+export interface JournalListResponse {
+  data: Journal[];
+  total: number;
+  page?: number;
+  limit?: number;
+  pages?: number;
 }
 
 export interface SalesOrderItem {
