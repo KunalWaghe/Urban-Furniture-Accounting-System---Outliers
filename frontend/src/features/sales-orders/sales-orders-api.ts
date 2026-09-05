@@ -98,6 +98,7 @@ export function mapSalesOrder(order: SalesOrderApi): SalesOrder {
     customer_id: order.customer_id,
     customer_name: order.customer_name ?? "Unavailable",
     order_date: formatDate(order.order_date),
+    created_at: order.created_at,
     status: mapSoStatus(order.status),
     total_amount: order.total,
     items: order.lines.map((line) => ({

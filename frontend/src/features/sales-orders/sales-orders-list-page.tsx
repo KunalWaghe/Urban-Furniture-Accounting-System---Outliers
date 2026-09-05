@@ -31,7 +31,7 @@ import { Button } from "@/components/ui/button";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { fetchSalesOrdersPage } from "./sales-orders-api";
 import { SoStatusBadge } from "./so-status-badge";
-import { formatINR } from "@/lib/format";
+import { formatDateTime, formatINR } from "@/lib/format";
 import type { SalesOrder } from "@/lib/types";
 
 const PAGE_SIZE = 10;
@@ -251,11 +251,11 @@ export function SalesOrdersListPage() {
                   <th className="px-4 py-3">Customer</th>
                   <th
                     className="cursor-pointer px-4 py-3 hover:text-text-primary"
-                    onClick={() => handleSort("order_date")}
+                    onClick={() => handleSort("created_at")}
                   >
                     <div className="flex items-center gap-1.5">
-                      <span>Date</span>
-                      {renderSortIcon("order_date")}
+                      <span>Created</span>
+                      {renderSortIcon("created_at")}
                     </div>
                   </th>
                   <th className="px-4 py-3">Items</th>
@@ -286,7 +286,7 @@ export function SalesOrdersListPage() {
                       {order.customer_name}
                     </td>
                     <td className="px-4 py-3 text-text-muted">
-                      {order.order_date}
+                      {order.created_at ? formatDateTime(order.created_at) : order.order_date}
                     </td>
                     <td className="px-4 py-3 text-text-muted">
                       {order.items.length} {order.items.length === 1 ? "item" : "items"}

@@ -162,7 +162,7 @@ function mapVendorBillApiRecord(raw: VendorBillApiRecord): VendorBill {
     status: mapVendorBillStatus(raw.status),
     total_amount: raw.total,
     amount_due: Math.max(0, raw.total - amountPaid),
-    created_at: raw.bill_date,
+    created_at: raw.created_at ?? raw.bill_date,
     journal_entry_id: raw.journal_entry_id,
     lines: (raw.lines ?? []).map((l) => ({
       id: l.id,

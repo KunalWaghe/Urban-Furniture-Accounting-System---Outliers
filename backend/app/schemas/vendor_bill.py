@@ -26,6 +26,7 @@ class VendorBillResponse(BaseModel):
     id: int
     bill_number: str
     po_id: int
+    po_number: Optional[str] = None
     vendor_id: int
     vendor_name: Optional[str] = None
     bill_date: date | datetime
@@ -34,6 +35,7 @@ class VendorBillResponse(BaseModel):
     amount_paid: float = 0.0
     status: str = "open"
     journal_entry_id: Optional[int] = None
+    created_at: datetime
     lines: Optional[List[VendorBillLineResponse]] = None
 
     model_config = ConfigDict(from_attributes=True)

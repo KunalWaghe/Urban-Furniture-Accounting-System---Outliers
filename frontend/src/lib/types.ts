@@ -233,6 +233,7 @@ export interface SalesOrder {
   customer_email?: string;
   customer_phone?: string;
   order_date: string;
+  created_at?: string;
   status: "Confirmed" | "Draft" | "Partially Billed" | "Cancelled" | "Unknown";
   total_amount: number;
   items: SalesOrderItem[];

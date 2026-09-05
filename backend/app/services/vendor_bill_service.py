@@ -81,6 +81,7 @@ def _build_bill_response(bill: VendorBill) -> VendorBillResponse:
         amount_paid=bill.amount_paid,
         status=bill.status,
         journal_entry_id=bill.journal_entry_id,
+        created_at=bill.created_at,
         lines=lines_resp if lines_resp else None,
     )
 
@@ -257,6 +258,7 @@ def create_bill_from_po(db: Session, po_id: int) -> CreateBillResponse:
         select(VendorBill)
         .options(
             joinedload(VendorBill.vendor),
+            joinedload(VendorBill.purchase_order),
             joinedload(VendorBill.lines).joinedload(VendorBillLine.product),
             joinedload(VendorBill.lines).joinedload(VendorBillLine.account),
         )
@@ -285,6 +287,7 @@ def get_vendor_bill(db: Session, bill_id: int) -> VendorBillResponse:
         # 'joinedload' keyword is used here to eagerly load foreign relationships in SQL JOINs to prevent N+1 queries
         .options(
             joinedload(VendorBill.vendor),
+            joinedload(VendorBill.purchase_order),
             joinedload(VendorBill.lines).joinedload(VendorBillLine.product),
             joinedload(VendorBill.lines).joinedload(VendorBillLine.account),
         )
@@ -335,6 +338,7 @@ def list_vendor_bills(
 
     stmt = select(VendorBill).options(
         joinedload(VendorBill.vendor),
+        joinedload(VendorBill.purchase_order),
         joinedload(VendorBill.lines).joinedload(VendorBillLine.product),
         joinedload(VendorBill.lines).joinedload(VendorBillLine.account),
     )
