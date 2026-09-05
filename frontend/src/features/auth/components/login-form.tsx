@@ -100,7 +100,7 @@ export function LoginForm() {
             required
             labelAddon={
               <Link
-                href="#"
+                href="/forgot-password"
                 className="text-xs font-medium text-primary-600 hover:text-primary-700 hover:underline"
               >
                 Forgot password?

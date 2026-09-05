@@ -28,4 +28,4 @@ class User(Base):
     contact_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     reset_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    reset_token_expiry: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    reset_token_expiry: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)

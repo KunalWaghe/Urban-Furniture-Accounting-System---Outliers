@@ -221,7 +221,11 @@ def reset_password(db: Session, req: ResetPasswordRequest) -> ResetPasswordRespo
     if not user:
         raise ValidationException("Invalid or expired reset token")
     
-    if not user.reset_token_expiry or user.reset_token_expiry < datetime.now(timezone.utc):
+    expiry = user.reset_token_expiry
+    if expiry is not None and expiry.tzinfo is None:
+        expiry = expiry.replace(tzinfo=timezone.utc)
+
+    if not expiry or expiry < datetime.now(timezone.utc):
         # Clear expired token
         user.reset_token = None
         user.reset_token_expiry = None

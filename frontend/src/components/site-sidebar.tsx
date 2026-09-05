@@ -52,6 +52,8 @@ export const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Contacts", href: "/contacts", icon: Users, roles: ["admin", "invoicing_user"] },
   { label: "Products", href: "/products", icon: FolderKanban, roles: ["admin", "invoicing_user"] },
   { label: "Chart of Accounts", href: "/chart-of-accounts", icon: CreditCard, roles: ["admin", "invoicing_user"] },
+  { label: "Journals", href: "/journals", icon: FileText, roles: ["admin", "invoicing_user"] },
+  { label: "Journal Entries", href: "/journal-entries", icon: FileText, roles: ["admin", "invoicing_user"] },
   { label: "User Management", href: "/admin/users", icon: Users, roles: ["admin"] },
   { label: "Portal Invoices", href: "/sales-invoices", icon: FileText, roles: ["contact"] },
 ]

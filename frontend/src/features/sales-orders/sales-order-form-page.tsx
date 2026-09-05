@@ -15,9 +15,10 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Trash2, CheckCircle2, Search, ChevronDown, Building2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, CheckCircle2 } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { SearchableContactSelect } from "@/components/searchable-contact-select";
 import { Button } from "@/components/ui/button";
 import {
   confirmSalesOrder,
@@ -59,7 +60,6 @@ export function SalesOrderFormPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   // ── Form state ─────────────────────────────────────────────────────────────
-  const [customerSearch, setCustomerSearch] = useState("");
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [orderDate, setOrderDate] = useState(today);
   const [lines, setLines] = useState<LineRow[]>([emptyLine()]);
@@ -80,20 +80,6 @@ export function SalesOrderFormPage() {
     return salesIncome?.id ?? accounts[0]?.id;
   }, [accounts]);
 
-  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
-
-  const filteredCustomers = useMemo(() => {
-    const q = customerSearch.trim().toLowerCase();
-    if (!q) return customers;
-    return customers.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        (c.city && c.city.toLowerCase().includes(q)) ||
-        (c.email && c.email.toLowerCase().includes(q))
-    );
-  }, [customerSearch, customers]);
-
-  const selectedCustomer = customers.find((c) => c.id === customerId);
   const grandTotal = lines.reduce((sum, line) => sum + lineTotal(line), 0);
   const loadingMaster = customersQuery.isLoading || productsQuery.isLoading || accountsQuery.isLoading;
 
@@ -218,118 +204,16 @@ export function SalesOrderFormPage() {
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* Customer Selector */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-primary">
-                Customer <span className="text-red-500">*</span>
-              </label>
-
-              {selectedCustomer ? (
-                <div className="flex items-center justify-between rounded-lg border border-border bg-surface-elevated p-2.5 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-950/60 dark:text-primary-400">
-                      <Building2 className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-text-primary">
-                          {selectedCustomer.name}
-                        </span>
-                        {selectedCustomer.city && (
-                          <span className="rounded-md border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-text-muted">
-                            {selectedCustomer.city}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-text-muted">
-                        {selectedCustomer.email || "No email listed"}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setCustomerId(null);
-                      setCustomerSearch("");
-                      setCustomerDropdownOpen(true);
-                    }}
-                    className="h-8 text-xs font-medium text-text-muted hover:text-text-primary"
-                  >
-                    Change
-                  </Button>
-                </div>
-              ) : (
-                <div className="relative">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                    <input
-                      type="text"
-                      placeholder="Search and select customer by name, city, or email..."
-                      value={customerSearch}
-                      onFocus={() => setCustomerDropdownOpen(true)}
-                      onChange={(e) => {
-                        setCustomerSearch(e.target.value);
-                        setCustomerDropdownOpen(true);
-                      }}
-                      className="w-full rounded-lg border border-border bg-surface py-2.5 pl-9 pr-9 text-sm text-text-primary placeholder:text-text-muted focus:border-primary-500 focus:outline-hidden focus:ring-1 focus:ring-primary-500"
-                    />
-                    <button
-                      type="button"
-                      tabIndex={-1}
-                      onClick={() => setCustomerDropdownOpen((prev) => !prev)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
-                    >
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform duration-200 ${
-                          customerDropdownOpen ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
-                  </div>
-
-                  {customerDropdownOpen && (
-                    <>
-                      {/* Invisible backdrop to dismiss dropdown on click outside */}
-                      <div
-                        className="fixed inset-0 z-20"
-                        onClick={() => setCustomerDropdownOpen(false)}
-                      />
-                      <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-lg border border-border bg-surface shadow-lg">
-                        {filteredCustomers.length === 0 ? (
-                          <div className="p-3 text-center text-xs text-text-muted">
-                            No customers found {customerSearch ? `matching "${customerSearch}"` : ""}
-                          </div>
-                        ) : (
-                          filteredCustomers.map((c) => (
-                            <button
-                              key={c.id}
-                              type="button"
-                              onClick={() => {
-                                setCustomerId(c.id);
-                                setCustomerSearch("");
-                                setCustomerDropdownOpen(false);
-                              }}
-                              className="flex w-full items-center justify-between border-b border-border/40 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-elevated last:border-0"
-                            >
-                              <div>
-                                <div className="font-medium text-text-primary">{c.name}</div>
-                                <div className="text-xs text-text-muted">
-                                  {c.email || "No email"}
-                                </div>
-                              </div>
-                              {c.city && (
-                                <span className="rounded bg-surface-muted px-1.5 py-0.5 text-[10px] text-text-muted">
-                                  {c.city}
-                                </span>
-                              )}
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
+              <SearchableContactSelect
+                contacts={customers}
+                value={customerId}
+                onChange={setCustomerId}
+                label="Customer"
+                required
+                disabled={submitting}
+                placeholder="Search customers by name, city, or email..."
+                emptyMessage="No active customers found."
+              />
             </div>
 
             {/* Order Date */}
@@ -387,7 +271,7 @@ export function SalesOrderFormPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {lines.map((line, idx) => {
+                {lines.map((line) => {
                   const subtotal = lineTotal(line);
                   return (
                     <tr key={line.key}>

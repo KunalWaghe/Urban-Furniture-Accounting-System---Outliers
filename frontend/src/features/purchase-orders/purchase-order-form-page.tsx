@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { SearchableContactSelect } from "@/components/searchable-contact-select";
 import { Button } from "@/components/ui/button";
 import {
   confirmPurchaseOrder,
@@ -66,7 +67,6 @@ export function PurchaseOrderFormPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   // ── Form state (local — not synced to URL or server until submit) ────────
-  const [vendorSearch, setVendorSearch] = useState("");
   const [vendorId, setVendorId] = useState<number | null>(null);
   const [poDate, setPoDate] = useState(today);
   const [lines, setLines] = useState<LineRow[]>([emptyLine()]);
@@ -87,13 +87,6 @@ export function PurchaseOrderFormPage() {
     return purchaseExpense?.id ?? accounts[0]?.id;
   }, [accounts]);
 
-  const filteredVendors = useMemo(() => {
-    const q = vendorSearch.trim().toLowerCase();
-    if (!q) return vendors;
-    return vendors.filter((v) => v.name.toLowerCase().includes(q));
-  }, [vendorSearch, vendors]);
-
-  const selectedVendor = vendors.find((v) => v.id === vendorId);
   const grandTotal = lines.reduce((sum, line) => sum + lineTotal(line), 0);
 
   const loadingMaster = vendorsQuery.isLoading || productsQuery.isLoading || accountsQuery.isLoading;
@@ -211,36 +204,16 @@ export function PurchaseOrderFormPage() {
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-text-muted">Vendor Name *</label>
-                <input
-                  type="search"
-                  value={selectedVendor ? selectedVendor.name : vendorSearch}
-                  onChange={(e) => {
-                    setVendorSearch(e.target.value);
-                    setVendorId(null);
-                  }}
-                  placeholder="Search vendors..."
-                  className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+                <SearchableContactSelect
+                  contacts={vendors}
+                  value={vendorId}
+                  onChange={setVendorId}
+                  label="Vendor Name"
+                  required
+                  disabled={submitting}
+                  placeholder="Search vendors by name, city, or email..."
+                  emptyMessage="No active vendors found."
                 />
-                {!selectedVendor && vendorSearch.trim() && filteredVendors.length > 0 && (
-                  <div className="mt-1 overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
-                    {filteredVendors.slice(0, 6).map((vendor) => (
-                      <button
-                        key={vendor.id}
-                        type="button"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setVendorId(vendor.id);
-                          setVendorSearch(vendor.name);
-                        }}
-                        className="block w-full px-3 py-2 text-left text-sm text-text hover:bg-surface-muted"
-                      >
-                        {vendor.name}
-                        {vendor.city ? <span className="ml-2 text-text-muted">{vendor.city}</span> : null}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           </section>

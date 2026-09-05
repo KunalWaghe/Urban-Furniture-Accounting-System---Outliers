@@ -55,6 +55,7 @@ import {
   confirmSalesOrder,
 } from "@/features/sales-orders/sales-orders-api";
 import { createBillFromPo } from "@/features/vendor-bills/vendor-bills-api";
+import { SearchableContactSelect } from "@/components/searchable-contact-select";
 
 /**
  * Main dashboard page — sales, purchase, and budget overview in one scrollable view.
@@ -1731,17 +1732,16 @@ function CreatePurchaseOrderModal({
   onClose: () => void;
   onCreate: (po: PurchaseOrder) => void | Promise<void>;
 }) {
-  const [selectedVendorId, setSelectedVendorId] = useState<number | undefined>();
+  const [selectedVendorId, setSelectedVendorId] = useState<number | undefined>(() => vendors[0]?.id);
   const [selectedProductId, setSelectedProductId] = useState<number | undefined>();
   const [quantity, setQuantity] = useState<number>(10);
   const [customUnitCost, setCustomUnitCost] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const effectiveVendorId = selectedVendorId ?? vendors[0]?.id;
   const effectiveProductId = selectedProductId ?? products[0]?.id;
 
-  const vendor = vendors.find((v) => v.id === effectiveVendorId) || vendors[0];
+  const vendor = vendors.find((v) => v.id === selectedVendorId);
   const product = products.find((p) => p.id === effectiveProductId) || products[0];
   const unitCost = customUnitCost ?? (product?.cost ?? product?.price ?? 2400);
   const totalAmount = quantity * unitCost;
@@ -1849,23 +1849,16 @@ function CreatePurchaseOrderModal({
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-xs">
           <div>
-            <label className="block font-semibold text-text mb-1">Vendor (from Backend DB)</label>
-            {vendors.length > 0 ? (
-              <select
-                value={effectiveVendorId ?? 0}
-                onChange={(e) => setSelectedVendorId(Number(e.target.value))}
-                disabled={submitting}
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-text focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
-              >
-                {vendors.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name} {v.city ? `(${v.city}, ${v.state || ""})` : ""}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p className="text-xs text-amber-600">No active vendors found in database.</p>
-            )}
+            <SearchableContactSelect
+              contacts={vendors}
+              value={selectedVendorId}
+              onChange={(contactId) => setSelectedVendorId(contactId ?? undefined)}
+              label="Vendor Name"
+              required
+              disabled={submitting}
+              placeholder="Search vendors by name, city, or email..."
+              emptyMessage="No active vendors found in database."
+            />
           </div>
 
           <div>

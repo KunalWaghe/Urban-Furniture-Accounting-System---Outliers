@@ -50,6 +50,24 @@ export interface RegisterRequest {
   contact_id?: number | null;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  new_password: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+}
+
 /** Standard error shape returned by the backend on failed requests. */
 export interface ApiErrorEnvelope {
   error: {
@@ -141,6 +159,40 @@ export interface JournalListResponse {
   page?: number;
   limit?: number;
   pages?: number;
+}
+
+/** A single balanced double-entry journal record. */
+export interface JournalEntryItem {
+  account_id: number;
+  account_name?: string | null;
+  account_code?: string | null;
+  partner_id?: number | null;
+  debit: number;
+  credit: number;
+  description?: string | null;
+  analytic_account_id?: number | null;
+}
+
+/** General-ledger journal entry returned by the API. */
+export interface JournalEntry {
+  id: number;
+  entry_number: string;
+  journal_code?: string | null;
+  journal_name?: string | null;
+  date: string;
+  reference?: string | null;
+  total_amount?: number | null;
+  is_posted: boolean;
+  items: JournalEntryItem[];
+}
+
+/** Paginated journal-entry list response. */
+export interface JournalEntryListResponse {
+  data: JournalEntry[];
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
 }
 
 /** A single line item on a sales order. */

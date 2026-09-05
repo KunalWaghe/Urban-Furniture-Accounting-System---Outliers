@@ -294,8 +294,10 @@ export async function fetchSalesOrdersPage(
   const sortBy = params.sort_by ?? "created_at";
   const sortOrder = params.sort_order ?? "desc";
   filtered.sort((a, b) => {
-    let aVal: any = (a as any)[sortBy] ?? a.created_at;
-    let bVal: any = (b as any)[sortBy] ?? b.created_at;
+    const aRecord = a as unknown as Record<string, unknown>;
+    const bRecord = b as unknown as Record<string, unknown>;
+    let aVal = aRecord[sortBy] ?? a.created_at;
+    let bVal = bRecord[sortBy] ?? b.created_at;
     if (sortBy === "total") {
       aVal = Number(a.total);
       bVal = Number(b.total);
@@ -469,14 +471,17 @@ export async function markSalesOrderInvoiced(soId: number): Promise<void> {
   }
 }
 
-// TODO: paginate or implement search-as-you-type for large catalogs
-const PICKER_LIMIT = 500;
+// Backend FastAPI query validation strictly enforces limit <= 100
+const PICKER_LIMIT = 100;
 
 /**
  * GET /api/v1/contacts — active customers for the SO form customer picker.
  */
 export async function fetchCustomers(): Promise<Contact[]> {
-  const res = await apiFetch<ContactListResponse>(`/api/v1/contacts?is_active=true&limit=${PICKER_LIMIT}`, { auth: true });
+  const res = await apiFetch<ContactListResponse>(
+    `/api/v1/contacts?type=customer&is_active=true&limit=${PICKER_LIMIT}`,
+    { auth: true }
+  );
   return (res.data ?? []).filter((c) => c.type === "customer" || c.type === "both");
 }
 

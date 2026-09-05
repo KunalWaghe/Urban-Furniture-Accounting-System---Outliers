@@ -13,7 +13,15 @@
  */
 
 import { apiFetch } from "@/lib/api";
-import type { AuthResponse, LoginRequest, RegisterRequest } from "@/lib/types";
+import type {
+  AuthResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
+  LoginRequest,
+  RegisterRequest,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
+} from "@/lib/types";
 
 /**
  * Sends credentials to POST /api/v1/auth/login.
@@ -55,5 +63,23 @@ export async function fetchCurrentUser(): Promise<Omit<AuthResponse, "token">> {
   return apiFetch<Omit<AuthResponse, "token">>("/api/v1/auth/me", {
     method: "GET",
     auth: true,
+  });
+}
+
+export async function forgotPasswordRequest(
+  payload: ForgotPasswordRequest
+): Promise<ForgotPasswordResponse> {
+  return apiFetch<ForgotPasswordResponse>("/api/v1/auth/forgot-password", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function resetPasswordRequest(
+  payload: ResetPasswordRequest
+): Promise<ResetPasswordResponse> {
+  return apiFetch<ResetPasswordResponse>("/api/v1/auth/reset-password", {
+    method: "POST",
+    body: payload,
   });
 }
