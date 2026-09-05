@@ -1,10 +1,13 @@
 "use client"
 
-import { useMemo, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { Search } from "lucide-react"
 
 import { EmptyState } from "@/components/empty-state"
 import { LoadingSpinner } from "@/components/loading-spinner"
+import { TablePagination } from "@/components/ui/table-pagination"
+
+const DEFAULT_PAGE_SIZE = 10
 
 export interface DataTableColumn<T> {
   key: string
@@ -20,7 +23,10 @@ interface DataTableProps<T extends { id?: string | number }> {
   searchPlaceholder?: string
   emptyTitle?: string
   emptyDescription?: string
+  /** Called when the search input changes (use for server-side search) */
   onSearch?: (value: string) => void
+  /** Page size for client-side pagination (default: 10). Pass 0 to disable. */
+  pageSize?: number
 }
 
 export function DataTable<T extends { id?: string | number }>({
@@ -31,8 +37,10 @@ export function DataTable<T extends { id?: string | number }>({
   emptyTitle = "No records found",
   emptyDescription = "Try adjusting your search or add a new record.",
   onSearch,
+  pageSize = DEFAULT_PAGE_SIZE,
 }: DataTableProps<T>) {
   const [search, setSearch] = useState("")
+  const [page, setPage] = useState(1)
 
   const filteredData = useMemo(() => {
     if (onSearch || !search.trim()) return data
@@ -46,6 +54,20 @@ export function DataTable<T extends { id?: string | number }>({
       })
     )
   }, [columns, data, onSearch, search])
+
+  // Reset to page 1 whenever the filtered set changes
+  useEffect(() => {
+    setPage(1)
+  }, [filteredData.length, search])
+
+  const paginationEnabled = pageSize > 0
+  const totalPages = paginationEnabled ? Math.max(1, Math.ceil(filteredData.length / pageSize)) : 1
+
+  const visibleData = useMemo(() => {
+    if (!paginationEnabled) return filteredData
+    const start = (page - 1) * pageSize
+    return filteredData.slice(start, start + pageSize)
+  }, [filteredData, page, pageSize, paginationEnabled])
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -63,6 +85,7 @@ export function DataTable<T extends { id?: string | number }>({
 
   return (
     <div className="space-y-4">
+      {/* Search bar */}
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
         <input
@@ -77,34 +100,52 @@ export function DataTable<T extends { id?: string | number }>({
       {filteredData.length === 0 ? (
         <EmptyState title={emptyTitle} description={emptyDescription} />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-          <table className="min-w-full divide-y divide-border text-sm">
-            <thead className="bg-surface-muted">
-              <tr>
-                {columns.map((col) => (
-                  <th
-                    key={col.key}
-                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted"
-                  >
-                    {col.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filteredData.map((row, index) => (
-                <tr key={row.id ?? index} className="hover:bg-surface-muted/60">
+        <div className="overflow-hidden rounded-xl border border-border bg-surface">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border text-sm">
+              <thead className="bg-surface-muted">
+                <tr>
                   {columns.map((col) => (
-                    <td key={col.key} className="px-4 py-3 text-text">
-                      {col.render
-                        ? col.render(row)
-                        : ((row as Record<string, unknown>)[col.key] as ReactNode)}
-                    </td>
+                    <th
+                      key={col.key}
+                      className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted"
+                    >
+                      {col.label}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {visibleData.map((row, index) => (
+                  <tr key={row.id ?? index} className="hover:bg-surface-muted/60">
+                    {columns.map((col) => (
+                      <td key={col.key} className="px-4 py-3 text-text">
+                        {col.render
+                          ? col.render(row)
+                          : ((row as Record<string, unknown>)[col.key] as ReactNode)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination footer */}
+          {paginationEnabled && totalPages > 1 && (
+            <div className="border-t border-border px-4">
+              <div className="flex items-center justify-between py-2">
+                <p className="text-xs text-text-muted">
+                  {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filteredData.length)} of {filteredData.length}
+                </p>
+                <TablePagination
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

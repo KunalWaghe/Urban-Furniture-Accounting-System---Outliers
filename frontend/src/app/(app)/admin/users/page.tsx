@@ -1,46 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Shield, UserPlus, Users, RefreshCw } from "lucide-react";
 
 import { RequireRole } from "@/components/require-role";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { SignupForm } from "@/features/auth/components/signup-form";
-import { apiFetch } from "@/lib/api";
-import type { AuthUser } from "@/lib/types";
+import { useUsers } from "@/features/users/queries";
+
+const PAGE_SIZE = 8;
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<AuthUser[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  async function loadUsers() {
-    setLoading(true);
-    try {
-      const data = await apiFetch<AuthUser[]>("/api/v1/users", { auth: true });
-      setUsers(data);
-    } catch (err) {
-      console.error("Failed to load users:", err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    let ignore = false;
-    async function fetchUsers() {
-      try {
-        const data = await apiFetch<AuthUser[]>("/api/v1/users", { auth: true });
-        if (!ignore) setUsers(data);
-      } catch (err) {
-        console.error("Failed to load users:", err);
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    }
-    void fetchUsers();
-    return () => {
-      ignore = true;
-    };
-  }, []);
+  const { data: users = [], isLoading: loading, refetch: refetchUsers } = useUsers();
+  const [page, setPage] = useState(1);
 
   return (
     <RequireRole allowedRoles={["admin"]}>
@@ -68,11 +40,7 @@ export default function AdminUsersPage() {
               <UserPlus className="h-5 w-5 text-primary-600" />
               <h2 className="text-base font-semibold text-text">Create Internal User</h2>
             </div>
-            <SignupForm
-              mode="admin-create"
-              onSuccess={(user) => setUsers((prev) => [user, ...prev])}
-              cancelHref="/"
-            />
+            <SignupForm mode="admin-create" cancelHref="/" />
           </div>
 
           {/* Sidebar Info & System Users List */}
@@ -94,15 +62,15 @@ export default function AdminUsersPage() {
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-              <div className="flex items-center justify-between border-b border-border pb-3">
+            <div className="rounded-2xl border border-border bg-surface shadow-sm">
+              <div className="flex items-center justify-between border-b border-border px-6 py-4">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary-600" />
                   <h3 className="text-sm font-semibold text-text">System Users ({users.length})</h3>
                 </div>
                 <button
                   type="button"
-                  onClick={loadUsers}
+                  onClick={() => { setPage(1); void refetchUsers(); }}
                   disabled={loading}
                   className="rounded-lg p-1 text-text-muted hover:bg-surface-muted hover:text-text disabled:opacity-50"
                   title="Refresh users"
@@ -115,31 +83,63 @@ export default function AdminUsersPage() {
                 <div className="py-6 text-center text-xs text-text-muted">Loading users…</div>
               ) : users.length === 0 ? (
                 <div className="py-6 text-center text-xs text-text-muted">No users found.</div>
-              ) : (
-                <div className="mt-3 max-h-[380px] divide-y divide-border overflow-y-auto pr-1">
-                  {users.map((u) => (
-                    <div key={u.id} className="py-2.5 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-text">{u.name}</span>
-                        <span
-                          className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                            u.role === "admin"
-                              ? "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
-                              : u.role === "invoicing_user"
-                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-                              : "bg-surface-muted text-text-muted"
-                          }`}
-                        >
-                          {u.role === "invoicing_user" ? "Accountant" : u.role}
-                        </span>
-                      </div>
-                      <p className="mt-0.5 text-text-muted">
-                        {u.login_id ? `@${u.login_id}` : "No ID"} · {u.email}
-                      </p>
+              ) : (() => {
+                const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+                const safePage = Math.min(page, totalPages);
+                const start = (safePage - 1) * PAGE_SIZE;
+                const pageUsers = users.slice(start, start + PAGE_SIZE);
+                return (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full text-left text-xs">
+                        <thead className="bg-surface-muted text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                          <tr>
+                            <th className="px-4 py-2.5">Name</th>
+                            <th className="px-4 py-2.5">Login ID · Email</th>
+                            <th className="px-4 py-2.5 text-right">Role</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {pageUsers.map((u) => (
+                            <tr key={u.id} className="hover:bg-surface-muted/50">
+                              <td className="px-4 py-3 font-medium text-text">{u.name}</td>
+                              <td className="px-4 py-3 text-text-muted">
+                                {u.login_id ? `@${u.login_id}` : "No ID"} · {u.email}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <span
+                                  className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase ${u.role === "admin"
+                                      ? "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
+                                      : u.role === "invoicing_user"
+                                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                                        : "bg-surface-muted text-text-muted"
+                                    }`}
+                                >
+                                  {u.role === "invoicing_user" ? "Accountant" : u.role}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  ))}
-                </div>
-              )}
+                    {totalPages > 1 && (
+                      <div className="border-t border-border px-4">
+                        <div className="flex items-center justify-between py-1">
+                          <p className="text-xs text-text-muted">
+                            {start + 1}–{Math.min(safePage * PAGE_SIZE, users.length)} of {users.length}
+                          </p>
+                          <TablePagination
+                            page={safePage}
+                            totalPages={totalPages}
+                            onPageChange={setPage}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>

@@ -1,8 +1,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useMutation } from "@tanstack/react-query";
 
-import { apiFetch, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
+import { useCreateUser } from "@/features/users/queries";
 
 import { useAuth } from "../auth-context";
 import {
@@ -22,7 +24,7 @@ const FIELD_ORDER: Array<keyof SignupErrors> = [
   "terms",
 ];
 
-import type { AuthUser } from "@/lib/types";
+import type { AuthUser, RegisterRequest } from "@/lib/types";
 
 export interface UseSignupFormOptions {
   mode?: "signup" | "admin-create";
@@ -46,7 +48,11 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
   const [errors, setErrors] = useState<SignupErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [notice, setNotice] = useState<AuthNotice | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const registerMutation = useMutation({
+    mutationFn: (payload: RegisterRequest) => register(payload),
+  });
+  const createUserMutation = useCreateUser();
 
   const passwordStrength = getPasswordStrength(fields.password);
   const passwordsMatch =
@@ -88,64 +94,56 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
       return;
     }
 
-    setIsSubmitting(true);
     setNotice(null);
 
     if (mode === "admin-create") {
-      try {
-        const payload = {
+      createUserMutation.mutate(
+        {
           name: fields.name.trim(),
           login_id: fields.login_id.trim(),
           email: fields.email.trim(),
           password: fields.password,
           role: fields.role || "invoicing_user",
-        };
+        },
+        {
+          onSuccess: (res) => {
+            setNotice({
+              kind: "info",
+              title: "User Created Successfully",
+              message: `Account '${res.login_id}' created with role '${res.role}'.`,
+            });
 
-        const res = await apiFetch<AuthUser>("/api/v1/users", {
-          method: "POST",
-          body: payload,
-          auth: true,
-        });
-
-        setNotice({
-          kind: "info",
-          title: "User Created Successfully",
-          message: `Account '${res.login_id}' created with role '${res.role}'.`,
-        });
-
-        setFields({
-          name: "",
-          login_id: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-          role: "invoicing_user",
-          acceptedTerms: false,
-        });
-        setErrors({});
-        onSuccess?.(res);
-      } catch (error) {
-        handleApiError(error, "create user");
-      } finally {
-        setIsSubmitting(false);
-      }
+            setFields({
+              name: "",
+              login_id: "",
+              email: "",
+              password: "",
+              confirmPassword: "",
+              role: "invoicing_user",
+              acceptedTerms: false,
+            });
+            setErrors({});
+            onSuccess?.(res);
+          },
+          onError: (error) => handleApiError(error, "create user"),
+        }
+      );
       return;
     }
 
     // mode === "signup": Public registration creates user role (contact)
-    try {
-      await register({
+    registerMutation.mutate(
+      {
         name: fields.name.trim(),
         login_id: fields.login_id.trim(),
         email: fields.email.trim(),
         password: fields.password,
-      });
-      router.push("/");
-    } catch (error) {
-      handleApiError(error, "create account");
-    } finally {
-      setIsSubmitting(false);
-    }
+      },
+      {
+        onSuccess: () => router.push("/"),
+        onError: (error) => handleApiError(error, "create account"),
+      }
+    );
   }
 
   function handleApiError(error: unknown, actionName: string) {
@@ -226,7 +224,7 @@ export function useSignupForm(options: UseSignupFormOptions = {}) {
     passwordsMatch,
     notice,
     dismissNotice: () => setNotice(null),
-    isSubmitting,
+    isSubmitting: registerMutation.isPending || createUserMutation.isPending,
     handleSubmit,
   };
 }

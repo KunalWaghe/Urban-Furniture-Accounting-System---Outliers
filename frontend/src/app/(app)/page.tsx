@@ -28,25 +28,59 @@ import type {
   SalesOrder,
   PurchaseOrder,
   VendorBill,
-  BudgetMetric,
 } from "@/lib/types";
-import {
-  fetchDashboardContacts,
-  fetchDashboardProducts,
-  buildDashboardDataFromBackend,
-} from "@/features/dashboard/dashboard-api";
+import { buildDashboardDataFromBackend } from "@/features/dashboard/dashboard-api";
+import { useContacts, useProducts } from "@/features/dashboard/queries";
 
 export default function AppDashboardPage() {
-  // Backend Data State
-  const [loading, setLoading] = useState(true);
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  // Backend master data from the TanStack Query server cache
+  const {
+    data: contactsData,
+    isLoading: contactsLoading,
+    refetch: refetchContacts,
+  } = useContacts();
+  const {
+    data: productsData,
+    isLoading: productsLoading,
+    refetch: refetchProducts,
+  } = useProducts();
 
-  // Dashboard Entity State
-  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>([]);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
-  const [vendorBills, setVendorBills] = useState<VendorBill[]>([]);
-  const [budgetMetric, setBudgetMetric] = useState<BudgetMetric | null>(null);
+  const contacts = useMemo(() => contactsData ?? [], [contactsData]);
+  const products = useMemo(() => productsData ?? [], [productsData]);
+  const loading = contactsLoading || productsLoading;
+
+  // Server-derived demo entities (no backend order endpoints yet)
+  const baseData = useMemo(
+    () => (loading ? null : buildDashboardDataFromBackend(contacts, products)),
+    [loading, contacts, products]
+  );
+
+  // Local client-side additions layered on top of the server-derived base.
+  // Creating orders/bills or converting a PO only touches these lists, so a
+  // background refetch never wipes what the user just created.
+  const [createdOrders, setCreatedOrders] = useState<SalesOrder[]>([]);
+  const [createdPOs, setCreatedPOs] = useState<PurchaseOrder[]>([]);
+  const [createdBills, setCreatedBills] = useState<VendorBill[]>([]);
+  const [billedPoIds, setBilledPoIds] = useState<Record<string, true>>({});
+
+  const salesOrders = useMemo(
+    () => [...createdOrders, ...(baseData?.salesOrders ?? [])],
+    [createdOrders, baseData]
+  );
+  const purchaseOrders = useMemo(
+    () => [
+      ...createdPOs,
+      ...(baseData?.purchaseOrders ?? []).map((po) =>
+        billedPoIds[po.id] ? { ...po, status: "Partially Billed" as const } : po
+      ),
+    ],
+    [createdPOs, baseData, billedPoIds]
+  );
+  const vendorBills = useMemo(
+    () => [...createdBills, ...(baseData?.vendorBills ?? [])],
+    [createdBills, baseData]
+  );
+  const budgetMetric = baseData?.budgetMetric ?? null;
 
   // Filter & View States
   const [salesFilterStatus, setSalesFilterStatus] = useState<string>("all");
@@ -71,76 +105,21 @@ export default function AppDashboardPage() {
     }, 4000);
   }, []);
 
-  // Refresh backend master data on demand
+  // Refresh backend master data on demand: revalidate the server cache and
+  // clear local additions so the dashboard reflects fresh server data.
   const handleRefresh = useCallback(async () => {
-    setLoading(true);
     try {
-      const [fetchedContacts, fetchedProducts] = await Promise.all([
-        fetchDashboardContacts(),
-        fetchDashboardProducts(),
-      ]);
-
-      setContacts(fetchedContacts);
-      setProducts(fetchedProducts);
-
-      const dashboardData = buildDashboardDataFromBackend(
-        fetchedContacts,
-        fetchedProducts
-      );
-
-      setSalesOrders(dashboardData.salesOrders);
-      setPurchaseOrders(dashboardData.purchaseOrders);
-      setVendorBills(dashboardData.vendorBills);
-      setBudgetMetric(dashboardData.budgetMetric);
+      await Promise.all([refetchContacts(), refetchProducts()]);
+      setCreatedOrders([]);
+      setCreatedPOs([]);
+      setCreatedBills([]);
+      setBilledPoIds({});
       showToast("Backend data refreshed successfully.");
     } catch (err) {
       console.error("Failed to refresh dashboard data:", err);
       showToast("Could not sync with backend. Using cached domain models.");
-    } finally {
-      setLoading(false);
     }
-  }, [showToast]);
-
-  // Initial data loading on mount
-  useEffect(() => {
-    let ignore = false;
-    async function init() {
-      try {
-        const [fetchedContacts, fetchedProducts] = await Promise.all([
-          fetchDashboardContacts(),
-          fetchDashboardProducts(),
-        ]);
-
-        if (ignore) return;
-        setContacts(fetchedContacts);
-        setProducts(fetchedProducts);
-
-        const dashboardData = buildDashboardDataFromBackend(
-          fetchedContacts,
-          fetchedProducts
-        );
-
-        setSalesOrders(dashboardData.salesOrders);
-        setPurchaseOrders(dashboardData.purchaseOrders);
-        setVendorBills(dashboardData.vendorBills);
-        setBudgetMetric(dashboardData.budgetMetric);
-      } catch (err) {
-        if (!ignore) {
-          console.error("Failed to load dashboard data:", err);
-          showToast("Could not sync with backend. Using cached domain models.");
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void init();
-    return () => {
-      ignore = true;
-    };
-  }, [showToast]);
+  }, [refetchContacts, refetchProducts, showToast]);
 
   // Keyboard shortcut ESC to close modals
   useEffect(() => {
@@ -299,12 +278,8 @@ export default function AppDashboardPage() {
       payment_status: "Unpaid",
     };
 
-    setVendorBills((prev) => [newBill, ...prev]);
-    setPurchaseOrders((prev) =>
-      prev.map((p) =>
-        p.id === po.id ? { ...p, status: "Partially Billed" } : p
-      )
-    );
+    setCreatedBills((prev) => [newBill, ...prev]);
+    setBilledPoIds((prev) => ({ ...prev, [po.id]: true }));
     setSelectedPurchaseOrder(null);
     showToast(
       `Vendor Bill ${newBillNumber} created for ${po.vendor_name} ($${po.total_amount.toLocaleString(
@@ -1496,7 +1471,7 @@ export default function AppDashboardPage() {
           products={products}
           onClose={() => setIsCreateOrderModalOpen(false)}
           onCreate={(newOrder) => {
-            setSalesOrders((prev) => [newOrder, ...prev]);
+            setCreatedOrders((prev) => [newOrder, ...prev]);
             setIsCreateOrderModalOpen(false);
             showToast(`Sales Order ${newOrder.order_number} created successfully for ${newOrder.customer_name}!`);
           }}
@@ -1512,7 +1487,7 @@ export default function AppDashboardPage() {
           products={products}
           onClose={() => setIsCreatePOModalOpen(false)}
           onCreate={(newPO) => {
-            setPurchaseOrders((prev) => [newPO, ...prev]);
+            setCreatedPOs((prev) => [newPO, ...prev]);
             setIsCreatePOModalOpen(false);
             showToast(`Purchase Order ${newPO.po_number} created successfully for ${newPO.vendor_name}!`);
           }}

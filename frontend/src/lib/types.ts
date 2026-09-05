@@ -127,6 +127,7 @@ export interface PurchaseOrderItem {
   quantity: number;
   unit_cost: number;
   total: number;
+  account_name?: string;
 }
 
 export interface PurchaseOrder {
@@ -137,7 +138,7 @@ export interface PurchaseOrder {
   vendor_location?: string;
   vendor_email?: string;
   po_date: string;
-  status: "Confirmed" | "Partially Billed" | "Draft";
+  status: "Confirmed" | "Partially Billed" | "Draft" | "Cancelled";
   total_amount: number;
   items: PurchaseOrderItem[];
 }
