@@ -448,21 +448,11 @@ export async function confirmSalesOrder(id: number): Promise<SalesOrder> {
 }
 
 /**
- * Updates an SO status to 'invoiced' when an invoice is generated.
- * Attempts backend PATCH first; falls back to local-only if unavailable.
+ * Keeps the local demo adapter in sync after invoice generation.
+ * The live create-invoice endpoint updates the Sales Order status atomically,
+ * so there is no separate `/status` API call to make.
  */
 export async function markSalesOrderInvoiced(soId: number): Promise<void> {
-  try {
-    await apiFetch(`/api/v1/sales-orders/${soId}/status`, {
-      method: "PATCH",
-      auth: true,
-      body: { status: "invoiced" },
-    });
-  } catch (err) {
-    if (!isBackendUnavailable(err)) throw err;
-    // Backend not deployed — fall back to local update
-  }
-
   const all = getLocalSalesOrders();
   const index = all.findIndex((o) => o.id === soId || String(o.id) === String(soId));
   if (index !== -1) {

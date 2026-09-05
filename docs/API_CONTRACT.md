@@ -63,7 +63,7 @@ This document is the authoritative boundary between Frontend and Backend. Lock e
 | **P0** | `DELETE /api/v1/products/:id` | Soft delete product (sets `is_active=false`) | Admin / Invoicing | **Implemented & Verified** |
 | **P0** | `GET /api/v1/accounts` | Chart of Accounts with filters (`type`, `search`, `is_active`) | Any internal | **Implemented & Verified** |
 | **P0** | `GET /api/v1/journals` | List journals (`sale`, `purchase`, `bank`, `cash`) | Any internal | **Implemented & Verified** |
-| **P0** | `GET /api/v1/analytic-accounts` | List Income/Expense analytic tags for order lines | Any internal | **Contract Locked** |
+| **P1** | `GET /api/v1/analytic-accounts` | List Income/Expense analytic tags for order lines | Admin / Invoicing | **Backend Implemented; FE alignment pending** |
 | **P0** | `POST /api/v1/purchase-orders` | Create Purchase Order (in `draft`) | Admin / Invoicing | **Contract Locked** |
 | **P0** | `GET /api/v1/purchase-orders` | List Purchase Orders | Any internal | **Contract Locked** |
 | **P0** | `GET /api/v1/purchase-orders/:id` | Purchase Order detail | Any internal | **Contract Locked** |
@@ -80,10 +80,14 @@ This document is the authoritative boundary between Frontend and Backend. Lock e
 | **P0** | `GET /api/v1/journal-entries` | List Journal Entries (debit/credit lines) | Admin / Invoicing | **Contract Locked** |
 | **P0** | `POST /api/v1/journal-entries` | Create manual balanced Journal Entry | Admin / Invoicing | **Contract Locked** |
 | **P0** | `GET /api/v1/reports/balance-sheet` | Real-time Balance Sheet | Admin / Invoicing | **Contract Locked** |
-| **P0** | `GET /api/v1/reports/pnl` | Real-time Profit & Loss statement | Admin / Invoicing | **Contract Locked** |
-| **P1** | `GET /api/v1/reports/budget` | Budget vs Actual performance | Admin / Invoicing | **Contract Locked** |
-| **P1** | `POST /api/v1/budgets` | Create Budget linked to Analytic Account | Admin | **Contract Locked** |
-| **P1** | `GET /api/v1/portal/invoices` | Customer/Vendor self-service invoices (scoped to `contact_id`) | Contact role | **Contract Locked** |
+| **P0** | `GET /api/v1/reports/profit-loss` | Real-time Profit & Loss statement | Admin / Invoicing | **Implemented; runtime verification pending** |
+| **P1** | `GET /api/v1/reports/budget` | Budget vs Actual performance | Admin / Invoicing | **Backend Implemented; FE alignment pending** |
+| **P1** | `POST /api/v1/budgets` | Create Budget linked to Analytic Account | Admin / Invoicing | **Backend Implemented; FE alignment pending** |
+| **P1** | `PATCH /api/v1/budgets/:id/confirm` | Confirm a draft Budget | Admin / Invoicing | **Backend Implemented** |
+| **P1** | `POST /api/v1/budgets/:id/revise` | Revise a confirmed Budget | Admin / Invoicing | **Backend Implemented** |
+| **P1** | `PATCH /api/v1/budgets/:id/cancel` | Cancel a draft Budget | Admin / Invoicing | **Backend Implemented; FE method mismatch** |
+| **P1** | `GET /api/v1/self-service/my-invoices` | Contact-scoped invoice list | Authenticated contact | **Backend Implemented; FE path mismatch** |
+| **P1** | `POST /api/v1/self-service/my-invoices/:id/pay` | Contact-scoped invoice payment | Authenticated contact | **Backend Implemented; FE path mismatch** |
 
 ---
 
@@ -920,7 +924,7 @@ Real-time statement of financial position.
 }
 ```
 
-#### `GET /api/v1/reports/pnl`
+#### `GET /api/v1/reports/profit-loss`
 
 Real-time Profit & Loss statement for a given date period.
 - Query parameters: `period_start` (YYYY-MM-DD), `period_end` (YYYY-MM-DD).
@@ -958,6 +962,6 @@ Comparison of committed/actual expenses and income against budgeted allocations 
 
 Create a budget plan associated with an Analytic Account and timeframe (Admin only).
 
-#### `GET /api/v1/portal/invoices`
+#### `GET /api/v1/self-service/my-invoices`
 
 Self-service invoice ledger strictly filtered by the authenticated user's `contact_id`. Internal accounts cannot be accessed via portal endpoints.

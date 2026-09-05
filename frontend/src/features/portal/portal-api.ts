@@ -21,10 +21,14 @@ function normalize(raw: Record<string, unknown>): PortalInvoice {
 }
 
 export async function fetchPortalInvoices(): Promise<PortalInvoice[]> {
-  const response = await apiFetch<PortalResponse | Array<Record<string, unknown>>>("/api/v1/portal/invoices", { auth: true });
+  const response = await apiFetch<PortalResponse | Array<Record<string, unknown>>>("/api/v1/self-service/my-invoices", { auth: true });
   return (Array.isArray(response) ? response : response.data ?? []).map(normalize);
 }
 
 export async function payPortalInvoice(invoiceId: number, input: { amount: number; payment_method: "bank" | "cash"; date: string; note?: string }) {
-  return apiFetch(`/api/v1/customer-invoices/${invoiceId}/pay`, { method: "POST", auth: true, body: { amount: input.amount, payment_method: input.payment_method, payment_date: input.date, notes: input.note } });
+  return apiFetch(`/api/v1/self-service/my-invoices/${invoiceId}/pay`, {
+    method: "POST",
+    auth: true,
+    body: { amount: input.amount, payment_method: input.payment_method, date: input.date, note: input.note },
+  });
 }

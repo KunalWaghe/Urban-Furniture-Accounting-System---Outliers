@@ -248,7 +248,7 @@ export function SiteHeader() {
       ref={navContainerRef}
       className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-md"
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 gap-3 sm:gap-4">
+      <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8 gap-3 sm:gap-4">
         {/* Left: Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
           <div className="rounded-xl bg-primary-600 p-2 text-white shadow-sm shadow-primary-500/20">

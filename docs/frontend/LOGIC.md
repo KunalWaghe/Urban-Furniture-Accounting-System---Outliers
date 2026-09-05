@@ -8,8 +8,8 @@ This document defines the behavioral logic, state handling, golden paths, valida
 
 | Step | Route/Surface | User Action | API Call | Success State | Failure Recovery |
 |---:|---|---|---|---|---|
-| **1** | `/login` | Enter credentials (`admin001` / `Password@123`) | `POST /api/v1/auth/login` with `login_id` | Token stored in `localStorage` & AuthContext; redirect to `/dashboard` | Display `Invalid Login Id or Password`; keep credentials input |
-| **2** | `/dashboard` | View accounting health KPIs (Cash, Bank, AP, AR, Net Profit) | `GET /api/v1/reports/balance-sheet`, `GET /api/v1/reports/pnl` | Summary cards show live financial metrics | Show fallback skeleton / retry button if data fetch fails |
+| **1** | `/login` | Enter credentials (`admin001` / `Password@123`) | `POST /api/v1/auth/login` with `login_id` | Token stored in `localStorage` & AuthContext; redirect to `/` | Display `Invalid Login Id or Password`; keep credentials input |
+| **2** | `/` | View accounting health KPIs (Cash, Bank, AP, AR, Net Profit) | `GET /api/v1/reports/balance-sheet`, `GET /api/v1/reports/profit-loss` | Summary cards show live financial metrics | Show fallback skeleton / retry button if data fetch fails |
 | **3** | `/contacts` | Verify/Create Vendor "Azure Furniture" | `GET /api/v1/contacts`, `POST /api/v1/contacts` | Vendor appears in list with badge `Vendor` | Inline field error on duplicate name/invalid email |
 | **4** | `/products` | Verify/Create Product "Wooden Chair" (₹2,500, Tax 18%) | `GET /api/v1/products`, `POST /api/v1/products` | Product appears in table with price and tax rates | Modal remains open with error details; user can fix inputs |
 | **5** | `/purchase-orders` | Click "New PO", select Azure Furniture, add 10x Wooden Chair, click "Create PO" | `POST /api/v1/purchase-orders` | PO created in `draft` state; auto-navigates to `/purchase-orders/:id` | Line-item validation error displayed (e.g. qty > 0) |
@@ -22,7 +22,7 @@ This document defines the behavioral logic, state handling, golden paths, valida
 | **12** | `/sales-orders/:id` | Click "Record Payment", select Bank Journal, confirm full payment | `POST /api/v1/payments` | Invoice status transitions to `paid`; Inbound Payment Journal Entry created (Debit Bank, Credit AR) | Disable payment submission if amount <= 0 or > invoice total |
 | **13** | `/journal-entries` | Inspect General Ledger entries | `GET /api/v1/journal-entries` | All automated entries listed; Debit column equals Credit column; balance confirmed | Show empty state if no entries; refresh button available |
 | **14** | `/reports/balance-sheet` | Review live Balance Sheet | `GET /api/v1/reports/balance-sheet` | Assets (Bank + AR) exactly balance Liabilities (AP) + Capital/Retained Earnings | Display real-time computed totals with visual balanced indicator |
-| **15** | `/reports/pnl` | Review Profit & Loss statement | `GET /api/v1/reports/pnl` | Income (Sales) minus Expenses (COGS/Purchases) computes Net Profit | Display grouped revenues, costs, and bottom-line margin |
+| **15** | `/reports/profit-loss` | Review Profit & Loss statement | `GET /api/v1/reports/profit-loss` | Income (Sales) minus Expenses (COGS/Purchases) computes Net Profit | Display grouped revenues, costs, and bottom-line margin |
 
 ---
 
@@ -30,22 +30,22 @@ This document defines the behavioral logic, state handling, golden paths, valida
 
 | Priority | Screen | Route | Job to be Done | Required States | Status |
 |---|---|---|---|---|---|
-| **P0** | Login | `/login` | Authenticate by Login ID via JWT | idle / submitting / error / success | Needs `loginId` correction |
-| **P0** | Forgot Password | `/forgot-password` | Start a password reset request | idle / submitting / error / success/demo | Queued |
-| **P0** | Create User | `/users/new` | Admin creates an Admin, Accountant, or User account | idle / submitting / validation / success | Queued |
-| **P0** | App Shell & Dashboard | `/dashboard` | Provide overview of accounts, quick links to transactions & reports | loading / empty / error / success | Planned |
-| **P0** | Contact Master | `/contacts` | List-first CRUD for customers/vendors with list ↔ kanban and form views | loading / empty / error / success / archived | Planned |
-| **P0** | Product Master | `/products` | List-first CRUD for products, type/category/pricing, with list ↔ kanban and form views | loading / empty / error / success / archived | Planned |
-| **P0** | Chart of Accounts | `/accounts` | Display hierarchy of Asset, Liability, Bank, Cash, Capital, Income, Expense, Other Expense | loading / empty / error / success | Planned |
-| **P0** | Purchase Orders List | `/purchase-orders` | View list of POs, filter by status, quick action to create | loading / empty / error / success | Implemented with demo adapter; live API wiring queued |
-| **P0** | Purchase Order Detail | `/purchase-orders/[id]` | Track PO status, convert to Bill, record vendor payment, inspect journal links | loading / mutating / error / success | Planned |
-| **P0** | Sales Orders List | `/sales-orders` | View list of SOs, filter by status, quick action to create | loading / empty / error / success | Implemented with demo adapter; live API wiring queued |
-| **P0** | Sales Order Detail | `/sales-orders/[id]` | Track SO status, generate Invoice, record customer payment, inspect journal links | loading / mutating / error / success | Planned |
-| **P0** | Journal Entries | `/journal-entries` | Audit all double-entry ledger records, verify debit = credit balance | loading / empty / error / success | Planned |
-| **P0** | Balance Sheet | `/reports/balance-sheet` | Display live snapshot of Assets, Liabilities, and Capital | loading / empty / error / success | Planned |
-| **P0** | Profit & Loss (P&L) | `/reports/pnl` | Display real-time Income, Expenses, and Net Profit | loading / empty / error / success | Planned |
-| **P1** | Analytics & Budget | `/analytics`, `/budgets`, `/reports/budget` | Manage analytic accounts/budgets and display committed vs achieved utilization | loading / empty / error / success / revised | Queued |
-| **P1** | Contact Portal | `/portal` | Restricted self-service portal for User accounts to view own invoices/bills and pay | loading / unauth / forbidden / error / success | Queued |
+| **P0** | Login | `/login` | Authenticate by Login ID via JWT | idle / submitting / error / success | Implemented; browser QA pending |
+| **P0** | Forgot Password | `/forgot-password` | Start a password reset request | idle / submitting / error / success/demo | Implemented; browser QA pending |
+| **P0** | Create User | `/admin/users` | Admin creates an Admin, Accountant, or User account | idle / submitting / validation / success | Implemented; browser QA pending |
+| **P0** | App Shell & Dashboard | `/` | Provide overview of accounts, quick links to transactions & reports | loading / empty / error / success | Implemented; dashboard controls still need wiring |
+| **P0** | Contact Master | `/contacts` | List-first CRUD for customers/vendors with list ↔ kanban and form views | loading / empty / error / success / archived | Implemented; browser QA pending |
+| **P0** | Product Master | `/products` | List-first CRUD for products, type/category/pricing, with list ↔ kanban and form views | loading / empty / error / success / archived | Implemented; browser QA pending |
+| **P0** | Chart of Accounts | `/chart-of-accounts` | Display hierarchy of Asset, Liability, Bank, Cash, Capital, Income, Expense, Other Expense | loading / empty / error / success | Implemented; browser QA pending |
+| **P0** | Purchase Orders List | `/purchase-orders` | View list of POs, filter by status, quick action to create | loading / empty / error / success | Implemented with live API |
+| **P0** | Purchase Order Detail | `/purchase-orders/[id]` | Track PO status, convert to Bill, record vendor payment, inspect journal links | loading / mutating / error / success | Implemented; Edit action and browser QA pending |
+| **P0** | Sales Orders List | `/sales-orders` | View list of SOs, filter by status, quick action to create | loading / empty / error / success | Implemented with live-first adapter |
+| **P0** | Sales Order Detail | `/sales-orders/[id]` | Track SO status, generate Invoice, record customer payment, inspect journal links | loading / mutating / error / success | Implemented; status update fallback needs API alignment |
+| **P0** | Journal Entries | `/journal-entries` | Audit all double-entry ledger records, verify debit = credit balance | loading / empty / error / success | Implemented; browser QA pending |
+| **P0** | Balance Sheet | `/reports/balance-sheet` | Display live snapshot of Assets, Liabilities, and Capital | loading / empty / error / success | Implemented; browser QA pending |
+| **P0** | Profit & Loss (P&L) | `/reports/profit-loss` | Display real-time Income, Expenses, and Net Profit | loading / empty / error / success | Implemented; browser QA pending |
+| **P1** | Analytics & Budget | `/analytic-accounts`, `/budgets`, `/reports/budget` | Manage analytic accounts/budgets and display committed vs achieved utilization | loading / empty / error / success / revised | UI implemented; API contract alignment pending |
+| **P1** | Contact Portal | `/portal` | Restricted self-service portal for User accounts to view own invoices/bills and pay | loading / unauth / forbidden / error / success | UI implemented; self-service endpoint alignment pending |
 
 ---
 
@@ -114,7 +114,7 @@ All API endpoints return standard errors in the agreed envelope:
 - [x] **Ledger Debit/Credit Balance Check:** Journal entry view flags any imbalance in red with `∑ Debit - ∑ Credit = Difference`.
 - [x] **Non-Blocking Background Fetching:** Table pagination or status filtering shows a slim progress indicator without unmounting previous table rows.
 - [x] **Empty States Guide Next Action:** Blank tables display an actionable CTA (e.g. "No contacts yet — Add Contact").
-- [ ] **Role-safe Navigation:** Hide internal accounting routes and actions for `contact`/User accounts; still enforce 403 handling server-side.
+- [x] **Role-safe Navigation:** Hide internal accounting routes and actions for `contact`/User accounts; still enforce 403 handling server-side.
 - [ ] **Excalidraw View Convention:** Master pages open in list view by default; Contacts, Products, Analytics, and Budgets offer a list ↔ kanban toggle; New and saved-row actions open the corresponding form state.
 
 ---

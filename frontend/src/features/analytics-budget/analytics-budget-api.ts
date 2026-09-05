@@ -51,24 +51,37 @@ interface ListEnvelope<T> {
   pages?: number;
 }
 
+interface BudgetReportResponse {
+  budgets?: Record<string, unknown>[];
+  data?: Record<string, unknown>[];
+}
+
 function asList<T>(response: ListEnvelope<T> | T[]): T[] {
   return Array.isArray(response) ? response : response.data ?? [];
+}
+
+function asDateTime(value: string): string {
+  return value.length === 10 ? `${value}T00:00:00` : value;
 }
 
 function normalizeBudget(raw: Partial<Budget> & Record<string, unknown>): Budget {
   const committed = Number(raw.committed_amount ?? raw.committed ?? 0);
   const achieved = Number(raw.achieved_amount ?? raw.achieved ?? 0);
-  const percent = Number(raw.achieved_percent ?? raw.achieved_percentage ?? (committed ? (achieved / committed) * 100 : 0));
+  const percent = Number(raw.achieved_percent ?? raw.achieved_percentage ?? raw.achieved_pct ?? (committed ? (achieved / committed) * 100 : 0));
+  const startDate = raw.start_date ?? raw.period_start;
+  const endDate = raw.end_date ?? raw.period_end;
+  const responsibleId = raw.responsible_contact_id ?? raw.responsible_person_id;
+  const responsibleName = raw.responsible_contact_name ?? raw.responsible_person_name;
   return {
     id: Number(raw.id),
     name: String(raw.name ?? "Budget"),
-    responsible_contact_id: raw.responsible_contact_id == null ? null : Number(raw.responsible_contact_id),
-    responsible_contact_name: raw.responsible_contact_name == null ? null : String(raw.responsible_contact_name),
+    responsible_contact_id: responsibleId == null ? null : Number(responsibleId),
+    responsible_contact_name: responsibleName == null ? null : String(responsibleName),
     analytic_account_id: Number(raw.analytic_account_id ?? 0),
     analytic_account_name: raw.analytic_account_name == null ? null : String(raw.analytic_account_name),
-    type: raw.type === "income" ? "income" : "expense",
-    start_date: String(raw.start_date ?? ""),
-    end_date: String(raw.end_date ?? ""),
+    type: raw.type === "income" || raw.analytic_account_type === "income" ? "income" : "expense",
+    start_date: startDate == null ? "" : String(startDate).split("T")[0],
+    end_date: endDate == null ? "" : String(endDate).split("T")[0],
     committed_amount: committed,
     achieved_amount: achieved,
     achieved_percent: percent,
@@ -94,7 +107,18 @@ export async function fetchBudgets(): Promise<Budget[]> {
 }
 
 export async function createBudget(input: BudgetInput): Promise<Budget> {
-  const response = await apiFetch<Record<string, unknown>>("/api/v1/budgets", { method: "POST", auth: true, body: input });
+  const response = await apiFetch<Record<string, unknown>>("/api/v1/budgets", {
+    method: "POST",
+    auth: true,
+    body: {
+      name: input.name,
+      analytic_account_id: input.analytic_account_id,
+      period_start: asDateTime(input.start_date),
+      period_end: asDateTime(input.end_date),
+      committed_amount: input.committed_amount,
+      responsible_person_id: input.responsible_contact_id ?? null,
+    },
+  });
   return normalizeBudget(response);
 }
 
@@ -104,15 +128,27 @@ export async function confirmBudget(id: number): Promise<Budget> {
 }
 
 export async function reviseBudget(id: number, input: BudgetInput): Promise<Budget> {
-  const response = await apiFetch<Record<string, unknown>>(`/api/v1/budgets/${id}/revise`, { method: "POST", auth: true, body: input });
+  const response = await apiFetch<Record<string, unknown>>(`/api/v1/budgets/${id}/revise`, {
+    method: "POST",
+    auth: true,
+    body: {
+      name: input.name,
+      committed_amount: input.committed_amount,
+      responsible_person_id: input.responsible_contact_id ?? null,
+    },
+  });
   return normalizeBudget(response);
 }
 
 export async function cancelBudget(id: number): Promise<void> {
-  await apiFetch(`/api/v1/budgets/${id}/cancel`, { method: "POST", auth: true });
+  await apiFetch(`/api/v1/budgets/${id}/cancel`, { method: "PATCH", auth: true });
 }
 
 export async function fetchBudgetReport(): Promise<BudgetReportRow[]> {
-  const response = await apiFetch<ListEnvelope<Record<string, unknown>> | Record<string, unknown>[]>("/api/v1/reports/budget", { auth: true });
-  return asList(response).map((item) => ({ ...normalizeBudget(item), balance: Number(item.balance ?? item.amount_to_achieve ?? 0) }));
+  const response = await apiFetch<BudgetReportResponse | Record<string, unknown>[]>("/api/v1/reports/budget", { auth: true });
+  const items = Array.isArray(response) ? response : response.budgets ?? response.data ?? [];
+  return items.map((item) => ({
+    ...normalizeBudget(item),
+    balance: Number(item.balance ?? item.amount_to_achieve ?? 0),
+  }));
 }
