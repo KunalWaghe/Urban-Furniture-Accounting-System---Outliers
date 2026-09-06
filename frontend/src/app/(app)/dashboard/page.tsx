@@ -62,7 +62,10 @@ import { AppModal, FormModalFooter, ModalError } from "@/components/app-modal";
 import { DashboardKpiCards } from "@/features/dashboard/dashboard-kpi-cards";
 import { Button } from "@/components/ui/button";
 import { ActionTooltip } from "@/components/ui/tooltip";
+import { fetchBudgetReport } from "@/features/analytics-budget/analytics-budget-api";
+import { buildBudgetReportExportHtml } from "@/features/reports/report-export-html";
 import { DASHBOARD_RECENT_LIMIT } from "@/lib/constants";
+import { exportHtmlAsPdf } from "@/lib/export-pdf";
 import { formatINR } from "@/lib/format";
 
 function csvValue(value: unknown): string {
@@ -129,6 +132,7 @@ export default function AppDashboardPage() {
 
   // Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [exportingBudgetPdf, setExportingBudgetPdf] = useState(false);
 
   /** Shows a temporary success/info banner; auto-dismisses after 4 seconds. */
   const showToast = useCallback((msg: string) => {
@@ -345,20 +349,27 @@ export default function AppDashboardPage() {
     showToast(`Exported ${rows.length - 1} procurement records.`);
   }, [dateFilteredPurchaseOrders, dateFilteredVendorBills, showToast]);
 
-  const handleExportAccounting = useCallback(() => {
-    const rows: unknown[][] = [
-      ["Metric", "Value"],
-      ["Sales orders", salesStats.totalCount],
-      ["Sales order gross", salesStats.totalGross],
-      ["Realized revenue", salesStats.realizedRevenue],
-      ["Purchase records", purchaseStats.totalRecords],
-      ["Purchase commitments", purchaseStats.totalCommitted],
-      ["Authorized payables", purchaseStats.authorizedPayables],
-      ["Budget committed", budgetMetric?.committed_amount ?? 0],
-    ];
-    downloadCsv("accounting-summary.csv", rows);
-    showToast("Accounting summary exported.");
-  }, [budgetMetric, purchaseStats, salesStats, showToast]);
+  const handleExportBudgetReportPdf = useCallback(async () => {
+    setExportingBudgetPdf(true);
+    try {
+      const rows = await fetchBudgetReport();
+      if (rows.length === 0) {
+        showToast("No budget data is available to export.");
+        return;
+      }
+      const opened = exportHtmlAsPdf("Budget Report", buildBudgetReportExportHtml(rows));
+      if (!opened) {
+        showToast("Allow pop-ups to export the budget report as PDF.");
+        return;
+      }
+      showToast("Budget report PDF opened — use Save as PDF in the print dialog.");
+    } catch (err) {
+      console.error("Failed to export budget report PDF:", err);
+      showToast("Could not export the budget report. Check your connection and try again.");
+    } finally {
+      setExportingBudgetPdf(false);
+    }
+  }, [showToast]);
 
   /** Creates a vendor bill from a confirmed PO via the backend API. */
   const handleConvertPOToBill = useCallback(
@@ -1177,11 +1188,12 @@ export default function AppDashboardPage() {
               </Link>
               <button
                 type="button"
-              onClick={handleExportAccounting}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-purple-700 active:bg-purple-800"
+                onClick={handleExportBudgetReportPdf}
+                disabled={exportingBudgetPdf}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-purple-700 active:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <FileText className="h-3.5 w-3.5" />
-                <span>Report</span>
+                <span>{exportingBudgetPdf ? "Exporting…" : "PDF"}</span>
               </button>
             </div>
           </div>
