@@ -138,10 +138,16 @@ export function AppModal({
 }
 
 /** Standard inline error banner for modal bodies. */
-export function ModalError({ children }: { children: ReactNode }) {
+export function ModalError({
+  children,
+  message,
+}: {
+  children?: ReactNode;
+  message?: ReactNode;
+}) {
   return (
     <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">
-      {children}
+      {message ?? children}
     </p>
   );
 }

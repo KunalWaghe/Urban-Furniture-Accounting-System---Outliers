@@ -1,8 +1,80 @@
-# graphify (knowledge graph tool — generated output, do not commit)
+# ========================
+# Environment & Secrets
+# ========================
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# ========================
+# AI / Agent Tool Configs
+# ========================
+.agents/
+.neon
+neon.ts
+skills-lock.json
+AGENTS.md
+CLAUDE.md
 graphify-out/
 .graphify/
 graphify*.json
 *.graphify
 raw/
 
-.env.local
+# ========================
+# Dev Notes & Internal Docs (keep README.md and SPECIFICATION.md only)
+# ========================
+AUTHENTICATION.md
+AUTH_FLOW_DIAGRAM.md
+FRONTEND_ERROR_HANDLING_COMPLETE.md
+GSAP_ANIMATION_FIX.md
+IMPLEMENTATION_SUMMARY.md
+MOBILE_RESPONSIVE_IMPROVEMENTS.md
+System_Plan.md
+Urban_Furniture_Accounting_System_Plan.md
+implementation_plan.md
+CENTRALIZED_ERROR_HANDLING_SUMMARY.md
+DOCUMENTATION.md
+ERROR_HANDLING_GUIDE.md
+ERROR_HANDLING_INDEX.md
+ERROR_HANDLING_QUICK_REFERENCE.md
+MIGRATION_GUIDE.md
+MOBILE_RESPONSIVE_UPDATES.md
+SKELETON_IMPLEMENTATION_SUMMARY.md
+SKELETON_LOADING_GUIDE.md
+
+# ========================
+# Large Binary Assets
+# ========================
+excalidraw-board.png
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+.pytest_cache/
+
+# ========================
+# Node.js / Next.js
+# ========================
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# ========================
+# IDE & OS
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

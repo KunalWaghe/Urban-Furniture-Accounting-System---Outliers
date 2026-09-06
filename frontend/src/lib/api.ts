@@ -243,6 +243,13 @@ export async function apiFetch<T>(
     if (timeout.didTimeout()) {
       throw new ApiError(408, "REQUEST_TIMEOUT", "The request timed out. Please try again.");
     }
+    if (error instanceof TypeError) {
+      throw new ApiError(
+        503,
+        "NETWORK_ERROR",
+        `Unable to connect to backend server at ${getApiBaseUrl()}. Please make sure the backend server is running.`
+      );
+    }
     throw error;
   } finally {
     timeout.cleanup();

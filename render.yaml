@@ -1,0 +1,64 @@
+# Render Blueprint — Urban Furniture Accounting System
+# https://docs.render.com/infrastructure-as-code
+#
+# Deploy: Render Dashboard → New → Blueprint → Select this repo
+# Both services will be created automatically.
+
+services:
+  # ─────────────────────────────────────────────
+  # Backend — FastAPI (Python)
+  # ─────────────────────────────────────────────
+  - type: web
+    name: urban-furniture-backend
+    runtime: python
+    region: singapore
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: DATABASE_URL
+        sync: false          # Set manually in Render dashboard
+      - key: SECRET_KEY
+        sync: false
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"
+      - key: CORS_ORIGINS
+        sync: false          # Set to your frontend Render URL
+      - key: FRONTEND_URL
+        sync: false          # Set to your frontend Render URL
+      - key: APP_NAME
+        value: Urban Furniture Accounting System
+      - key: DEBUG
+        value: "false"
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: EMAILS_FROM_NAME
+        value: Urban Furniture Accounting
+      - key: EMAILS_FROM_EMAIL
+        sync: false
+
+  # ─────────────────────────────────────────────
+  # Frontend — Next.js (Node.js)
+  # ─────────────────────────────────────────────
+  - type: web
+    name: urban-furniture-frontend
+    runtime: node
+    region: singapore
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NEXT_PUBLIC_API_BASE_URL
+        sync: false          # Set to your backend Render URL
