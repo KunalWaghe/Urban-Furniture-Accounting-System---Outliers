@@ -335,10 +335,20 @@ export function PurchaseOrderDetailPage({ poId }: PurchaseOrderDetailPageProps) 
                 <dt className="text-text-muted">Status</dt>
                 <dd><PoStatusBadge status={mapped.status} /></dd>
               </div>
-              <div className="border-t border-border pt-3">
+              <div className="border-t border-border pt-3 space-y-2">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-text-muted">Subtotal</dt>
+                  <dd className="font-mono font-medium text-text">{formatINR(po.total)}</dd>
+                </div>
+                {(po.tax_percent ?? 0) > 0 && (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-text-muted">Tax ({po.tax_percent}%)</dt>
+                    <dd className="font-mono font-medium text-text">{formatINR(po.tax_amount)}</dd>
+                  </div>
+                )}
                 <div className="flex justify-between gap-4">
                   <dt className="font-medium text-text">Total Amount</dt>
-                  <dd className="font-mono text-lg font-bold text-primary-600">{formatINR(po.total)}</dd>
+                  <dd className="font-mono text-lg font-bold text-primary-600">{formatINR(po.total_with_tax ?? po.total)}</dd>
                 </div>
                 <p className="mt-1 text-right text-xs text-text-muted">Currency: INR ₹</p>
               </div>

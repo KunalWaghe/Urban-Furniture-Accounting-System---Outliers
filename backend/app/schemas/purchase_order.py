@@ -4,7 +4,7 @@ Pydantic schemas for Purchase Order requests and responses (P0-BE-05).
 
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class POLineCreate(BaseModel):
@@ -20,6 +20,7 @@ class POCreate(BaseModel):
     """Schema for creating a Purchase Order."""
     vendor_id: int = Field(..., description="ID of the Vendor (Contact)")
     order_date: Optional[datetime] = Field(default=None, description="Order date")
+    tax_percent: float = Field(default=0.0, ge=0, le=100, description="Tax percentage applied to the order total")
     lines: List[POLineCreate] = Field(..., min_length=1, description="Line items for the PO")
 
 
@@ -51,11 +52,14 @@ class POResponse(BaseModel):
     vendor_name: Optional[str] = None
     status: str
     total: float
+    tax_percent: float = 0.0
+    tax_amount: float = 0.0
+    total_with_tax: float = 0.0
     order_date: datetime
     created_at: datetime
     lines: List[POLineResponse] = []
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)
 
 
 class POListResponse(BaseModel):

@@ -29,6 +29,9 @@ class CustomerInvoice(Base):
     due_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     # Total invoice amount
     total: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    tax_percent: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    tax_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    total_with_tax: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     # Cumulative receipts settled against this invoice
     amount_paid: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     # Lifecycle status: 'open', 'partially_paid', 'paid', 'cancelled'

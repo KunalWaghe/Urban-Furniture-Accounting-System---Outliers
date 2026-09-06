@@ -34,6 +34,9 @@ export interface PurchaseOrderApi {
   vendor_name: string | null;
   status: string;
   total: number;
+  tax_percent: number;
+  tax_amount: number;
+  total_with_tax: number;
   order_date: string;
   created_at: string;
   lines: PurchaseOrderLineApi[];
@@ -71,6 +74,7 @@ export interface PurchaseOrderLineInput {
 export interface PurchaseOrderInput {
   vendor_id: number;
   order_date?: string;
+  tax_percent?: number;
   lines: PurchaseOrderLineInput[];
 }
 
@@ -103,6 +107,9 @@ export function mapPurchaseOrder(po: PurchaseOrderApi): PurchaseOrder {
     po_date: formatDate(po.order_date),
     status: mapPoStatus(po.status),
     total_amount: po.total,
+    tax_percent: po.tax_percent ?? 0,
+    tax_amount: po.tax_amount ?? 0,
+    total_with_tax: po.total_with_tax ?? po.total,
     items: po.lines.map((line) => ({
       id: line.id,
       product_name: line.product_name ?? "Unknown product",

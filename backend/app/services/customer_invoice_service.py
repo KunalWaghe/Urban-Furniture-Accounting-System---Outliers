@@ -79,6 +79,9 @@ def _build_invoice_response(invoice: CustomerInvoice) -> CustomerInvoiceResponse
         invoice_date=invoice.invoice_date,
         due_date=invoice.due_date,
         total=invoice.total,
+        tax_percent=invoice.tax_percent,
+        tax_amount=invoice.tax_amount,
+        total_with_tax=invoice.total_with_tax,
         amount_paid=invoice.amount_paid,
         status=invoice.status,
         journal_entry_id=invoice.journal_entry_id,
@@ -162,11 +165,15 @@ def create_invoice_from_so(db: Session, so_id: int) -> CreateInvoiceResponse:
     # Credit: Sales Income (4010) for each line's subtotal
     journal_lines = []
 
-    # Debit Accounts Receivable (Debtors) for total invoice amount
+    # Compute tax from SO for invoice and journal entry
+    inv_tax_amount = round(so.total * so.tax_percent / 100, 2) if so.tax_percent else 0.0
+    inv_total_with_tax = round(so.total + inv_tax_amount, 2)
+
+    # Debit Accounts Receivable (Debtors) for total invoice amount including tax
     journal_lines.append({
         "account_id": ar_account.id,
         "partner_id": so.customer_id,
-        "debit": so.total,
+        "debit": inv_total_with_tax,
         "credit": 0.0,
         "description": f"Customer Invoice {invoice_number} receivable",
         "analytic_account_id": None,
@@ -185,6 +192,23 @@ def create_invoice_from_so(db: Session, so_id: int) -> CreateInvoiceResponse:
             "description": f"Sales of {line.product.name if line.product else 'product'}",
             "analytic_account_id": line.analytic_account_id,
         })
+
+    # Credit Tax Payable (2020) for output tax if tax is applicable
+    if inv_tax_amount > 0:
+        tax_account = db.scalar(select(Account).where(Account.code == "2020"))
+        if not tax_account:
+            tax_account = db.scalar(select(Account).where(Account.name.ilike("%tax%")))
+        if not tax_account:
+            tax_account = db.scalar(select(Account).where(Account.type == "liability"))
+        if tax_account:
+            journal_lines.append({
+                "account_id": tax_account.id,
+                "partner_id": so.customer_id,
+                "debit": 0.0,
+                "credit": inv_tax_amount,
+                "description": f"Output Tax on Invoice {invoice_number}",
+                "analytic_account_id": None,
+            })
 
     # Post balanced journal entry using the unified journal engine
     journal_entry = post_journal_entry(
@@ -207,6 +231,9 @@ def create_invoice_from_so(db: Session, so_id: int) -> CreateInvoiceResponse:
         invoice_date=now_utc,
         due_date=due_date,
         total=so.total,
+        tax_percent=so.tax_percent,
+        tax_amount=inv_tax_amount,
+        total_with_tax=inv_total_with_tax,
         amount_paid=0.0,
         status="open",
         journal_entry_id=journal_entry.id,

@@ -33,6 +33,9 @@ export interface SalesOrderApi {
   customer_name: string | null;
   status: string;
   total: number;
+  tax_percent: number;
+  tax_amount: number;
+  total_with_tax: number;
   order_date: string;
   created_at: string;
   lines: SalesOrderLineApi[];
@@ -66,6 +69,7 @@ export interface SalesOrderLineInput {
 export interface SalesOrderInput {
   customer_id: number;
   order_date?: string;
+  tax_percent?: number;
   lines: SalesOrderLineInput[];
 }
 
@@ -102,6 +106,9 @@ export function mapSalesOrder(order: SalesOrderApi): SalesOrder {
     created_at: order.created_at,
     status: mapSoStatus(order.status),
     total_amount: order.total,
+    tax_percent: order.tax_percent ?? 0,
+    tax_amount: order.tax_amount ?? 0,
+    total_with_tax: order.total_with_tax ?? order.total,
     items: order.lines.map((line) => ({
       id: line.id,
       product_name: line.product_name ?? "Unavailable",

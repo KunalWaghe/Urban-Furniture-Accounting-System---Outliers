@@ -88,6 +88,7 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+  const [taxPercent, setTaxPercent] = useState(initialOrder ? String((initialOrder as any).tax_percent ?? 0) : "0");
 
   // ── Master data for dropdowns (React Query → purchase-orders-api) ────────
   const vendorsQuery = useQuery({ queryKey: ["po-vendors"], queryFn: fetchVendors });
@@ -109,6 +110,9 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
   }, [accounts]);
 
   const grandTotal = lines.reduce((sum, line) => sum + lineTotal(line), 0);
+  const taxPctNum = Math.min(100, Math.max(0, Number(taxPercent) || 0));
+  const taxAmount = Math.round(grandTotal * taxPctNum) / 100;
+  const grandTotalWithTax = grandTotal + taxAmount;
 
   const loadingMaster =
     vendorsQuery.isLoading || productsQuery.isLoading || accountsQuery.isLoading || analyticsQuery.isLoading;
@@ -149,6 +153,7 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
     return {
       vendor_id: vendorId!,
       order_date: `${poDate}T00:00:00`,
+      tax_percent: taxPctNum,
       lines: lines.map((line) => ({
         product_id: Number(line.productId),
         account_id: line.accountId ? Number(line.accountId) : defaultAccountId,
@@ -371,7 +376,36 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
 
         <aside className="h-fit rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <h3 className="font-semibold text-text">Summary</h3>
-          <p className="mt-4 font-mono text-3xl font-bold text-primary-600">{formatINR(grandTotal)}</p>
+
+          <div className="mt-4 space-y-2">
+            <div className="flex justify-between text-sm text-text-muted">
+              <span>Subtotal</span>
+              <span className="font-mono font-semibold text-text">{formatINR(grandTotal)}</span>
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wider text-text-muted">Tax %</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                value={taxPercent}
+                onChange={(e) => setTaxPercent(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+                placeholder="0"
+              />
+            </div>
+            {taxPctNum > 0 && (
+              <div className="flex justify-between text-sm text-text-muted">
+                <span>Tax ({taxPctNum}%)</span>
+                <span className="font-mono font-semibold text-text">{formatINR(taxAmount)}</span>
+              </div>
+            )}
+            <div className="border-t border-border pt-2 flex justify-between">
+              <span className="text-sm font-semibold text-text">Total</span>
+              <span className="font-mono text-2xl font-bold text-primary-600">{formatINR(grandTotalWithTax)}</span>
+            </div>
+          </div>
           <p className="mt-1 text-xs text-text-muted">Currency: INR ₹</p>
 
           {error && <p className="mt-4 text-sm text-red-600">{error}</p>}

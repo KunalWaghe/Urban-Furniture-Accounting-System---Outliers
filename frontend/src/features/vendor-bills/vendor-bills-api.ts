@@ -43,6 +43,10 @@ export interface VendorBill {
   bill_date: string;
   due_date: string;
   status: VendorBillStatus;
+  subtotal: number;
+  tax_percent: number;
+  tax_amount: number;
+  total_with_tax: number;
   total_amount: number;
   amount_due: number;
   payment_method?: "bank" | "cash" | null;
@@ -105,6 +109,9 @@ interface VendorBillApiRecord {
   bill_date: string;
   due_date?: string | null;
   total: number;
+  tax_percent?: number;
+  tax_amount?: number;
+  total_with_tax?: number;
   amount_paid: number;
   status: string;
   created_at?: string | null;
@@ -151,6 +158,7 @@ function toDateOnly(value: string | null | undefined): string {
 
 function mapVendorBillApiRecord(raw: VendorBillApiRecord): VendorBill {
   const amountPaid = raw.amount_paid ?? 0;
+  const totalWithTax = raw.total_with_tax ?? raw.total;
 
   return {
     id: String(raw.id),
@@ -162,8 +170,12 @@ function mapVendorBillApiRecord(raw: VendorBillApiRecord): VendorBill {
     bill_date: toDateOnly(raw.bill_date),
     due_date: toDateOnly(raw.due_date),
     status: mapVendorBillStatus(raw.status),
-    total_amount: raw.total,
-    amount_due: Math.max(0, raw.total - amountPaid),
+    subtotal: raw.total,
+    tax_percent: raw.tax_percent ?? 0,
+    tax_amount: raw.tax_amount ?? 0,
+    total_with_tax: totalWithTax,
+    total_amount: totalWithTax,
+    amount_due: Math.max(0, totalWithTax - amountPaid),
     created_at: raw.created_at ?? raw.bill_date,
     journal_entry_id: raw.journal_entry_id,
     lines: (raw.lines ?? []).map((l) => ({

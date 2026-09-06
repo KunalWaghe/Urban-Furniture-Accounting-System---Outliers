@@ -46,6 +46,9 @@ def _build_po_response(po: PurchaseOrder) -> POResponse:
         vendor_name=po.vendor.name if po.vendor else None,
         status=po.status,
         total=po.total,
+        tax_percent=po.tax_percent,
+        tax_amount=po.tax_amount,
+        total_with_tax=po.total_with_tax,
         order_date=po.order_date,
         created_at=po.created_at,
         lines=lines_resp,
@@ -106,6 +109,10 @@ def create_purchase_order(db: Session, po_in: POCreate) -> POResponse:
 
     try:
         po.total = round(total_amount, 2)
+        tax_pct = getattr(po_in, 'tax_percent', 0.0) or 0.0
+        po.tax_percent = round(tax_pct, 2)
+        po.tax_amount = round(po.total * po.tax_percent / 100, 2)
+        po.total_with_tax = round(po.total + po.tax_amount, 2)
         # 'commit' persists the draft Purchase Order and lines atomically
         db.commit()
     except Exception:
@@ -183,6 +190,10 @@ def update_purchase_order(db: Session, po_id: int, po_in: POUpdate) -> PORespons
         po.vendor_id = po_in.vendor_id
         po.order_date = po_in.order_date or datetime.now(timezone.utc)
         po.total = round(total_amount, 2)
+        tax_pct = getattr(po_in, 'tax_percent', 0.0) or 0.0
+        po.tax_percent = round(tax_pct, 2)
+        po.tax_amount = round(po.total * po.tax_percent / 100, 2)
+        po.total_with_tax = round(po.total + po.tax_amount, 2)
         po.lines.clear()
         po.lines.extend(replacement_lines)
         db.commit()

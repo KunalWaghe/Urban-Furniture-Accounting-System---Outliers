@@ -101,7 +101,8 @@ def create_outbound_payment(
         raise ValidationException("Payment amount must be greater than zero")
 
     # 'round' keyword eliminates 64-bit IEEE 754 floating-point inaccuracies during arithmetic
-    remaining_balance = round(bill.total - bill.amount_paid, 2)
+    bill_effective_total = bill.total_with_tax if (getattr(bill, "total_with_tax", None) is not None and bill.total_with_tax > 0) else bill.total
+    remaining_balance = round(bill_effective_total - bill.amount_paid, 2)
     rounded_amount = round(amount, 2)
 
     if rounded_amount > remaining_balance:
@@ -170,7 +171,8 @@ def create_outbound_payment(
     bill.amount_paid = new_amount_paid
 
     # Use epsilon threshold of 0.001 to guarantee exact closure of fully settled bills
-    if new_amount_paid >= round(bill.total, 2) - 0.001:
+    bill_effective_total = bill.total_with_tax if (getattr(bill, "total_with_tax", None) is not None and bill.total_with_tax > 0) else bill.total
+    if new_amount_paid >= round(bill_effective_total, 2) - 0.001:
         bill.status = "paid"
     else:
         bill.status = "partially_paid"
@@ -255,7 +257,8 @@ def create_inbound_payment(
         raise ValidationException("Payment amount must be greater than zero")
 
     # 'round' keyword eliminates 64-bit IEEE 754 floating-point inaccuracies during arithmetic
-    remaining_balance = round(invoice.total - invoice.amount_paid, 2)
+    inv_effective_total = invoice.total_with_tax if (getattr(invoice, "total_with_tax", None) is not None and invoice.total_with_tax > 0) else invoice.total
+    remaining_balance = round(inv_effective_total - invoice.amount_paid, 2)
     rounded_amount = round(amount, 2)
 
     if rounded_amount > remaining_balance:
@@ -325,7 +328,8 @@ def create_inbound_payment(
     invoice.amount_paid = new_amount_paid
 
     # Use epsilon threshold of 0.001 to guarantee exact closure of fully settled invoices
-    if new_amount_paid >= round(invoice.total, 2) - 0.001:
+    inv_effective_total = invoice.total_with_tax if (getattr(invoice, "total_with_tax", None) is not None and invoice.total_with_tax > 0) else invoice.total
+    if new_amount_paid >= round(inv_effective_total, 2) - 0.001:
         invoice.status = "paid"
     else:
         invoice.status = "partially_paid"

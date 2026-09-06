@@ -38,6 +38,10 @@ export interface CustomerInvoice {
   invoice_date: string;
   due_date: string;
   status: CustomerInvoiceStatus;
+  subtotal: number;
+  tax_percent: number;
+  tax_amount: number;
+  total_with_tax: number;
   total_amount: number;
   amount_paid: number;
   amount_due: number;
@@ -96,6 +100,9 @@ interface CustomerInvoiceApiRecord {
   invoice_date: string;
   due_date?: string | null;
   total: number;
+  tax_percent?: number;
+  tax_amount?: number;
+  total_with_tax?: number;
   amount_paid: number;
   status: string;
   journal_entry_id?: number | null;
@@ -135,6 +142,7 @@ function toDateOnly(value: string | null | undefined): string {
 
 function mapCustomerInvoiceApiRecord(raw: CustomerInvoiceApiRecord): CustomerInvoice {
   const amountPaid = raw.amount_paid ?? 0;
+  const totalWithTax = raw.total_with_tax ?? raw.total;
 
   return {
     id: String(raw.id),
@@ -146,9 +154,13 @@ function mapCustomerInvoiceApiRecord(raw: CustomerInvoiceApiRecord): CustomerInv
     invoice_date: toDateOnly(raw.invoice_date),
     due_date: toDateOnly(raw.due_date),
     status: mapCustomerInvoiceStatus(raw.status),
-    total_amount: raw.total,
+    subtotal: raw.total,
+    tax_percent: raw.tax_percent ?? 0,
+    tax_amount: raw.tax_amount ?? 0,
+    total_with_tax: totalWithTax,
+    total_amount: totalWithTax,
     amount_paid: amountPaid,
-    amount_due: Math.max(0, raw.total - amountPaid),
+    amount_due: Math.max(0, totalWithTax - amountPaid),
     created_at: raw.invoice_date,
     journal_entry_id: raw.journal_entry_id ?? null,
     journal_code: null,

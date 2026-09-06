@@ -339,21 +339,27 @@ export function CustomerInvoiceDetailPage({ invoiceId }: CustomerInvoiceDetailPa
           <div className="ml-auto w-full max-w-xs space-y-2 text-sm">
             <div className="flex justify-between text-text-muted">
               <span>Invoice Subtotal</span>
-              <span className="font-medium text-text-primary">{formatINR(invoice.total_amount)}</span>
+              <span className="font-mono font-medium text-text-primary">{formatINR(invoice.subtotal ?? invoice.total_amount)}</span>
             </div>
+            {(invoice.tax_percent ?? 0) > 0 && (
+              <div className="flex justify-between text-text-muted">
+                <span>Tax ({invoice.tax_percent}%)</span>
+                <span className="font-mono font-medium text-text-primary">{formatINR(invoice.tax_amount)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-text-muted">
-              <span>Tax (GST)</span>
-              <span>Included / 0.00</span>
+              <span>Total Amount</span>
+              <span className="font-mono font-semibold text-text-primary">{formatINR(invoice.total_with_tax ?? invoice.total_amount)}</span>
             </div>
             <div className="flex justify-between text-text-muted">
               <span>Amount Paid</span>
-              <span className="font-medium text-emerald-600">
+              <span className="font-mono font-medium text-emerald-600">
                 {formatINR(invoice.amount_paid)}
               </span>
             </div>
             <div className="flex justify-between border-t border-border pt-2 text-base font-bold text-text-primary">
               <span>Balance Due</span>
-              <span className={invoice.amount_due > 0 ? "text-amber-600" : "text-emerald-600"}>
+              <span className={`font-mono font-bold ${invoice.amount_due > 0 ? "text-amber-600" : "text-emerald-600"}`}>
                 {formatINR(invoice.amount_due)}
               </span>
             </div>

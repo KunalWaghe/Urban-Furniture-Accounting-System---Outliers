@@ -48,6 +48,9 @@ def _build_so_response(so: SalesOrder) -> SOResponse:
         customer_name=so.customer.name if so.customer else None,
         status=so.status,
         total=so.total,
+        tax_percent=so.tax_percent,
+        tax_amount=so.tax_amount,
+        total_with_tax=so.total_with_tax,
         order_date=so.order_date,
         created_at=so.created_at,
         lines=lines_resp,
@@ -109,6 +112,10 @@ def create_sales_order(db: Session, so_in: SOCreate) -> SOResponse:
 
     try:
         so.total = round(total_amount, 2)
+        tax_pct = getattr(so_in, 'tax_percent', 0.0) or 0.0
+        so.tax_percent = round(tax_pct, 2)
+        so.tax_amount = round(so.total * so.tax_percent / 100, 2)
+        so.total_with_tax = round(so.total + so.tax_amount, 2)
         # 'commit' persists the draft Sales Order and lines atomically
         db.commit()
     except Exception:

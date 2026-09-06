@@ -76,6 +76,14 @@ async def lifespan(app: FastAPI):
             conn.execute(text("ALTER TABLE payments ALTER COLUMN amount TYPE NUMERIC(15, 2) USING amount::NUMERIC(15, 2)"))
             conn.execute(text("ALTER TABLE vendor_bills ADD COLUMN IF NOT EXISTS due_date TIMESTAMPTZ"))
             conn.execute(text("ALTER TABLE customer_invoices ADD COLUMN IF NOT EXISTS due_date TIMESTAMPTZ"))
+            # Tax feature columns: tax_percent, tax_amount, total_with_tax for all order/invoice tables
+            for tbl in ("purchase_orders", "sales_orders", "vendor_bills", "customer_invoices"):
+                conn.execute(text(f"ALTER TABLE {tbl} ADD COLUMN IF NOT EXISTS tax_percent NUMERIC(5,2) DEFAULT 0"))
+                conn.execute(text(f"ALTER TABLE {tbl} ADD COLUMN IF NOT EXISTS tax_amount NUMERIC(15,2) DEFAULT 0"))
+                conn.execute(text(f"ALTER TABLE {tbl} ADD COLUMN IF NOT EXISTS total_with_tax NUMERIC(15,2) DEFAULT 0"))
+            # Backfill total_with_tax for existing rows that predate the tax feature
+            for tbl in ("purchase_orders", "sales_orders", "vendor_bills", "customer_invoices"):
+                conn.execute(text(f"UPDATE {tbl} SET total_with_tax = total WHERE total_with_tax = 0 AND total > 0"))
             # Upgrade legacy analytic_accounts table (pre-Phase 6 schema) to current model shape
             conn.execute(text("ALTER TABLE analytic_accounts ADD COLUMN IF NOT EXISTS code VARCHAR(50)"))
             conn.execute(text("ALTER TABLE analytic_accounts ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'expense'"))

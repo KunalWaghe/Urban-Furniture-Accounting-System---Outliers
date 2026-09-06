@@ -35,6 +35,9 @@ class CustomerInvoiceResponse(BaseModel):
     invoice_date: date | datetime
     due_date: Optional[date | datetime] = None
     total: float
+    tax_percent: float = 0.0
+    tax_amount: float = 0.0
+    total_with_tax: float = 0.0
     amount_paid: float = 0.0
     status: str = "open"
     journal_entry_id: Optional[int] = None

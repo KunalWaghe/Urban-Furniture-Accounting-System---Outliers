@@ -78,6 +78,9 @@ def _build_bill_response(bill: VendorBill) -> VendorBillResponse:
         bill_date=bill.bill_date,
         due_date=bill.due_date,
         total=bill.total,
+        tax_percent=bill.tax_percent,
+        tax_amount=bill.tax_amount,
+        total_with_tax=bill.total_with_tax,
         amount_paid=bill.amount_paid,
         status=bill.status,
         journal_entry_id=bill.journal_entry_id,
@@ -192,12 +195,32 @@ def create_bill_from_po(db: Session, po_id: int) -> CreateBillResponse:
             "analytic_account_id": line.analytic_account_id,
         })
 
-    # Credit Accounts Payable (Creditors) for total bill amount
+    # Credit Accounts Payable (Creditors) for total bill amount including tax
+    bill_tax_amount = round(po.total * po.tax_percent / 100, 2) if po.tax_percent else 0.0
+    bill_total_with_tax = round(po.total + bill_tax_amount, 2)
+
+    # Debit Tax Payable (2020) for input tax if tax is applicable
+    if bill_tax_amount > 0:
+        tax_account = db.scalar(select(Account).where(Account.code == "2020"))
+        if not tax_account:
+            tax_account = db.scalar(select(Account).where(Account.name.ilike("%tax%")))
+        if not tax_account:
+            tax_account = db.scalar(select(Account).where(Account.type == "liability"))
+        if tax_account:
+            journal_lines.append({
+                "account_id": tax_account.id,
+                "partner_id": po.vendor_id,
+                "debit": bill_tax_amount,
+                "credit": 0.0,
+                "description": f"Input Tax on Bill {bill_number}",
+                "analytic_account_id": None,
+            })
+
     journal_lines.append({
         "account_id": ap_account.id,
         "partner_id": po.vendor_id,
         "debit": 0.0,
-        "credit": po.total,
+        "credit": bill_total_with_tax,
         "description": f"Vendor Bill {bill_number} payable",
         "analytic_account_id": None,
     })
@@ -223,6 +246,9 @@ def create_bill_from_po(db: Session, po_id: int) -> CreateBillResponse:
         bill_date=now_utc,
         due_date=due_date,
         total=po.total,
+        tax_percent=po.tax_percent,
+        tax_amount=bill_tax_amount,
+        total_with_tax=bill_total_with_tax,
         amount_paid=0.0,
         status="open",
         journal_entry_id=journal_entry.id,

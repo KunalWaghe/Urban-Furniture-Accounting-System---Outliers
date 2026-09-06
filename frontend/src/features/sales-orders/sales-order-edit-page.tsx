@@ -88,6 +88,7 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
   const [lines, setLines] = useState<LineRow[]>([emptyLine()]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [taxPercent, setTaxPercent] = useState("0");
 
   const customers = useMemo(() => customersQuery.data ?? [], [customersQuery.data]);
   const products = productsQuery.data ?? [];
@@ -114,10 +115,14 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
         unitPrice: String(l.unit_price),
       }))
     );
+    setTaxPercent(String(soData.tax_percent ?? 0));
     setInitialized(true);
   }
 
   const grandTotal = lines.reduce((sum, line) => sum + lineTotal(line), 0);
+  const taxPctNum = Math.min(100, Math.max(0, Number(taxPercent) || 0));
+  const taxAmount = Math.round(grandTotal * taxPctNum) / 100;
+  const grandTotalWithTax = grandTotal + taxAmount;
   const loadingMaster =
     customersQuery.isLoading ||
     productsQuery.isLoading ||
@@ -190,6 +195,7 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
         body: {
           customer_id: customerId,
           order_date: orderDate + "T00:00:00",
+          tax_percent: taxPctNum,
           lines: cleanLines,
         },
       });
@@ -392,10 +398,35 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
             </table>
           </div>
           <div className="flex justify-end border-t border-border bg-surface-muted/30 px-5 py-3">
-            <p className="text-sm font-bold text-text">
-              Grand Total:{" "}
-              <span className="font-mono text-primary-600">{formatINR(grandTotal)}</span>
-            </p>
+            <div className="w-full max-w-xs space-y-2 text-sm">
+              <div className="flex justify-between text-text-muted">
+                <span>Subtotal</span>
+                <span className="font-mono font-medium text-text">{formatINR(grandTotal)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-text-muted">Tax Rate (%)</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={taxPercent}
+                  onChange={(e) => setTaxPercent(e.target.value)}
+                  className="w-24 rounded-lg border border-border bg-surface-muted/60 px-2 py-1 text-right text-xs text-text outline-none focus:border-primary-500"
+                  placeholder="0"
+                />
+              </div>
+              {taxPctNum > 0 && (
+                <div className="flex justify-between text-text-muted">
+                  <span>Tax ({taxPctNum}%)</span>
+                  <span className="font-mono font-medium text-text">{formatINR(taxAmount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between border-t border-border pt-1 font-bold text-text">
+                <span>Grand Total</span>
+                <span className="font-mono text-primary-600">{formatINR(grandTotalWithTax)}</span>
+              </div>
+            </div>
           </div>
         </section>
 

@@ -336,15 +336,17 @@ export function SalesOrderDetailPage({ soId }: SalesOrderDetailPageProps) {
           <div className="ml-auto w-full max-w-xs space-y-2 text-sm">
             <div className="flex justify-between text-text-muted">
               <span>Subtotal</span>
-              <span className="font-medium text-text-primary">{formatINR(so.total)}</span>
+              <span className="font-mono font-medium text-text-primary">{formatINR(so.total)}</span>
             </div>
-            <div className="flex justify-between text-text-muted">
-              <span>Tax (GST)</span>
-              <span>Included / 0.00</span>
-            </div>
+            {(so.tax_percent ?? 0) > 0 && (
+              <div className="flex justify-between text-text-muted">
+                <span>Tax ({so.tax_percent}%)</span>
+                <span className="font-mono font-medium text-text-primary">{formatINR(so.tax_amount ?? 0)}</span>
+              </div>
+            )}
             <div className="flex justify-between border-t border-border pt-2 text-base font-bold text-text-primary">
               <span>Total Amount</span>
-              <span className="text-primary-600">{formatINR(so.total)}</span>
+              <span className="font-mono text-primary-600">{formatINR(so.total_with_tax ?? so.total)}</span>
             </div>
           </div>
         </div>

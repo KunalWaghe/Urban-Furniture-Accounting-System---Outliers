@@ -286,9 +286,23 @@ export function VendorBillDetailPage({ billId }: VendorBillDetailPageProps) {
               </div>
               <div className="border-t border-border pt-3 space-y-2">
                 <div className="flex justify-between gap-4">
+                  <dt className="text-text-muted">Subtotal</dt>
+                  <dd className="font-mono font-medium text-text">
+                    {formatINR(bill.subtotal ?? bill.total_amount)}
+                  </dd>
+                </div>
+                {(bill.tax_percent ?? 0) > 0 && (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-text-muted">Tax ({bill.tax_percent}%)</dt>
+                    <dd className="font-mono font-medium text-text">
+                      {formatINR(bill.tax_amount)}
+                    </dd>
+                  </div>
+                )}
+                <div className="flex justify-between gap-4">
                   <dt className="text-text-muted">Total Bill Amount</dt>
                   <dd className="font-mono text-base font-semibold text-text">
-                    {formatINR(bill.total_amount)}
+                    {formatINR(bill.total_with_tax ?? bill.total_amount)}
                   </dd>
                 </div>
                 <div className="flex justify-between gap-4 text-xs">

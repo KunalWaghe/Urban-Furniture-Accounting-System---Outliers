@@ -25,6 +25,7 @@ class SOCreate(BaseModel):
     """Schema for creating a new Sales Order."""
     customer_id: int = Field(..., description="ID of the Customer (Contact entity)")
     order_date: Optional[datetime] = Field(default=None, description="Order placement timestamp")
+    tax_percent: float = Field(default=0.0, ge=0, le=100, description="Tax percentage applied to the order total")
     # 'min_length=1' ensures an order must contain at least one line item
     lines: List[SOLineCreate] = Field(..., min_length=1, description="Line items for the sales order")
 
@@ -55,6 +56,9 @@ class SOResponse(BaseModel):
     customer_name: Optional[str] = None
     status: str
     total: float
+    tax_percent: float = 0.0
+    tax_amount: float = 0.0
+    total_with_tax: float = 0.0
     order_date: datetime
     created_at: datetime
     lines: List[SOLineResponse] = []

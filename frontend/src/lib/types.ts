@@ -236,6 +236,9 @@ export interface SalesOrder {
   created_at?: string;
   status: "Confirmed" | "Draft" | "Partially Billed" | "Cancelled" | "Unknown";
   total_amount: number;
+  tax_percent: number;
+  tax_amount: number;
+  total_with_tax: number;
   items: SalesOrderItem[];
 }
 
@@ -261,6 +264,9 @@ export interface PurchaseOrder {
   po_date: string;
   status: "Confirmed" | "Partially Billed" | "Billed" | "Draft" | "Cancelled";
   total_amount: number;
+  tax_percent: number;
+  tax_amount: number;
+  total_with_tax: number;
   items: PurchaseOrderItem[];
 }
 
