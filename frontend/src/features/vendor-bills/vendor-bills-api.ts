@@ -107,6 +107,7 @@ interface VendorBillApiRecord {
   total: number;
   amount_paid: number;
   status: string;
+  created_at?: string | null;
   journal_entry_id?: number | null;
   lines?: VendorBillApiLine[] | null;
 }

@@ -78,7 +78,7 @@ export function SalesOrderFormPage() {
   const accountsQuery = useQuery({ queryKey: ["so-income-accounts"], queryFn: fetchIncomeAccounts });
   const analyticsQuery = useQuery({
     queryKey: ["analytic-accounts", "so-form"],
-    queryFn: () => fetchAnalyticAccounts({ type: "income", is_active: true }),
+    queryFn: () => fetchAnalyticAccounts({ is_active: true }),
   });
 
   const customers = useMemo(() => customersQuery.data ?? [], [customersQuery.data]);
@@ -355,8 +355,8 @@ export function SalesOrderFormPage() {
                         >
                           <option value="">No budget tag</option>
                           {analytics.map((analytic) => (
-                            <option key={analytic.id} value={analytic.id}>
-                              {analytic.name}
+                            <option key={analytic.id} value={String(analytic.id)}>
+                              {analytic.code ? `${analytic.code} — ` : ""}{analytic.name} ({analytic.type})
                             </option>
                           ))}
                         </select>

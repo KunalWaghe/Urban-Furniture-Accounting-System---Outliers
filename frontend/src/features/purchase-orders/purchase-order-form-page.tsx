@@ -95,7 +95,7 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
   const accountsQuery = useQuery({ queryKey: ["po-expense-accounts"], queryFn: fetchExpenseAccounts });
   const analyticsQuery = useQuery({
     queryKey: ["analytic-accounts", "po-form"],
-    queryFn: () => fetchAnalyticAccounts({ type: "expense", is_active: true }),
+    queryFn: () => fetchAnalyticAccounts({ is_active: true }),
   });
 
   const vendors = useMemo(() => vendorsQuery.data ?? [], [vendorsQuery.data]);
@@ -331,8 +331,8 @@ export function PurchaseOrderFormPage({ initialOrder }: { initialOrder?: Purchas
                       >
                         <option value="">No budget tag</option>
                         {analytics.map((analytic) => (
-                          <option key={analytic.id} value={analytic.id}>
-                            {analytic.name}
+                          <option key={analytic.id} value={String(analytic.id)}>
+                            {analytic.code ? `${analytic.code} — ` : ""}{analytic.name} ({analytic.type})
                           </option>
                         ))}
                       </select>
