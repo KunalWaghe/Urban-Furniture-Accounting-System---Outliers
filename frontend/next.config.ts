@@ -28,6 +28,18 @@ const contentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  async rewrites() {
+    const rawUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.BACKEND_URL;
+    if (!rawUrl) return [];
+    const cleanUrl = rawUrl.trim().replace(/\/+$/, "").replace(/\/api\/v1\/?$/, "");
+    if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://")) return [];
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${cleanUrl}/api/v1/:path*`,
+      },
+    ];
+  },
   async headers() {
     return [
       {

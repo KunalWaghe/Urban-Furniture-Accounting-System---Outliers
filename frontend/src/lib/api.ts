@@ -63,7 +63,15 @@ export class ApiError extends Error {
  * Set `NEXT_PUBLIC_API_BASE_URL` in `.env.local` for production/staging.
  */
 export function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+  const raw = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+  if (!raw) {
+    return "";
+  }
+  // Strip trailing slashes
+  let clean = raw.replace(/\/+$/, "");
+  // Strip redundant /api/v1 or /api if the user added it to the base URL
+  clean = clean.replace(/\/api\/v1\/?$/, "").replace(/\/api\/?$/, "");
+  return clean;
 }
 
 /**
@@ -232,8 +240,12 @@ export async function apiFetch<T>(
   const timeout = withTimeout(signal);
   let response: Response;
 
+  const baseUrl = getApiBaseUrl();
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const requestUrl = baseUrl ? `${baseUrl}${normalizedPath}` : normalizedPath;
+
   try {
-    response = await fetch(`${getApiBaseUrl()}${path}`, {
+    response = await fetch(requestUrl, {
       ...rest,
       headers: requestHeaders,
       body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -247,7 +259,7 @@ export async function apiFetch<T>(
       throw new ApiError(
         503,
         "NETWORK_ERROR",
-        `Unable to connect to backend server at ${getApiBaseUrl()}. Please make sure the backend server is running.`
+        `Unable to connect to backend server at ${requestUrl}. Please make sure the backend server is running and accessible.`
       );
     }
     throw error;
@@ -263,10 +275,10 @@ export async function apiFetch<T>(
     return (await response.json()) as T;
   }
 
-  let envelope: ApiErrorEnvelope | null = null;
+  let envelope: (ApiErrorEnvelope & { detail?: string | unknown }) | null = null;
 
   try {
-    envelope = (await response.json()) as ApiErrorEnvelope;
+    envelope = (await response.json()) as (ApiErrorEnvelope & { detail?: string | unknown });
   } catch {
     // Non-JSON error body — fall through to generic error below.
   }
@@ -283,10 +295,23 @@ export async function apiFetch<T>(
     throw error;
   }
 
+  if (envelope?.detail) {
+    const detailMsg = typeof envelope.detail === "string" ? envelope.detail : JSON.stringify(envelope.detail);
+    const error = new ApiError(
+      response.status,
+      response.status === 404 ? "NOT_FOUND" : "API_ERROR",
+      detailMsg
+    );
+    if (auth && response.status === HTTP_STATUS.UNAUTHORIZED) notifyUnauthorized();
+    throw error;
+  }
+
   const error = new ApiError(
     response.status,
     "UNKNOWN_ERROR",
-    `Request failed with status ${response.status}`
+    response.status === 404
+      ? `API route not found (404) at ${requestUrl}. Check backend deployment and NEXT_PUBLIC_API_BASE_URL.`
+      : `Request failed with status ${response.status}`
   );
   if (auth && response.status === HTTP_STATUS.UNAUTHORIZED) notifyUnauthorized();
   throw error;
