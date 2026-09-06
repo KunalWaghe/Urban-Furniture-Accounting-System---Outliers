@@ -73,7 +73,7 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
   const accountsQuery = useQuery({ queryKey: ["so-income-accounts"], queryFn: fetchIncomeAccounts });
   const analyticsQuery = useQuery({
     queryKey: ["analytic-accounts", "so-edit"],
-    queryFn: () => fetchAnalyticAccounts({ type: "income", is_active: true }),
+    queryFn: () => fetchAnalyticAccounts({ is_active: true }),
   });
 
   // ── Load existing SO ────────────────────────────────────────────────────
@@ -345,7 +345,7 @@ export function SalesOrderEditPage({ soId }: SalesOrderEditPageProps) {
                         <option value="">No budget tag</option>
                         {analytics.map((analytic) => (
                           <option key={analytic.id} value={String(analytic.id)}>
-                            {analytic.name}
+                            {analytic.code ? `${analytic.code} — ` : ""}{analytic.name} ({analytic.type})
                           </option>
                         ))}
                       </select>
