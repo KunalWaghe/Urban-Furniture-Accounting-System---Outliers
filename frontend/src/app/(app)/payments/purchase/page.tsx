@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import { PaymentsPage } from "@/features/payments/payments-page";
 
-export const metadata = { title: "Payments & Receipts | Urban Furniture Accounting" };
+export const metadata = { title: "Vendor Payments (Purchase) | Urban Furniture Accounting" };
 
-export default function Page() {
+export default function PurchasePaymentsPage() {
   return (
     <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-surface-muted" />}>
-      <PaymentsPage />
+      <PaymentsPage forcedType="outbound" />
     </Suspense>
   );
 }

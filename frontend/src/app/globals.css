@@ -220,3 +220,24 @@
     transition-property: color, background-color, border-color, box-shadow, translate, scale;
   }
 }
+
+@media print {
+  header,
+  aside,
+  nav,
+  .no-print,
+  button:not(.allow-print) {
+    display: none !important;
+  }
+
+  body, main {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  tr {
+    break-inside: avoid;
+  }
+}

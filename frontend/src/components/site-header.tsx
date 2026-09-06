@@ -63,7 +63,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     items: [
       { label: "Sales Orders", href: "/sales-orders", description: "Customer orders & fulfillment status" },
       { label: "Sales Invoices", href: "/sales-invoices", description: "Commercial invoicing & customer dues" },
-      { label: "Payments / Receipts", href: "/payments?type=customer", description: "Customer receipts & accounts receivable" },
+      { label: "Payments / Receipts", href: "/payments/sales", description: "Customer receipts & accounts receivable" },
     ],
   },
   {
@@ -73,7 +73,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     items: [
       { label: "Purchase Orders", href: "/purchase-orders", description: "Supplier purchase orders & goods receipt" },
       { label: "Purchase Bills", href: "/vendor-bills", description: "Vendor bills & accounts payable" },
-      { label: "Payments", href: "/payments?type=vendor", description: "Bank & cash vendor disbursements" },
+      { label: "Payments", href: "/payments/purchase", description: "Bank & cash vendor disbursements" },
     ],
   },
   {
