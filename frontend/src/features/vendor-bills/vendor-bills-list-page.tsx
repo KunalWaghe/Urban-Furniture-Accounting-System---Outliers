@@ -53,7 +53,7 @@ export function VendorBillsListPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState<string>("created_at");
+  const [sortBy, setSortBy] = useState<string>("bill_date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const debouncedSearch = useDebouncedValue(search);
 
@@ -206,9 +206,9 @@ export function VendorBillsListPage() {
             ))}
           </div>
 
-          {/* Search + Refresh */}
-          <div className="flex items-center gap-2">
-            <div className="relative w-full sm:w-60">
+          {/* Search + Sort + Refresh */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative w-full sm:w-52">
               <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-text-muted pointer-events-none" />
               <input
                 type="search"
@@ -221,6 +221,42 @@ export function VendorBillsListPage() {
                 className="w-full rounded-xl border border-border bg-surface-muted/60 py-1.5 pl-8 pr-3 text-xs text-text outline-none focus:border-primary-500 focus:bg-surface focus:ring-2 focus:ring-primary-500/20"
               />
             </div>
+
+            {/* Sort Selector Dropdown */}
+            <div className="flex items-center gap-1.5">
+              <div className="relative">
+                <select
+                  aria-label="Sort vendor bills"
+                  value={`${sortBy}:${sortOrder}`}
+                  onChange={(e) => {
+                    const [col, ord] = e.target.value.split(":");
+                    setSortBy(col);
+                    setSortOrder(ord as "asc" | "desc");
+                    setPage(1);
+                  }}
+                  className="rounded-xl border border-border bg-surface-muted/60 py-1.5 pl-2.5 pr-7 text-xs text-text outline-none focus:border-primary-500 focus:bg-surface focus:ring-2 focus:ring-primary-500/20 cursor-pointer font-medium appearance-none"
+                >
+                  <option value="bill_date:desc">Date: Newest First</option>
+                  <option value="bill_date:asc">Date: Oldest First</option>
+                  <option value="total:desc">Amount: High to Low</option>
+                  <option value="total:asc">Amount: Low to High</option>
+                  <option value="amount_due:desc">Balance Due: High to Low</option>
+                  <option value="amount_due:asc">Balance Due: Low to High</option>
+                  <option value="due_date:asc">Due Date: Earliest First</option>
+                  <option value="due_date:desc">Due Date: Latest First</option>
+                  <option value="vendor_name:asc">Vendor: A to Z</option>
+                  <option value="vendor_name:desc">Vendor: Z to A</option>
+                  <option value="bill_number:asc">Bill #: A to Z</option>
+                  <option value="bill_number:desc">Bill #: Z to A</option>
+                  <option value="po_number:asc">PO #: A to Z</option>
+                  <option value="po_number:desc">PO #: Z to A</option>
+                  <option value="status:asc">Status: Ascending</option>
+                  <option value="status:desc">Status: Descending</option>
+                </select>
+                <ArrowUpDown className="absolute right-2.5 top-2.5 h-3 w-3 text-text-muted pointer-events-none" />
+              </div>
+            </div>
+
             <ActionTooltip label="Refresh directory">
               <button
                 type="button"
@@ -309,8 +345,22 @@ export function VendorBillsListPage() {
                           Bill Number {renderSortIcon("bill_number")}
                         </span>
                       </th>
-                      <th className="px-5 py-3">Vendor Partner</th>
-                      <th className="px-5 py-3">Source PO</th>
+                      <th
+                        className="px-5 py-3 cursor-pointer group select-none hover:text-text"
+                        onClick={() => handleSort("vendor_name")}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          Vendor Partner {renderSortIcon("vendor_name")}
+                        </span>
+                      </th>
+                      <th
+                        className="px-5 py-3 cursor-pointer group select-none hover:text-text"
+                        onClick={() => handleSort("po_number")}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          Source PO {renderSortIcon("po_number")}
+                        </span>
+                      </th>
                       <th
                         className="px-5 py-3 cursor-pointer group select-none hover:text-text"
                         onClick={() => handleSort("bill_date")}
@@ -319,8 +369,22 @@ export function VendorBillsListPage() {
                           Bill Date {renderSortIcon("bill_date")}
                         </span>
                       </th>
-                      <th className="px-5 py-3">Due Date</th>
-                      <th className="px-5 py-3">Status</th>
+                      <th
+                        className="px-5 py-3 cursor-pointer group select-none hover:text-text"
+                        onClick={() => handleSort("due_date")}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          Due Date {renderSortIcon("due_date")}
+                        </span>
+                      </th>
+                      <th
+                        className="px-5 py-3 cursor-pointer group select-none hover:text-text"
+                        onClick={() => handleSort("status")}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          Status {renderSortIcon("status")}
+                        </span>
+                      </th>
                       <th
                         className="px-5 py-3 text-right cursor-pointer group select-none hover:text-text"
                         onClick={() => handleSort("total")}
@@ -329,7 +393,14 @@ export function VendorBillsListPage() {
                           Total Amount {renderSortIcon("total")}
                         </span>
                       </th>
-                      <th className="px-5 py-3 text-right">Balance Due</th>
+                      <th
+                        className="px-5 py-3 text-right cursor-pointer group select-none hover:text-text"
+                        onClick={() => handleSort("amount_due")}
+                      >
+                        <span className="inline-flex items-center justify-end gap-1">
+                          Balance Due {renderSortIcon("amount_due")}
+                        </span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">

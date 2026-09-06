@@ -5,7 +5,7 @@ Wires together:
 - CORS middleware (allows frontend at localhost:3000)
 - Global error handlers (standard error envelope)
 - Health check endpoint (proves DB connectivity)
-- Router includes (auth, contacts, products, accounts, journals)
+- Router includes (auth, contacts, products, accounts, journals, vendor bills)
 """
 
 from contextlib import asynccontextmanager

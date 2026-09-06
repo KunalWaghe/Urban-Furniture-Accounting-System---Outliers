@@ -24,7 +24,7 @@ def list_vendor_bills(
     search: Optional[str] = Query(None, description="Search by bill number or Vendor name"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
-    sort_by: str = Query("created_at", description="Field to sort by (bill_number, bill_date, total, created_at, id)"),
+    sort_by: str = Query("created_at", description="Field to sort by (bill_number, vendor_name, po_number, bill_date, due_date, status, total, amount_due, created_at, id)"),
     sort_order: str = Query("desc", description="Sort order (asc, desc)"),
     db: Session = Depends(get_db),
 ):

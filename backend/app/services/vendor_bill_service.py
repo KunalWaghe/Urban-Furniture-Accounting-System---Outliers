@@ -328,7 +328,13 @@ def get_vendor_bill(db: Session, bill_id: int) -> VendorBillResponse:
 BILL_SORT_MAP = {
     "bill_number": VendorBill.bill_number,
     "bill_date": VendorBill.bill_date,
-    "total": VendorBill.total,
+    "due_date": VendorBill.due_date,
+    "status": VendorBill.status,
+    "total": func.coalesce(VendorBill.total_with_tax, VendorBill.total),
+    "total_amount": func.coalesce(VendorBill.total_with_tax, VendorBill.total),
+    "total_with_tax": func.coalesce(VendorBill.total_with_tax, VendorBill.total),
+    "amount_due": (func.coalesce(VendorBill.total_with_tax, VendorBill.total) - func.coalesce(VendorBill.amount_paid, 0.0)),
+    "balance_due": (func.coalesce(VendorBill.total_with_tax, VendorBill.total) - func.coalesce(VendorBill.amount_paid, 0.0)),
     "created_at": VendorBill.created_at,
     "id": VendorBill.id,
 }
@@ -373,18 +379,33 @@ def list_vendor_bills(
         stmt = stmt.where(VendorBill.status == status)
     if vendor_id:
         stmt = stmt.where(VendorBill.vendor_id == vendor_id)
+    vendor_joined = False
     if search:
         search_pattern = f"%{search}%"
-        stmt = stmt.join(VendorBill.vendor).where(
+        stmt = stmt.join(VendorBill.vendor)
+        vendor_joined = True
+        stmt = stmt.where(
             or_(
                 VendorBill.bill_number.ilike(search_pattern),
                 Contact.name.ilike(search_pattern),
             )
         )
 
-    sort_col = BILL_SORT_MAP.get(sort_by, VendorBill.created_at)
+    sort_key = (sort_by or "created_at").lower()
     order_func = desc if sort_order.lower() == "desc" else asc
-    stmt = stmt.order_by(order_func(sort_col))
+
+    if sort_key in ("vendor_name", "vendor", "partner"):
+        if not vendor_joined:
+            stmt = stmt.join(VendorBill.vendor)
+        stmt = stmt.order_by(order_func(Contact.name))
+    elif sort_key in ("po_number", "source_po", "po"):
+        stmt = stmt.outerjoin(PurchaseOrder, VendorBill.po_id == PurchaseOrder.id)
+        stmt = stmt.order_by(order_func(PurchaseOrder.po_number).nulls_last())
+    elif sort_key in BILL_SORT_MAP:
+        sort_col = BILL_SORT_MAP[sort_key]
+        stmt = stmt.order_by(order_func(sort_col).nulls_last())
+    else:
+        stmt = stmt.order_by(order_func(VendorBill.created_at).nulls_last())
 
     offset = (page - 1) * limit
     stmt = stmt.offset(offset).limit(limit)
