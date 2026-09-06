@@ -83,12 +83,13 @@ export function DetailField({ label, value, className, mono }: DetailFieldProps)
       <p className="text-[10px] font-medium uppercase tracking-wide text-text-muted leading-none">
         {label}
       </p>
-      <p className={cn("mt-1 text-sm font-medium text-text", mono && "font-mono tabular-nums")}>
+      <div className={cn("mt-1 text-sm font-medium text-text", mono && "font-mono tabular-nums")}>
         {value}
-      </p>
+      </div>
     </div>
   );
 }
+
 
 interface DetailFieldGridProps {
   children: ReactNode;

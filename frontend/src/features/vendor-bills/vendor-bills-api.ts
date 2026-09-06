@@ -109,9 +109,9 @@ interface VendorBillApiRecord {
   status: string;
   created_at?: string | null;
   journal_entry_id?: number | null;
-  created_at?: string | null;
   lines?: VendorBillApiLine[] | null;
 }
+
 
 /** Paginated list wrapper from GET /vendor-bills. */
 interface VendorBillApiResponseList {

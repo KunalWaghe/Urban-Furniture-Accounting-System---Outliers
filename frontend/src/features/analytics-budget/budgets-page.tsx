@@ -637,7 +637,7 @@ export function BudgetsPage() {
                 label="Achieved"
                 value={
                   viewingBudget.status === "confirmed" ? (
-                    <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-2">
                       <span className="font-mono text-text">
                         {formatINR(viewingBudget.achieved_amount)}
                       </span>
@@ -649,7 +649,8 @@ export function BudgetsPage() {
                       >
                         View Invoices/Bills
                       </Button>
-                    </div>
+                    </span>
+
                   ) : (
                     "— (Only for confirmed budget)"
                   )
