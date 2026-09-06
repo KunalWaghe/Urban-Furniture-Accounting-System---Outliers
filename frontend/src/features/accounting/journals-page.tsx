@@ -407,7 +407,7 @@ export function JournalsPage() {
             </select>
           </label>
 
-          {error && <ModalError message={error} />}
+          {error && <ModalError>{error}</ModalError>}
         </form>
       </AppModal>
 

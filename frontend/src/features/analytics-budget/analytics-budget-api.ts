@@ -5,6 +5,7 @@ export type BudgetStatus = "draft" | "confirmed" | "revised" | "cancelled";
 
 export interface AnalyticAccount {
   id: number;
+  code?: string | null;
   name: string;
   type: AnalyticType;
   description?: string | null;
@@ -60,23 +61,23 @@ function asList<T>(response: ListEnvelope<T> | T[]): T[] {
   return Array.isArray(response) ? response : response.data ?? [];
 }
 
-function asDateTime(value: string): string {
-  return value.length === 10 ? `${value}T00:00:00` : value;
+function asDateTime(val: string): string {
+  if (!val) return "";
+  return val.includes("T") ? val : `${val}T00:00:00`;
 }
 
-function normalizeBudget(raw: Partial<Budget> & Record<string, unknown>): Budget {
-  const committed = Number(raw.committed_amount ?? raw.committed ?? 0);
-  const achieved = Number(raw.achieved_amount ?? raw.achieved ?? 0);
-  const percent = Number(raw.achieved_percent ?? raw.achieved_percentage ?? raw.achieved_pct ?? (committed ? (achieved / committed) * 100 : 0));
+function normalizeBudget(raw: Record<string, unknown>): Budget {
+  const committed = Number(raw.committed_amount ?? 0);
+  const achieved = Number(raw.achieved_amount ?? 0);
+  const percent = Number(raw.achieved_pct ?? (committed > 0 ? (achieved / committed) * 100 : 0));
   const startDate = raw.start_date ?? raw.period_start;
   const endDate = raw.end_date ?? raw.period_end;
-  const responsibleId = raw.responsible_contact_id ?? raw.responsible_person_id;
-  const responsibleName = raw.responsible_contact_name ?? raw.responsible_person_name;
+
   return {
-    id: Number(raw.id),
+    id: Number(raw.id ?? 0),
     name: String(raw.name ?? "Budget"),
-    responsible_contact_id: responsibleId == null ? null : Number(responsibleId),
-    responsible_contact_name: responsibleName == null ? null : String(responsibleName),
+    responsible_contact_id: raw.responsible_person_id == null ? null : Number(raw.responsible_person_id),
+    responsible_contact_name: raw.responsible_person_name == null ? null : String(raw.responsible_person_name),
     analytic_account_id: Number(raw.analytic_account_id ?? 0),
     analytic_account_name: raw.analytic_account_name == null ? null : String(raw.analytic_account_name),
     type: raw.type === "income" || raw.analytic_account_type === "income" ? "income" : "expense",
@@ -92,10 +93,11 @@ function normalizeBudget(raw: Partial<Budget> & Record<string, unknown>): Budget
   };
 }
 
-export async function fetchAnalyticAccounts(params: { type?: AnalyticType; is_active?: boolean } = {}): Promise<AnalyticAccount[]> {
+export async function fetchAnalyticAccounts(params: { type?: AnalyticType; is_active?: boolean; limit?: number } = {}): Promise<AnalyticAccount[]> {
   const query = new URLSearchParams();
   if (params.type) query.set("type", params.type);
   if (params.is_active !== undefined) query.set("is_active", String(params.is_active));
+  query.set("limit", String(params.limit ?? 100));
   const suffix = query.toString() ? `?${query.toString()}` : "";
   const response = await apiFetch<ListEnvelope<AnalyticAccount> | AnalyticAccount[]>(`/api/v1/analytic-accounts${suffix}`, { auth: true });
   return asList(response);
