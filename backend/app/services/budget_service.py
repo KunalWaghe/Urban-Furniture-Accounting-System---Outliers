@@ -13,7 +13,13 @@ from app.models.analytic_account import AnalyticAccount
 from app.models.contact import Contact
 from app.models.vendor_bill import VendorBill, VendorBillLine
 from app.models.customer_invoice import CustomerInvoice, CustomerInvoiceLine
-from app.schemas.budget import BudgetCreate, BudgetRevise, BudgetResponse
+from app.schemas.budget import (
+    BudgetCreate,
+    BudgetRevise,
+    BudgetResponse,
+    BudgetBreakdownLine,
+    BudgetBreakdownResponse,
+)
 from app.core.exceptions import (
     NotFoundException,
     ValidationException,
@@ -263,7 +269,7 @@ def revise_budget(db: Session, budget_id: int, req: BudgetRevise) -> BudgetRespo
     original.status = "revised"
 
     # Instantiate new active revision
-    revision_title = req.name.strip() if req.name else f"{original.name} (Rev)"
+    revision_title = req.name.strip() if req.name else f"{original.name} Revised"
     resp_person_id = req.responsible_person_id if req.responsible_person_id is not None else original.responsible_person_id
 
     revised_budget = Budget(
@@ -369,3 +375,106 @@ def list_budgets(
     data = [build_budget_response(db, b) for b in budgets]
 
     return data, total, page, limit, pages
+
+
+# Retrieves line-item breakdown of invoices or vendor bills contributing to a budget's achieved amount
+def get_budget_breakdown(db: Session, budget_id: int) -> BudgetBreakdownResponse:
+    """
+    Query all non-cancelled Sales Invoices (for income analytics) or Vendor Bills (for expense analytics)
+    matching the analytic account and budget period, returning line-by-line itemization.
+    """
+    budget = db.scalar(
+        select(Budget)
+        .options(joinedload(Budget.analytic_account))
+        .where(Budget.id == budget_id)
+    )
+    if not budget:
+        raise NotFoundException("Budget", budget_id)
+
+    acc = budget.analytic_account
+    acc_type = acc.type if acc else "expense"
+    lookup_source = "Sales Invoice" if acc_type == "income" else "Vendor Bills"
+    transactions: List[BudgetBreakdownLine] = []
+
+    if acc_type == "expense":
+        stmt = (
+            select(VendorBillLine)
+            .join(VendorBill, VendorBillLine.bill_id == VendorBill.id)
+            .options(
+                joinedload(VendorBillLine.bill).joinedload(VendorBill.vendor),
+                joinedload(VendorBillLine.product),
+            )
+            .where(
+                VendorBillLine.analytic_account_id == budget.analytic_account_id,
+                VendorBill.bill_date >= budget.period_start,
+                VendorBill.bill_date <= budget.period_end,
+                VendorBill.status != "cancelled",
+            )
+            .order_by(VendorBill.bill_date.desc())
+        )
+        lines = db.scalars(stmt).all()
+        for line in lines:
+            transactions.append(
+                BudgetBreakdownLine(
+                    id=line.id,
+                    document_id=line.bill_id,
+                    document_number=line.bill.bill_number if line.bill else f"BILL-{line.bill_id}",
+                    document_type="Vendor Bill",
+                    date=line.bill.bill_date if line.bill else budget.period_start,
+                    partner_name=line.bill.vendor.name if line.bill and line.bill.vendor else "Unknown Vendor",
+                    product_name=line.product.name if line.product else "N/A",
+                    quantity=line.quantity,
+                    unit_price=line.unit_price,
+                    subtotal=line.subtotal,
+                    status=line.bill.status if line.bill else "open",
+                )
+            )
+    else:  # income
+        stmt = (
+            select(CustomerInvoiceLine)
+            .join(CustomerInvoice, CustomerInvoiceLine.invoice_id == CustomerInvoice.id)
+            .options(
+                joinedload(CustomerInvoiceLine.invoice).joinedload(CustomerInvoice.customer),
+                joinedload(CustomerInvoiceLine.product),
+            )
+            .where(
+                CustomerInvoiceLine.analytic_account_id == budget.analytic_account_id,
+                CustomerInvoice.invoice_date >= budget.period_start,
+                CustomerInvoice.invoice_date <= budget.period_end,
+                CustomerInvoice.status != "cancelled",
+            )
+            .order_by(CustomerInvoice.invoice_date.desc())
+        )
+        lines = db.scalars(stmt).all()
+        for line in lines:
+            transactions.append(
+                BudgetBreakdownLine(
+                    id=line.id,
+                    document_id=line.invoice_id,
+                    document_number=line.invoice.invoice_number if line.invoice else f"INV-{line.invoice_id}",
+                    document_type="Sales Invoice",
+                    date=line.invoice.invoice_date if line.invoice else budget.period_start,
+                    partner_name=line.invoice.customer.name if line.invoice and line.invoice.customer else "Unknown Customer",
+                    product_name=line.product.name if line.product else "N/A",
+                    quantity=line.quantity,
+                    unit_price=line.unit_price,
+                    subtotal=line.subtotal,
+                    status=line.invoice.status if line.invoice else "open",
+                )
+            )
+
+    achieved_amount = round(sum(t.subtotal for t in transactions), 2)
+
+    return BudgetBreakdownResponse(
+        budget_id=budget.id,
+        budget_name=budget.name,
+        analytic_account_id=budget.analytic_account_id,
+        analytic_account_name=acc.name if acc else f"Account #{budget.analytic_account_id}",
+        budget_type=acc_type,
+        lookup_source=lookup_source,
+        period_start=budget.period_start,
+        period_end=budget.period_end,
+        achieved_amount=achieved_amount,
+        transactions=transactions,
+    )
+

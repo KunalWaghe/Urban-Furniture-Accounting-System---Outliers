@@ -71,3 +71,41 @@ class BudgetListResponse(BaseModel):
     page: int = 1
     limit: int = 20
     pages: int = 1
+
+
+class BudgetBreakdownLine(BaseModel):
+    """
+    Single transaction line (Sales Invoice Line or Vendor Bill Line) contributing to achieved amount.
+    """
+    id: int
+    document_id: int
+    document_number: str
+    document_type: str  # "Sales Invoice" or "Vendor Bill"
+    date: datetime
+    partner_name: str
+    product_name: str
+    quantity: float
+    unit_price: float
+    subtotal: float
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BudgetBreakdownResponse(BaseModel):
+    """
+    Breakdown of contributing invoices or bills for a budget's achieved amount.
+    """
+    budget_id: int
+    budget_name: str
+    analytic_account_id: int
+    analytic_account_name: str
+    budget_type: str  # "income" or "expense"
+    lookup_source: str  # "Sales Invoice" or "Vendor Bills"
+    period_start: datetime
+    period_end: datetime
+    achieved_amount: float
+    transactions: List[BudgetBreakdownLine]
+
+    model_config = ConfigDict(from_attributes=True)
+

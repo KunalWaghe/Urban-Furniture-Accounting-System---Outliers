@@ -12,6 +12,7 @@ from app.schemas.budget import (
     BudgetRevise,
     BudgetResponse,
     BudgetListResponse,
+    BudgetBreakdownResponse,
 )
 from app.services import budget_service
 
@@ -77,3 +78,11 @@ def revise_budget(budget_id: int, req: BudgetRevise, db: Session = Depends(get_d
 def cancel_budget(budget_id: int, db: Session = Depends(get_db)):
     """Cancel a draft Budget."""
     return budget_service.cancel_budget(db, budget_id)
+
+
+# Retrieves transaction lines (Sales Invoices or Vendor Bills) contributing to achieved amount
+@router.get("/{budget_id}/breakdown", response_model=BudgetBreakdownResponse, status_code=status.HTTP_200_OK)
+def get_budget_breakdown(budget_id: int, db: Session = Depends(get_db)):
+    """Get list of matching Invoices or Vendor Bills contributing to the achieved amount."""
+    return budget_service.get_budget_breakdown(db, budget_id)
+

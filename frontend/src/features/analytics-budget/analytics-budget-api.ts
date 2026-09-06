@@ -34,6 +34,33 @@ export interface BudgetReportRow extends Budget {
   balance: number;
 }
 
+export interface BudgetBreakdownLine {
+  id: number;
+  document_id: number;
+  document_number: string;
+  document_type: "Sales Invoice" | "Vendor Bill";
+  date: string;
+  partner_name: string;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+  status: string;
+}
+
+export interface BudgetBreakdownResponse {
+  budget_id: number;
+  budget_name: string;
+  analytic_account_id: number;
+  analytic_account_name: string;
+  budget_type: AnalyticType;
+  lookup_source: "Sales Invoice" | "Vendor Bills";
+  period_start: string;
+  period_end: string;
+  achieved_amount: number;
+  transactions: BudgetBreakdownLine[];
+}
+
 export interface BudgetInput {
   name: string;
   responsible_contact_id?: number | null;
@@ -152,3 +179,8 @@ export async function fetchBudgetReport(): Promise<BudgetReportRow[]> {
     balance: Number(item.balance ?? item.amount_to_achieve ?? 0),
   }));
 }
+
+export async function fetchBudgetBreakdown(budgetId: number): Promise<BudgetBreakdownResponse> {
+  return await apiFetch<BudgetBreakdownResponse>(`/api/v1/budgets/${budgetId}/breakdown`, { auth: true });
+}
+

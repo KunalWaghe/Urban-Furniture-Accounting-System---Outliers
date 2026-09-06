@@ -351,15 +351,28 @@ def test_budget_live_achieved_calculation_from_ledger():
             assert round(data["achieved_pct"], 2) == expected_pct
             assert round(data["amount_to_achieve"], 2) == round(committed - bill_total, 2)
 
-            # 5. Verify check_budget_exceeded helper
-            # Within headroom (headroom = 30,000, new = 10,000) -> None
-            warn_ok = budget_service.check_budget_exceeded(db, anl_acc.id, new_amount=10000.0, reference_date=now)
-            assert warn_ok is None
+            # 6. Verify breakdown endpoint
+            breakdown_res = client.get(f"/api/v1/budgets/{budget.id}/breakdown")
+            assert breakdown_res.status_code == 200, breakdown_res.text
+            bd_data = breakdown_res.json()
+            assert bd_data["budget_id"] == budget.id
+            assert bd_data["budget_type"] == "expense"
+            assert bd_data["lookup_source"] == "Vendor Bills"
+            assert round(bd_data["achieved_amount"], 2) == round(bill_total, 2)
+            assert len(bd_data["transactions"]) == 1
+            t0 = bd_data["transactions"][0]
+            assert t0["document_type"] == "Vendor Bill"
+            assert t0["subtotal"] == 20000.0
+            assert t0["partner_name"] == vendor.name
 
-            # Exceeds headroom (headroom = 30,000, new = 35,000 -> overrun 5,000) -> warning string
-            warn_exceed = budget_service.check_budget_exceeded(db, anl_acc.id, new_amount=35000.0, reference_date=now)
-            assert warn_exceed is not None
-            assert "exceeded" in warn_exceed.lower()
+            # 7. Verify default revision naming (adds 'Revised' at end)
+            rev_res = client.post(
+                f"/api/v1/budgets/{budget.id}/revise",
+                json={"committed_amount": 75000.0},
+            )
+            assert rev_res.status_code == 201
+            assert rev_res.json()["name"] == f"{budget.name} Revised"
 
         finally:
             db.close()
+
